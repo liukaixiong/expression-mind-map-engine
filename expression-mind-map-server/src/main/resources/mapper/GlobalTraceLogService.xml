@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.liukx.expression.engine.server.mapper.ExpressionFunctionConfigMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.liukx.expression.engine.server.mapper.entity.ExpressionFunctionConfig">
+        <id column="id" property="id"/>
+        <result column="service_name" property="serviceName"/>
+        <result column="func_name" property="funcName"/>
+        <result column="func_description" property="funcDescription"/>
+        <result column="body_param" property="bodyParam"/>
+        <result column="common_param" property="commonParam"/>
+        <result column="deleted" property="deleted"/>
+        <result column="is_valid" property="isValid"/>
+        <result column="create_by" property="createBy"/>
+        <result column="update_by" property="updateBy"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, service_name, func_name, func_description, body_param, common_param, func_method, deleted, is_valid, create_by, update_by, create_time, update_time
+    </sql>
+
+</mapper>

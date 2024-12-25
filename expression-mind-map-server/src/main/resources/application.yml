@@ -1,0 +1,57 @@
+server:
+  port: ${application.port:20888}
+spring:
+  main:
+    allow-bean-definition-overriding: true
+    allow-circular-references: true
+  freemarker:
+    check-template-location: false
+  jackson:
+    default-property-inclusion: always
+    serialization:
+      write-dates-as-timestamps: true
+    #time-zone: GMT+8
+    #date-format: yyyy-MM-dd HH:mm:ss
+  application:
+    name: expression-mind-map-server
+  profiles:
+    active: ${config.profile:dev}
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    url: ${engine.datasource.url}
+    username: ${engine.datasource.username}
+    password: ${engine.datasource.password}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      # 最大连接池数量
+      maxPoolSize: 20
+      # 最小空闲线程数量
+      minIdle: 10
+      # 配置获取连接等待超时的时间
+      connectionTimeout: 30000
+      # 校验超时时间
+      validationTimeout: 5000
+      # 空闲连接存活最大时间，默认10分钟
+      idleTimeout: 600000
+      # 此属性控制池中连接的最长生命周期，值0表示无限生命周期，默认30分钟
+      maxLifetime: 1800000
+      # 多久检查一次连接的活性
+      keepaliveTime: 30000
+
+  #redis配置 , spring boot 2的版本 : spring.redis, spring boot 3的版本是:spring.data.redis
+  data:
+    redis:
+      host: ${engine.redis.host:127.0.0.1}
+      port: ${engine.redis.port:6379}
+      # 密码(如没有密码请注释掉)
+      password: ${engine.redis.password}
+      database: 0
+      timeout: 10s
+      ssl:
+        enabled: false
+
+mybatis-plus:
+  mapper-locations: mapper/**/*.xml
+  #  需要SQL日志时开启
+  configuration:
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl

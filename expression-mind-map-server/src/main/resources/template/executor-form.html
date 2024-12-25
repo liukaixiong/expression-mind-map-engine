@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>表达式表单</title>
+    <link href="//unpkg.com/layui@2.9.14/dist/css/layui.css" rel="stylesheet">
+    <script src="//unpkg.com/layui@2.9.14/dist/layui.js"></script>
+    <script src="/js/Utils.js"></script>
+    <script src="/js/engine-const.js"></script>
+</head>
+<body>
+<div id="exp-form-data" style="padding-left: 50px;padding-top: 50px">
+    <form action="" class="layui-form layui-form-pane" lay-filter="expression-form">
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">所属服务</label>
+            <div class="layui-input-block">
+                <input autoComplete="off" class="layui-input" lay-verify="required"
+                       name="serviceName"
+                       placeholder="请输入"
+                       type="text"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">业务组</label>
+            <div class="layui-input-block">
+                <input autoComplete="off" class="layui-input" lay-verify="required"
+                       name="businessCode"
+                       placeholder="请输入标识某类型的业务组"
+                       type="text"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">业务编码</label>
+            <div class="layui-input-block">
+                <input autoComplete="off" class="layui-input" lay-verify="required"
+                       name="executorCode"
+                       placeholder="请输入标识某类型的业务组"
+                       type="text"/>
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">业务变量注入(k=变量名,v=类的名称,多个逗号分割)
+                <i class="layui-icon layui-icon-question" onclick="showType(this)"
+                   style="font-size: 30px; color: #16b777;"></i>
+            </label>
+            <div class="layui-input-block">
+                <textarea class="layui-textarea" name="varDefinition"
+                          placeholder="请输入"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">业务描述</label>
+            <div class="layui-input-block">
+                <textarea class="layui-textarea" name="executorDescription"
+                          placeholder="请输入"></textarea>
+            </div>
+        </div>
+
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">能力开关</label>
+            <div class="layui-input-block">
+                <input lay-filter="configurability-checkbox-filter" lay-skin="tag" name="enableTrace" title="开启追踪"
+                       type="checkbox"/>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-inline">
+                <select lay-filter="expressionStatus" name="status">
+                    <option selected value="1">有效</option>
+                    <option value="0">无效</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <button class="layui-btn" lay-filter="lay-btn-form" lay-submit>确认</button>
+            <button class="layui-btn layui-btn-primary" type="reset">重置</button>
+        </div>
+    </form>
+</div>
+</body>
+<script type="text/javascript">
+    var layer = layui.layer;
+    var form = layui.form;
+    var $ = layui.$;
+    let requestParam = engineUtils.getRequestParams();
+
+    let dataId = requestParam["id"];
+
+    let api_add_path = final_const.api_path.executor_add;
+    let api_edit_path = final_const.api_path.executor_edit;
+    let api_get_one = final_const.api_path.executor_info;
+
+    let api_executor_doc_type_list = final_const.api_path.executor_doc_type_list;
+
+    // 复选框 - 选择暂存结果
+    let configurabilityEnableArray = new Set();
+    // 配置开关能力记录,新增的能力需要注册到该配置中
+    let configurabilityJson = {};
+
+    if (dataId) {
+        let url = api_get_one + "?id=" + dataId;
+        engineUtils.requestPost(url, {}, function (response) {
+            let defaultData = response.data;
+            let configurabilityJson = defaultData['configurabilityJson'];
+            if (configurabilityJson) {
+                let configJson = JSON.parse(configurabilityJson);
+                if (configJson && configJson.enableSwitch) {
+                    configJson.enableSwitch.forEach(function (item) {
+                        // 初始化配置开关中的复选框
+                        defaultData[item] = true;
+                        // 暂存事件
+                        configurabilityEnableArray.add(item);
+                    });
+                }
+            }
+            form.val('expression-form', defaultData);
+            form.render('checkbox');
+        })
+    } else {
+        // 默认数据初始化
+        let defaultData = {
+            "enableTrace": true
+        };
+        configurabilityEnableArray.add("enableTrace");
+        form.val('expression-form', defaultData);
+    }
+
+
+    form.on('checkbox(configurability-checkbox-filter)', function (data) {
+        console.log(this.value); // 当前点击的checkbox的value值
+        let name = data.elem.name;
+        this.checked ? configurabilityEnableArray.add(name) : configurabilityEnableArray.delete(name);
+
+    });
+
+    function showType(self) {
+        let url = api_executor_doc_type_list + "?executorId=" + dataId;
+        engineUtils.requestPost(url, {}, function (response) {
+            let defaultData = response.data;
+            if (defaultData) {
+                layer.tips(JSON.stringify(defaultData, null, "\t"), self, {
+                    anim: 1,
+                    shade: [0.3, '#FFF'],
+                    tips: [2, '#16b777'],
+                    maxWidth: 800,
+                    skin: 'layui-layer-win10',
+                    shadeClose: true,
+                    time: -1
+                });
+            } else {
+                layer.tips("没有注册相应的类型!", self, {
+                    anim: 1,
+                    shade: [0.3, '#FFF'],
+                    shadeClose: true,
+                    time: -1
+                });
+            }
+        })
+    }
+
+    // 提交事件
+    form.on('submit(lay-btn-form)', function (data) {
+        let field = data.field; // 获取表单字段值
+        let submitUrl = api_add_path;
+        if (dataId) {
+            field['id'] = dataId;
+            submitUrl = api_edit_path;
+        }
+
+        configurabilityJson['enableSwitch'] = Array.from(configurabilityEnableArray);
+        field['configurabilityJson'] = JSON.stringify(configurabilityJson);
+
+        engineUtils.requestPost(submitUrl, field, function (response) {
+            // 请求成功时的回调函数
+            console.log(response);
+            if (response.code === 200) {
+                field["id"] = response.data.id;
+                layer.alert('操作成功!', {
+                    icon: 6,
+                    title: '提示'
+                }, function (index, layero, that) {
+                    parent.reloadTable();
+                    parent.layer.closeAll(); // 关闭弹层
+                });
+            } else {
+                layer.alert(response.message, {
+                    title: '错误提示'
+                });
+            }
+        })
+        // 此处可执行 Ajax 等操作
+        // …
+        return false; // 阻止默认 form 跳转
+    });
+
+</script>
+</html>

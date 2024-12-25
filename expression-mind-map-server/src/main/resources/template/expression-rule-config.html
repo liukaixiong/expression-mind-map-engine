@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>表达式规则配置页面</title>
+    <link href="https://unpkg.com/jsmind@0.8.5/style/jsmind.css" rel="stylesheet" type="text/css"/>
+    <script src="https://unpkg.com/jsmind@0.8.5/es6/jsmind.js" type="text/javascript"></script>
+    <script src="https://unpkg.com/jsmind@0.8.5/es6/jsmind.draggable-node.js" type="text/javascript"></script>
+    <link href="//unpkg.com/layui@2.9.14/dist/css/layui.css" rel="stylesheet">
+    <script src="//unpkg.com/layui@2.9.14/dist/layui.js"></script>
+    <script src="/js/cdn/jsmind/jsmind.menu.js"></script>
+    <script src="/js/Utils.js"></script>
+    <script src="/js/engine-const.js"></script>
+</head>
+<body>
+<div class="layui-btn-sm">
+    <div class="layui-col-xs6">
+        <button class="layui-btn" onclick="btnEventClick('expand')" type="button">展开</button>
+        <button class="layui-btn" onclick="btnEventClick('collapse')" type="button">收缩</button>
+        <button class="layui-btn" id="history-version-date" type="button"><i
+                class="layui-icon layui-icon-time"></i><span id="history-date-id">日期版本筛选</span>
+        </button>
+    </div>
+    <div class="layui-col-md6">
+        <div class="layui-input-group" style="width: 500px">
+            <input class="layui-input" id="expression-search-context-id" placeholder="搜索表达式内容" type="text">
+            <div class="layui-input-split layui-input-suffix" onclick="searchContext()" style="cursor: pointer;">
+                <i class="layui-icon layui-icon-search"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="jsmind_container" style="width: 2000px;height: 1000px"></div>
+
+<div id="view"></div>
+</body>
+
+<script type="text/javascript">
+    var layer = layui.layer;
+    var laydate = layui.laydate;
+    var $ = layui.$;
+    let requestParam = engineUtils.getRequestParams();
+    let executorId = requestParam.executorId;
+    let executorCode = requestParam.executorCode;
+    let traceLogId = requestParam.traceLogId;
+    let enableEditable = traceLogId === undefined;
+    let executorDescription = requestParam.executorDescription;
+    let api_expression_list = final_const.api_path.expression_list;
+    let api_expression_form = final_const.template_path.expression_form;
+
+    let api_expression_del = final_const.api_path.expression_del;
+    let api_expression_edit_parent = final_const.api_path.expression_edit_parent;
+    let api_expression_copy_node = final_const.api_path.expression_copy_node;
+    let global_copy_node_id = -1;
+    let global_full_history_start_date;
+
+    laydate.render({
+        elem: '#history-version-date',
+        shade: 0.5,
+        done: function (value, date, endDate) {
+            if (value) {
+                global_full_history_start_date = value;
+                $("#history-date-id").html(value);
+            } else {
+                $("#history-date-id").html("日期版本筛选");
+                global_full_history_start_date = undefined;
+            }
+            reloadMind();
+        }
+    });
+    // https://hizzgdev.github.io/jsmind/developer.html
+    var options = {                    // options 将在下一章中详细介绍
+        container: 'jsmind_container', // [必选] 容器的ID，或者为容器的对象
+        editable: enableEditable,                // [可选] 是否启用编辑
+        layout: {
+            hspace: 30,                // 节点之间的水平间距
+            vspace: 20,                // 节点之间的垂直间距
+            pspace: 13,                // 节点与连接线之间的水平间距（用于容纳节点收缩/展开控制器）
+            cousin_space: 0            // 相邻节点的子节点之间的额外的垂直间距
+        },                             // [可选] 主题
+        log_level: 'info',             // 布局模式
+        mode: 'side',
+        shortcut: {
+            enable: true,               // 是否启用快捷键
+            handles: {
+                'dosomething': function (jm, e) {
+                    // do something...
+                    console.log("dosomething--->>", jm, e);
+                    debugger;
+                },
+                "tab": function (jm, e) {
+                    openAddHtml();
+                },
+                "delnode": function (jm, e) {
+                    console.log("delnode-------------------------->>", jm, e);
+                },
+                "control_c": function (jm, e) {
+                    let selectNode = jm.get_selected_node();
+                    global_copy_node_id = selectNode.id;
+                    layer.msg("您已经复制【" + selectNode.id + "】 相关内容!")
+                },
+                "control_v": function (jm, e) {
+                    console.log(" 粘贴值:", jm);
+                    let selectNode = jm.get_selected_node();
+                    let nodeId = selectNode.id;
+                    let nodeInfo = {
+                        "parentId": selectNode.id,
+                        "id": global_copy_node_id
+                    };
+                    layer.confirm("确认粘贴【" + global_copy_node_id + "】到【" + nodeId + "】子节点中", {icon: 3}, function () {
+                        engineUtils.requestPost(api_expression_copy_node, nodeInfo, function (res) {
+                            if (res.code === 200) {
+                                layer.msg("粘贴成功!");
+                            } else {
+                                layer.alert(res.message);
+                            }
+                            reloadMind();
+                        })
+                    }, function () {
+                        reloadMind();
+                    });
+                }
+
+            },         // 命名的快捷键事件处理器
+            mapping: {           // 快捷键映射
+                addchild: [45, 4096 + 13], 	// <Insert>, <Ctrl> + <Enter>
+                addbrother: 13,    // <Enter>
+                editnode: 113,   // <F2>
+                delnode: 46,    // <Delete>
+                toggle: 32,    // <Space>
+                left: 37,    // <Left>
+                up: 38,    // <Up>
+                right: 39,    // <Right>
+                down: 40,    // <Down>
+                dosomething: [112],
+                control_c: [4096 + 67],
+                control_v: [4096 + 86],
+                tab: 9
+            }
+        },
+        support_html: true,// 是否支持节点里的HTML元素
+        theme: 'success',
+        default_event_handle: {
+            // enable_dblclick_handle: false
+        },
+        menuOpts: {  // 这里加入一个专门配置menu的对象 -> https://github.com/allensunjian/jsmind.menu.js/blob/master/README.md
+            showMenu: enableEditable, //showMenu 为 true 则打开右键功能 ，反之关闭
+            tipContent: '请选中节点再进行操作!',
+            injectionList: [{
+                target: 'edit', text: '编辑节点', callback: function (node) {
+                    let selectNode = node;
+                    layer.open({
+                        type: 2,
+                        maxmin: true,
+                        resize: true,
+                        title: "修改表达式【" + selectNode.id + "】[" + (selectNode.data.expressionTitle || '') + "]",
+                        offset: 'auto',
+                        scrollbar: false,
+                        area: ['80%', '80%'],
+                        content: api_expression_form + "?id=" + selectNode.id + "&&executorId=" + executorId,
+                    });
+                }
+            }, {
+                target: 'addChild', text: '添加子节点',
+                callback: function (node) {
+                    openAddHtml(node);
+                }
+            }, {
+                target: 'addBrother', text: '添加兄弟节点',
+                callback: function (node) {
+                    openAddHtml(node.parent);
+                }
+            }, {
+                target: 'delete', text: '删除节点',
+                callback: function (node) {
+                    //  mindRemoveNode(node.id);
+                }
+            }],  //这是完整的功能列表
+        },
+        view: {
+            engine: 'canvas',   // 思维导图各节点之间线条的绘制引擎
+            hmargin: 100,        // 思维导图距容器外框的最小水平距离
+            vmargin: 50,         // 思维导图距容器外框的最小垂直距离
+            line_width: 2,       // 思维导图线条的粗细
+            line_color: '#555',  // 思维导图线条的颜色
+            line_style: 'curved',// 思维导图线条的样式，直线(straight)或者曲线(curved)
+            custom_line_render: null,  // 自定义的线条渲染方法
+            draggable: true,   // 当容器不能完全容纳思维导图时，是否允许拖动画布代替鼠标滚动
+            hide_scrollbars_when_draggable: true, // 当设置 draggable = true 时，是否隐藏滚动条
+            node_overflow: 'wrap', // 节点文本过长时的样式
+            zoom: {             // 配置缩放
+                min: 0.5,       // 最小的缩放比例
+                max: 2.1,       // 最大的缩放比例
+                step: 0.1,      // 缩放比例间隔
+            },
+            custom_node_render: null, // 自定义的节点渲染方法
+            expander_style: 'number'
+        },
+    };
+
+    // https://hizzgdev.github.io/jsmind/developer.html
+    let jm = new jsMind(options);
+
+    reloadMind();
+
+    function reloadMind() {
+        engineUtils.requestPost(api_expression_list, {
+            "executorId": executorId,
+            "traceLogId": traceLogId
+        }, function (response) {
+            // 请求成功时的回调函数
+            if (response.code === 200) {
+                readerMind(response.data);
+            }
+        })
+    }
+
+    function searchContext() {
+        reloadMind();
+    }
+
+    function openAddHtml(nodeInfo) {
+        var selectNode = nodeInfo;
+        if (!nodeInfo) {
+            selectNode = jm.get_selected_node()
+        }
+        if (selectNode) {
+            layer.open({
+                type: 2,
+                maxmin: true,
+                resize: true,
+                title: "新增表达式,父表达式【" + selectNode.id + "】[" + (selectNode.data.expressionTitle || '') + "]",
+                offset: 'auto',
+                scrollbar: false,
+                area: ['80%', '80%'],
+                content: api_expression_form + "?executorId=" + executorId + "&&parentId=" + selectNode.id + "&&expressionType=" + selectNode.data.expressionType,
+            });
+        }
+    }
+
+    function mindRemoveNode(nodeId) {
+        let data = {
+            "idList": [nodeId]
+        };
+        layer.confirm('该操作会同时会删除该节点下的子节点,确认删除[' + nodeId + ']节点吗？', {icon: 3}, function () {
+            engineUtils.requestPost(api_expression_del, data, function (response) {
+                // 请求成功时的回调函数
+                if (response.code === 200) {
+                    layer.msg("删除成功!");
+                } else {
+                    layer.alert(response.message);
+                }
+            })
+        }, function () {
+            reloadMind();
+        });
+    }
+
+
+    function showTips(self, nodeId, bgColor) {
+        let node = jm.get_node(nodeId);
+        var traceHtml = "";
+        if (node.data.traceLogInfos && node.data.traceLogInfos.length > 0) {
+            let traceHtmlList = [];
+            traceHtmlList.push("<table>");
+            traceHtmlList.push("<tbody>");
+            traceHtmlList.push("<tr>");
+            traceHtmlList.push("<td>函数名称</td>")
+            traceHtmlList.push("<td>函数描述</td>")
+            traceHtmlList.push("<td>调试信息</td>")
+            traceHtmlList.push("<td>执行结果</td>")
+            traceHtmlList.push("<tr>");
+            traceHtmlList.push("</tbody>");
+            let traceLogList = node.data.traceLogInfos;
+            for (let i = 0; i < traceLogList.length; i++) {
+                let traceLog = traceLogList[i];
+                traceHtmlList.push("<tr>")
+                traceHtmlList.push("<td><li>" + traceLog.expressionContent + "</li></td>")
+                traceHtmlList.push("<td><li>" + traceLog.expressionDescription + "</li></td>")
+                traceHtmlList.push("<td><li>" + (traceLog.debugTraceContent == null ? '' : traceLog.debugTraceContent) + "</li></td>")
+                traceHtmlList.push("<td><li>" + getStatusIconString(traceLog.expressionResult) + "</li></td>")
+                traceHtmlList.push("</tr>")
+            }
+            traceHtmlList.push("</table>");
+            traceHtml = "<tr>\n" +
+                "      <td>链路追踪详情</td>\n" +
+                "      <td>" + traceHtmlList.join('\r\n') + "</td>\n" +
+                "    </tr>\n";
+        }
+
+        let tableHtml = "<table class=\"layui-table\" lay-size=\"sm\" style='background-color: " + bgColor + ";border-color: white;color: white'>\n" +
+            "  <tbody>\n" +
+            "    <tr>\n" +
+            "      <td>表达式编码</td>\n" +
+            "      <td>" + node.data.expressionCode + "</td>\n" +
+            "    </tr>\n" +
+            "    <tr>\n" +
+            "      <td>表达式编码</td>\n" +
+            "      <td>" + node.data.expressionTitle + "</td>\n" +
+            "    </tr>\n" +
+            "    <tr>\n" +
+            "      <td>表达式内容</td>\n" +
+            "      <td>" + node.data.expressionContent + "</td>\n" +
+            "    </tr>\n" +
+            "    <tr>\n" +
+            "      <td>表达式描述</td>\n" +
+            "      <td>" + node.data.expressionDescription + "</td>\n" +
+            "    </tr>\n" + traceHtml +
+            "  </tbody>\n" +
+            "</table>";
+
+
+        layer.tips(tableHtml, self, {
+            tips: [1, bgColor],
+            title: '表达式内容',
+            maxWidth: 1100,
+            maxHeight: 1000,
+            shade: 0.5,
+            time: -1,
+            shadeClose: true
+        });
+    }
+
+    function getStatusIconString(status) {
+        let icon = "layui-icon-error";
+        let color = "#ff5722"
+        if (status === 1) {
+            icon = "layui-icon-success";
+            color = "#16b777";
+        }
+        return "<i class=\"layui-icon " + icon + "\" style=\"font-size: 20px;color: " + color + ";\"></i>"
+    }
+
+    function getExpressionIconStatus(item) {
+        let traceLogList = item.traceLogInfos || [];
+        for (let i = 0; i < traceLogList.length; i++) {
+            let traceLogInfo = traceLogList[i];
+            if ('expression' === traceLogInfo.moduleType) {
+                return getStatusIconString(traceLogInfo.expressionResult);
+            }
+        }
+        return "<i class=\"layui-icon layui-icon-pause\" style=\"font-size: 20px;color: #eeeeee;\"></i>"
+    }
+
+    /**
+     * 转换成mind识别的对象
+     * background-color: 节点的背景颜色，如 #1abc9c, blue
+     * foreground-color: 节点的文本颜色，如 #1abc9c, blue
+     * width: 节点的宽度(px)，如 400
+     * height: 节点的高度(px)，如 400
+     * font-size: 节点的文本字体大小(px)，如 32
+     * font-weight: 节点的文本重量，如 bold
+     * font-style: 节点的文本样式，如 italic
+     * background-image: 节点的背景图片，可使用 url，如 http://fakeurl.com/fake-picture.png，或 data url 形式，如 data:image/png;base64,...
+     * background-rotation: 节点的背景图片旋转角度，如 30
+     * leading-line-color: 节点的引导线颜色，如 #1abc9c, blue。
+     * @param item
+     */
+    function convertMindNodeData(item) {
+        let parentId = item.parentId;
+        delete item.parentId;
+        item['parentid'] = parentId;
+        item['expanded'] = true;
+
+        let topicText = "【" + item.id + "】" + item.expressionTitle;
+        if (item.traceLogInfos !== null) {
+            topicText = topicText + "【" + getExpressionIconStatus(item) + "】";
+        }
+
+        // 默认的背景颜色,根据类型拆分
+        let bgColor = "red";
+        if (item.expressionType === 'condition') {
+            bgColor = '#D2D6F9';
+        } else if (item.expressionType === 'action') {
+            bgColor = '#4CCBCD';
+        } else if (item.expressionType === 'trigger') {
+            bgColor = '#75C13F';
+        } else if (item.expressionType === 'callback') {
+            bgColor = '#488FF7';
+        }
+
+        // 如果是删除了的节点,那么样式需要突出显示
+        let icon = "layui-icon-about";
+        if (item.expressionStatus !== 1) {
+            icon = "layui-icon-clear";
+            bgColor = "#e2e2e2";
+            topicText = "<s>" + topicText + "</s>";
+        }
+
+        item['leading-line-color'] = bgColor;
+        item['background-color'] = bgColor;
+        if (global_full_history_start_date) {
+            var dateTime = item.updateTime || item.createTime;
+            if (engineUtils.compareDateStr(global_full_history_start_date, dateTime) === -1) {
+                // item['font-weight'] = 'bold';
+                item['foreground-color'] = '#ff5722';
+                topicText = topicText + "<br/>【" + dateTime + "】";
+            }
+        } else {
+            let searchContext = $("#expression-search-context-id").val();
+            if (searchContext !== '') {
+                if (item.expressionContent.includes(searchContext)) {
+                    item['foreground-color'] = '#f3004b';
+                    topicText = topicText + "<br/>【" + item.expressionContent + "】";
+                }
+            }
+        }
+        item['topic'] = "<div><i class=\"layui-icon " + icon + "\" onclick=showTips(this," + item.id + ",'" + bgColor + "')>" + topicText + "</i></div>";
+    }
+
+    function convertMindData(data) {
+        var treeNode = [];
+        treeNode.push({
+            "id": '0',
+            "isroot": true,
+            "topic": "【" + executorCode + "】 " + executorDescription,
+            "expanded": true,
+            "background-color": "#4669EA",
+            "executorId": executorId,
+            "parentid": 0
+        });
+        data.forEach(function (item) {
+            convertMindNodeData(item);
+            treeNode.push(item);
+        });
+        var mind = {
+            /* 元数据，定义思维导图的名称、作者、版本等信息 */
+            "meta": {
+                "name": "engine_liukaixiong",
+                "author": "444368875@qqq.com",
+                "version": "0.1"
+            },
+            /* 数据格式声明 */
+            "format": "node_array",
+            /* 数据内容 */
+            "data": treeNode
+        };
+        return mind;
+    }
+
+    function btnEventClick(type) {
+        let currentNode = jm.get_selected_node();
+        if (type === 'collapse') {
+            jm.collapse_node(currentNode)
+        } else if ('expand') {
+            if (currentNode) {
+                jm.expand_node(currentNode);
+            } else {
+                jm.expand_all();
+            }
+        }
+    }
+
+
+    function readerMind(data) {
+        var mind = convertMindData(data);
+
+        jm.show(mind);
+
+        jm.add_event_listener(function (type, node) {
+            // debugger;
+            if (node.evt === 'select_node') {
+                console.info("触发了选择事件... 选择内容" + node.node);
+            } else if (node.evt === "add_node") {
+                console.info("触发了新增节点事件..." + node.node);
+            } else if (node.evt === "insert_node_after") {
+                let nodeInfo = jm.get_node(node.data[0]).parent;
+                openAddHtml(nodeInfo);
+            } else if (node.evt === "update_node") {
+                console.info("触发了修改节点事件..." + node.node);
+            } else if (node.evt === "remove_node") {
+                mindRemoveNode(node.data[0]);
+            } else if (node.evt === "move_node") {
+                var nodeInfo = {
+                    "parentId": node.data[2],
+                    "id": node.node
+                };
+                layer.confirm('是否要迁移节点？一旦迁移父子关系将会发生变化,是否确认?', {icon: 3}, function () {
+                    let node = nodeInfo;
+                    engineUtils.requestPost(api_expression_edit_parent, node, function (res) {
+                        if (res.code === 200) {
+                            layer.msg("迁移成功");
+                        } else {
+                            layer.alert(res.message);
+                            reloadMind();
+                        }
+                    })
+                }, function () {
+                    reloadMind();
+                });
+            }
+        });
+    }
+
+
+</script>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>执行器列表</title>
+    <link href="//unpkg.com/layui@2.9.14/dist/css/layui.css" rel="stylesheet">
+    <script src="//unpkg.com/layui@2.9.14/dist/layui.js"></script>
+    <script src="/js/Utils.js"></script>
+    <script src="/js/engine-const.js"></script>
+</head>
+<body>
+<form class="layui-form layui-row layui-col-space16">
+    <div class="layui-col-md4">
+        <div class="layui-input-wrap">
+            <div class="layui-input-prefix">
+                <i class="layui-icon layui-icon-username"></i>
+            </div>
+            <input class="layui-input" lay-affix="clear" name="serviceName" placeholder="服务名称" type="text" value="">
+        </div>
+    </div>
+    <div class="layui-col-md4">
+        <div class="layui-input-wrap">
+            <input class="layui-input" lay-affix="clear" name="businessCode" placeholder="业务组" type="text">
+        </div>
+    </div>
+    <div class="layui-col-md4">
+        <div class="layui-input-wrap">
+            <input class="layui-input" lay-affix="clear" name="executorCode" placeholder="业务编码" type="text">
+        </div>
+    </div>
+    <!--    <div class="layui-col-md4">-->
+    <!--        <div class="layui-input-wrap">-->
+    <!--            <div class="layui-input-prefix">-->
+    <!--                <i class="layui-icon layui-icon-date"></i>-->
+    <!--            </div>-->
+    <!--            <input type="text" name="C" readonly placeholder="Field C" class="layui-input demo-table-search-date">-->
+    <!--        </div>-->
+    <!--    </div>-->
+    <div class="layui-btn-container layui-col-xs12">
+        <button class="layui-btn" lay-filter="executor-table-search" lay-submit>Search</button>
+        <button class="layui-btn layui-btn-primary" type="reset">Clear</button>
+    </div>
+</form>
+<table class="layui-hide" id="ID-table-executor-search"></table>
+
+</body>
+<script id="id-operation-bar" type="text/html">
+    <div class="layui-clear-space">
+        <a class="layui-btn layui-btn-xs" lay-event="btn-config-rule">配置规则</a>
+        <a class="layui-btn layui-btn-xs" lay-event="btn-edit">编辑</a>
+        <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="btn-del">删除</a>
+        <a class="layui-btn layui-btn-xs layui-bg-blue" lay-event="btn-download-rule"><i
+                class="layui-icon layui-icon-download-circle"></i>下载规则</a>
+
+    </div>
+</script>
+<script id="executor-toolbar" type="text/html">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm layui-bg-blue" lay-event="openAddHtml">新增</button>
+        <button class="layui-btn layui-btn-sm layui-bg-blue class-rule-file-upload-json" lay-event="btn-upload-rule"><i
+                class="layui-icon layui-icon-upload-drag"></i>导入覆盖规则
+        </button>
+    </div>
+</script>
+<script type="text/javascript">
+    let executor_form = final_const.template_path.executor_form;
+    var table = layui.table;
+    var $ = layui.$;
+    var form = layui.form;
+    var util = layui.util
+    let layUpload = layui.upload;
+    var laydate = layui.laydate;
+
+    let api_list = final_const.api_path.executor_list;
+    let api_del = final_const.api_path.executor_del;
+    let api_download_json = final_const.api_path.download_json;
+    let api_upload_json = final_const.api_path.upload_json;
+    let expression_rule_config = final_const.template_path.expression_rule_config;
+
+    function open_form(id) {
+        let title = "新增表单";
+        let apiUrl = executor_form;
+        if (id !== undefined) {
+            apiUrl = apiUrl + "?id=" + id;
+            title = "修改表单"
+        }
+        layer.open({
+            type: 2,
+            maxmin: true,
+            resize: true,
+            title: title,
+            offset: 'auto',
+            scrollbar: false,
+            area: ['80%', '80%'],
+            content: apiUrl,
+        });
+    }
+
+    // 创建表格实例
+    table.render({
+        elem: '#ID-table-executor-search',
+        toolbar: '#executor-toolbar',
+        url: api_list, // 此处为静态模拟数据，实际使用时需换成真实接口
+        method: 'post',
+        title: '执行器列表',
+        contentType: 'application/json',
+        cols: [[
+            {field: 'id', title: '主键', width: 50}, // 单选框
+            {field: 'serviceName', title: '所属服务', width: 200, sort: true},
+            {field: 'businessCode', title: '业务组', width: 200, sort: true},
+            {field: 'executorCode', title: '业务编码'},
+            {field: 'executorDescription', title: '业务描述'},
+            {
+                field: 'status', title: '是否有效', width: 100, templet: function (d) {
+                    return d.status === 1 ? '<span style="color: #16baaa; ">有效</span>' : '<span style="color: red; ">无效</span>';
+                }
+            },
+            {field: 'createTime', title: '创建时间', width: 200, sort: true},
+            {fixed: 'right', title: '操作', toolbar: '#id-operation-bar'}
+        ]],
+        request: {
+            pageName: 'curr', // 页码的参数名称，默认：page
+            limitName: 'nums' // 每页数据条数的参数名，默认：limit
+        },
+        parseData: function (res) { // res 即为原始返回的数据
+            return {
+                "code": res.code === 200 ? 0 : res.code, // 解析接口状态
+                "msg": res.message, // 解析提示文本
+                "count": res.data.length, // 解析数据长度
+                "data": res.data // 解析数据列表
+            };
+        },
+        page: true
+    });
+
+    layUpload.render({
+        elem: '.class-rule-file-upload-json', // 绑定多个元素
+        url: api_upload_json, // 此处配置你自己的上传接口即可
+        exts: 'json',
+        accept: 'file', // 普通文件
+        force: 'json',
+        acceptMime: 'application/json',
+        text: {
+            "check-error": "必须是.json结尾的文件", // 文件格式校验失败的提示
+        },
+        done: function (res) {
+            if (res.code === 200) {
+                layer.msg('上传成功');
+                self.location.reload();
+            } else {
+                layer.msg("上传失败!" + res.message);
+            }
+        }
+    });
+
+    // 日期
+    laydate.render({
+        elem: '.demo-table-search-date'
+    });
+    // 搜索提交
+    form.on('submit(executor-table-search)', function (data) {
+        var field = data.field; // 获得表单字段
+        // 执行搜索重载
+        table.reload('ID-table-executor-search', {
+            page: {
+                curr: 1 // 重新从第 1 页开始
+            },
+            where: field // 搜索的字段
+        });
+        //layer.msg('搜索成功<br>此处为静态模拟数据，实际使用时换成真实接口即可');
+        return false; // 阻止默认 form 跳转
+    });
+
+    table.on('toolbar(ID-table-executor-search)', function (obj) {
+        var id = obj.config.id;
+        switch (obj.event) {
+            case 'openAddHtml':
+                // layer.alert(layui.util.escape(JSON.stringify(obj)));
+                open_form();
+                break;
+            case 'getData':
+                var getData = table.getData(id);
+                console.log(getData);
+                layer.alert(layui.util.escape(JSON.stringify(getData)));
+                break;
+            // case 'btn-upload-rule':
+            //     debugger;
+
+        }
+    });
+
+    // 触发单元格工具事件
+    table.on('tool(ID-table-executor-search)', function (obj) { // 双击 toolDouble
+        var data = obj.data; // 获得当前行数据
+        if (obj.event === 'btn-edit') {
+            open_form(obj.data.id);
+        } else if (obj.event === 'btn-config-rule') {
+            util.openWin({
+                url: expression_rule_config + '?executorId=' + data.id + "&&executorCode=" + data.executorCode + "&&executorDescription=" + data.executorDescription
+            });
+        } else if (obj.event === 'btn-download-rule') {
+            layer.confirm('确定要下载【' + data.executorDescription + '】相关配置文件吗?', {icon: 3}, function () {
+                self.location.href = api_download_json + "?type=EXPRESSION_EXECUTOR&&exportId=" + data.id;
+                layer.msg("下载成功,请去下载列表查看!");
+            });
+        } else if (obj.event === 'btn-del') {
+            layer.confirm('确定要删除[' + data.id + ']数据吗?', {icon: 3}, function () {
+                engineUtils.requestPost(api_del, {"idList": [data.id]}, function (response) {
+                    // 请求成功时的回调函数
+                    if (response.code === 200) {
+                        layer.msg("删除成功!");
+                        reloadTable();
+                    } else {
+                        layer.alert(response.message);
+                    }
+                })
+            });
+        }
+    });
+
+    function reloadTable() {
+        table.reload('ID-table-executor-search', {
+            page: {
+                curr: 1 // 重新从第 1 页开始
+            }
+        });
+    }
+
+
+</script>
+
+</html>
