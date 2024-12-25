@@ -105,6 +105,10 @@ typora-copy-images-to: doc\images
 
 服务端接入:  [文档地址](./expression-mind-map-server/README.md)
 
+## 其他
+> 如果你对该项目有任何疑问或者建议,可直接联系我
+> QQ: `444368875` , 微信: `liukaixiong820` 
+
 ## 特别鸣谢相关作者
 
 ### github
@@ -112,3 +116,4 @@ typora-copy-images-to: doc\images
 - jsmind.menu : https://github.com/allensunjian/jsmind.menu.js/blob/master/README.md
 - jsmind : https://hizzgdev.github.io/jsmind/docs/zh/
 - aviator: https://github.com/killme2008/aviatorscript
+
