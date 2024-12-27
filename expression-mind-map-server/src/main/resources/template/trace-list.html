@@ -12,27 +12,27 @@
 <form class="layui-form">
     <div class="layui-form-item layui-col-space16">
         <div class="layui-col-md3">
+            <label class="layui-form-label">执行器编号</label>
+            <div class="layui-input-block">
+                <input class="layui-input" code="text" name="executorId" value=""/>
+            </div>
+        </div>
+        <div class="layui-col-md3">
             <label class="layui-form-label">项目名称</label>
             <div class="layui-input-block">
                 <input class="layui-input" code="text" name="serviceName" value=""/>
             </div>
         </div>
         <div class="layui-col-md3">
-            <label class="layui-form-label">业务编码</label>
+            <label class="layui-form-label">业务组</label>
             <div class="layui-input-block">
                 <input class="layui-input" code="text" name="businessCode" value=""/>
             </div>
         </div>
         <div class="layui-col-md3">
-            <label class="layui-form-label">执行器编码</label>
+            <label class="layui-form-label">业务编码</label>
             <div class="layui-input-block">
                 <input class="layui-input" code="text" name="executorCode" value=""/>
-            </div>
-        </div>
-        <div class="layui-col-md3">
-            <label class="layui-form-label">执行器编号</label>
-            <div class="layui-input-block">
-                <input class="layui-input" code="text" name="executorId" value=""/>
             </div>
         </div>
     </div>
@@ -104,7 +104,7 @@
             {field: 'executor_id', title: '执行器编号', width: 50, hide: true}, // 单选框
             {field: 'serviceName', title: '所属服务', sort: true},
             {field: 'businessCode', title: '业务组', sort: true},
-            {field: 'executorCode', title: '执行器编码'},
+            {field: 'executorCode', title: '业务编码'},
             {field: 'executorName', title: '执行器名称'},
             {field: 'eventName', title: '事件名称'},
             {field: 'userId', title: '用户编号'},
