@@ -1,8 +1,6 @@
 package com.liukx.expression.engine.core.api.model.api;
 
 import com.liukx.expression.engine.core.api.model.FunctionRequestDocumentModel;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,32 +8,26 @@ import java.util.List;
 /**
  * 可见变量定义模型
  */
-@ApiModel("函数释义")
 public class FunctionApiModel {
     /**
      * 注册类型
      */
-    @ApiModelProperty(value = "函数的注册类型", example = "local || remote")
     private String registerType = "local";
     /**
      * 分组名称
      */
-    @ApiModelProperty(value = "分组名称")
     private String groupName;
     /**
      * 变量名称
      */
-    @ApiModelProperty(value = "函数名称")
     private String name;
     /**
      * 描述
      */
-    @ApiModelProperty(value = "函数描述")
     private String describe;
     /**
      * 结果类型
      */
-    @ApiModelProperty(value = "函数出参类型")
     private String resultClassType;
 
     /**
@@ -43,7 +35,9 @@ public class FunctionApiModel {
      */
     private String example;
 
-    @ApiModelProperty(value = "入参描述")
+    /**
+     * 参数列表
+     */
     private List<String> args = new ArrayList<>();
     /**
      * 请求参数描述

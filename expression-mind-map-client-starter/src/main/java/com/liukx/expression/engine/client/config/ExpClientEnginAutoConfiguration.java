@@ -9,10 +9,12 @@ import com.liukx.expression.engine.client.api.configurability.TraceSwitchConfigu
 import com.liukx.expression.engine.client.engine.ClientEngineFactory;
 import com.liukx.expression.engine.client.engine.LocalEngineServiceImpl;
 import com.liukx.expression.engine.client.http.RestRemoteHttpService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -51,6 +53,7 @@ public class ExpClientEnginAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnBean(RedisTemplate.class)
     public RedisExpressionConfigService redisExpressionConfigService() {
         return new RedisExpressionConfigService();
     }

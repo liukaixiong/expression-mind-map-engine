@@ -2,22 +2,25 @@ package com.liukx.expression.engine.core.api.model;
 
 import com.liukx.expression.engine.core.api.model.api.FunctionApiModel;
 import com.liukx.expression.engine.core.api.model.api.VariableApiModel;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
 
 import java.util.List;
 
 /**
  * 翻译表达式
  */
-@ApiModel
 public class TranslateResult {
 
-    @ApiModelProperty(value = "相关的变量api列表")
+    /**
+     * 变量类型
+     */
     public List<VariableApiModel> variableApiList;
-    @ApiModelProperty(value = "简单的翻译文本")
+    /**
+     * 简单的翻译
+     */
     private String simpleTranslateText;
-    @ApiModelProperty(value = "相关的函数api列表")
+    /**
+     * 函数API
+     */
     private List<FunctionApiModel> functionApiList;
 
     public String getSimpleTranslateText() {

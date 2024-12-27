@@ -1,5 +1,6 @@
 package com.liukx.expression.engine.server.service;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorBaseInfo;
 import com.liukx.expression.engine.server.model.dto.request.AddExpressionExecutorRequest;
@@ -8,8 +9,6 @@ import com.liukx.expression.engine.server.model.dto.request.EditExpressionExecut
 import com.liukx.expression.engine.server.model.dto.request.QueryExpressionExecutorRequest;
 import com.liukx.expression.engine.server.model.dto.response.ExpressionExecutorBaseDTO;
 import com.liukx.expression.engine.server.model.dto.response.RestResult;
-
-import java.util.List;
 
 /**
  * <p>
@@ -25,7 +24,7 @@ public interface ExpressionExecutorConfigService extends IService<ExpressionExec
 
     RestResult<ExpressionExecutorBaseDTO> editExpressionExecutor(EditExpressionExecutorRequest editRequest);
 
-    RestResult<List<ExpressionExecutorBaseDTO>> queryExpressionExecutor(QueryExpressionExecutorRequest queryRequest);
+    Page<ExpressionExecutorBaseInfo> queryExpressionExecutor(QueryExpressionExecutorRequest queryRequest);
 
     RestResult<?> batchDeleteByIdList(DeleteByIdListRequest delRequest);
 

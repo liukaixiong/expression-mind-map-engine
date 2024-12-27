@@ -6,7 +6,7 @@ import cn.hutool.core.convert.Convert;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.liukx.expression.engine.server.constants.BaseConstants;
 import com.liukx.expression.engine.server.constants.enums.ErrorEnum;
@@ -22,7 +22,6 @@ import com.liukx.expression.engine.server.model.dto.request.QueryExpressionExecu
 import com.liukx.expression.engine.server.model.dto.response.ExpressionExecutorBaseDTO;
 import com.liukx.expression.engine.server.model.dto.response.RestResult;
 import com.liukx.expression.engine.server.service.ExpressionExecutorConfigService;
-import com.liukx.expression.engine.server.util.ConvertObjectUtils;
 import com.liukx.expression.engine.server.util.ServiceCommonUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +30,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -122,8 +120,8 @@ public class ExpressionExecutorConfigServiceImpl extends ServiceImpl<ExpressionE
     }
 
     @Override
-    public RestResult<List<ExpressionExecutorBaseDTO>> queryExpressionExecutor(QueryExpressionExecutorRequest queryRequest) {
-        LambdaQueryChainWrapper<ExpressionExecutorBaseInfo> lambdaQuery = lambdaQuery();
+    public Page<ExpressionExecutorBaseInfo> queryExpressionExecutor(QueryExpressionExecutorRequest queryRequest) {
+        LambdaQueryWrapper<ExpressionExecutorBaseInfo> lambdaQuery = new LambdaQueryWrapper<>();
         lambdaQuery.eq(ExpressionExecutorBaseInfo::getDeleted, false);
         //服务名称
         lambdaQuery.like(StringUtils.isNotBlank(queryRequest.getServiceName()), ExpressionExecutorBaseInfo::getServiceName, queryRequest.getServiceName());
@@ -133,9 +131,10 @@ public class ExpressionExecutorConfigServiceImpl extends ServiceImpl<ExpressionE
         lambdaQuery.like(StringUtils.isNotBlank(queryRequest.getExecutorName()), ExpressionExecutorBaseInfo::getExecutorCode, queryRequest.getExecutorName());
         //执行器状态
         lambdaQuery.eq(queryRequest.getStatus() != null, ExpressionExecutorBaseInfo::getStatus, queryRequest.getStatus());
-        List<ExpressionExecutorBaseInfo> executorConfigList = lambdaQuery.orderByDesc(ExpressionExecutorBaseInfo::getId).list();
-        List<ExpressionExecutorBaseDTO> expressionExecutorBaseDTOS = ConvertObjectUtils.convertList(executorConfigList, ExpressionExecutorBaseDTO.class);
-        return RestResult.ok(expressionExecutorBaseDTOS);
+        lambdaQuery.orderByDesc(ExpressionExecutorBaseInfo::getId);
+        Page<ExpressionExecutorBaseInfo> page = new Page<>(queryRequest.getPageNum(), queryRequest.getPageSize());
+
+        return getBaseMapper().selectPage(page, lambdaQuery);
     }
 
     @Override

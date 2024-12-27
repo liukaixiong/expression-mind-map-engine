@@ -4,12 +4,14 @@ package com.liukx.expression.engine.server.model.dto.request;
 //import io.swagger.v3.oas.annotations.tags.Tag;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 
 //@Tag(name="查询表达式")
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class QueryExpressionExecutorRequest implements Serializable {
+public class QueryExpressionExecutorRequest extends PageQuery implements Serializable {
     /**
      * 服务名称
      */

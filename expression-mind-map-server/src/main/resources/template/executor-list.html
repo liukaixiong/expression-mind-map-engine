@@ -96,13 +96,14 @@
         });
     }
 
-    // 创建表格实例
+    // 创建表格实例 https://layui.dev/docs/2/table/#options.height
     table.render({
         elem: '#ID-table-executor-search',
         toolbar: '#executor-toolbar',
         url: api_list, // 此处为静态模拟数据，实际使用时需换成真实接口
         method: 'post',
         title: '执行器列表',
+        limit: 20,
         contentType: 'application/json',
         cols: [[
             {field: 'id', title: '主键', width: 50}, // 单选框
@@ -115,19 +116,23 @@
                     return d.status === 1 ? '<span style="color: #16baaa; ">有效</span>' : '<span style="color: red; ">无效</span>';
                 }
             },
-            {field: 'createTime', title: '创建时间', width: 200, sort: true},
+            {
+                field: 'createTime', title: '创建时间', sort: true, templet: function (d) {
+                    return util.toDateString(d.created, 'yyyy-MM-dd HH:mm:ss');
+                }
+            },
             {fixed: 'right', title: '操作', toolbar: '#id-operation-bar'}
         ]],
         request: {
-            pageName: 'curr', // 页码的参数名称，默认：page
-            limitName: 'nums' // 每页数据条数的参数名，默认：limit
+            pageName: 'pageNum', // 页码的参数名称，默认：page
+            limitName: 'pageSize' // 每页数据条数的参数名，默认：limit
         },
         parseData: function (res) { // res 即为原始返回的数据
             return {
                 "code": res.code === 200 ? 0 : res.code, // 解析接口状态
                 "msg": res.message, // 解析提示文本
-                "count": res.data.length, // 解析数据长度
-                "data": res.data // 解析数据列表
+                "count": res.data.total, // 解析数据长度
+                "data": res.data.records // 解析数据列表
             };
         },
         page: true

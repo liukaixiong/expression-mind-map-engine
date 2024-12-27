@@ -2,6 +2,7 @@ package com.liukx.expression.engine.server.controller;
 
 
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.liukx.expression.engine.server.constants.BaseConstants;
 import com.liukx.expression.engine.server.event.ExecutorConfigRefreshEvent;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorBaseInfo;
@@ -16,8 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * <p>
@@ -53,8 +52,9 @@ public class ExecutorManagerController {
 
     //    @ApiOperation("查询执行器")
     @PostMapping("/findExecutorList")
-    public RestResult<List<ExpressionExecutorBaseDTO>> findExecutorList(@RequestBody QueryExpressionExecutorRequest queryRequest) {
-        return executorConfigService.queryExpressionExecutor(queryRequest);
+    public RestResult<Page<ExpressionExecutorBaseInfo>> findExecutorList(@RequestBody QueryExpressionExecutorRequest queryRequest) {
+        final Page<ExpressionExecutorBaseInfo> expressionExecutorBaseInfoPage = executorConfigService.queryExpressionExecutor(queryRequest);
+        return RestResult.ok(expressionExecutorBaseInfoPage);
     }
 
     //    @ApiOperation("查询单个执行器")
