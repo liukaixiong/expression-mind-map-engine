@@ -8,50 +8,50 @@ let final_const = {
 
     api_path: {
 
-        executor_add: '/smp-engine/executor/info/addOne',
+        executor_add: '/expression-engine/executor/info/addOne',
 
-        executor_edit: '/smp-engine/executor/info/editOne',
+        executor_edit: '/expression-engine/executor/info/editOne',
 
-        executor_del: '/smp-engine/executor/info/batchDelete',
+        executor_del: '/expression-engine/executor/info/batchDelete',
 
-        executor_info: '/smp-engine/executor/info/findExecutorInfo',
+        executor_info: '/expression-engine/executor/info/findExecutorInfo',
 
-        executor_list: '/smp-engine/executor/info/findExecutorList',
+        executor_list: '/expression-engine/executor/info/findExecutorList',
 
-        executor_doc_type_list: '/smp-engine/doc/getTypeList',
+        executor_doc_type_list: '/expression-engine/doc/getTypeList',
 
-        executor_doc_search_list: '/smp-engine/doc/getList',
+        executor_doc_search_list: '/expression-engine/doc/getList',
 
         /**
          * 下载json文件
          */
-        download_json: '/smp-engine/components/exportData',
+        download_json: '/expression-engine/components/exportData',
 
         /**
          * 上传json文件
          */
-        upload_json: '/smp-engine/components/importData',
+        upload_json: '/expression-engine/components/importData',
 
-        trace_list: '/smp-engine/executor/trace/list',
+        trace_list: '/expression-engine/executor/trace/list',
         /**
          * 获取表达式列表
          */
-        expression_list: '/smp-engine/executor/expression/findExpressionList',
+        expression_list: '/expression-engine/executor/expression/findExpressionList',
         /**
          * 获取用户详情
          */
-        expression_findExpressionInfo: '/smp-engine/executor/expression/findExpressionInfo',
+        expression_findExpressionInfo: '/expression-engine/executor/expression/findExpressionInfo',
         /**
          * 添加表达式
          */
-        expression_add: '/smp-engine/executor/expression/addOne',
+        expression_add: '/expression-engine/executor/expression/addOne',
         /**
          * 修改表达式
          */
-        expression_edit: '/smp-engine/executor/expression/editOne',
-        expression_del: '/smp-engine/executor/expression/batchDelete',
-        expression_edit_parent: '/smp-engine/executor/expression/editParentId',
-        expression_copy_node: '/smp-engine/executor/expression/copyNode',
+        expression_edit: '/expression-engine/executor/expression/editOne',
+        expression_del: '/expression-engine/executor/expression/batchDelete',
+        expression_edit_parent: '/expression-engine/executor/expression/editParentId',
+        expression_copy_node: '/expression-engine/executor/expression/copyNode',
     },
 
     template_path: {
