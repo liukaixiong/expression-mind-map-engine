@@ -1,5 +1,6 @@
 package com.liukx.expression.engine.client.enums;
 
+import com.liukx.expression.engine.core.consts.ExpressionConstants;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.Duration;
@@ -30,7 +31,7 @@ public enum EnginCacheKeyEnums {
     }
 
     public String generateKey(String... key) {
-        String prefixString = StringUtils.joinWith(":", "smp-engine", this.prefix);
+        String prefixString = StringUtils.joinWith(":", ExpressionConstants.ENGINE_SERVER_ID, this.prefix);
         String keys = StringUtils.join(key, ":");
         return prefixString + ":" + keys;
     }

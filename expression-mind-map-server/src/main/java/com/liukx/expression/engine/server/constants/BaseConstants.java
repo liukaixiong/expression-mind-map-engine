@@ -2,6 +2,7 @@ package com.liukx.expression.engine.server.constants;
 
 public class BaseConstants {
     public static final String BASE_PATH = "/expression-engine";
+    public static final String BASE_PROJECT_NAME = "expression-engine";
 
     /**
      * 代表有效状态
