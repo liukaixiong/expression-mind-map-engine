@@ -2,6 +2,8 @@ package com.liukx.expression.engine.client.config;
 
 import com.liukx.expression.engine.client.api.DocumentApiExecutor;
 import com.liukx.expression.engine.client.api.ExpressVariableTypeDocumentLoader;
+import com.liukx.expression.engine.client.api.ExpressionAsyncThreadExecutor;
+import com.liukx.expression.engine.client.api.thread.ExpressionSpringThreadExecutor;
 import com.liukx.expression.engine.client.collect.ExecutorTraceCollectIntercept;
 import com.liukx.expression.engine.client.collect.ExpressionDocCollect;
 import com.liukx.expression.engine.client.config.props.ExpressionProperties;
@@ -40,6 +42,16 @@ public class ExpressionConfiguration {
     public ExecutorTraceCollectIntercept executorTraceCollectIntercept() {
         log.info("expression -> 【启用表达式日志追踪能力】");
         return new ExecutorTraceCollectIntercept();
+    }
+
+    /**
+     * 配置异步线程池
+     * @return
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public ExpressionAsyncThreadExecutor expressionSpringThreadExecutor() {
+        return new ExpressionSpringThreadExecutor();
     }
 
     @Bean

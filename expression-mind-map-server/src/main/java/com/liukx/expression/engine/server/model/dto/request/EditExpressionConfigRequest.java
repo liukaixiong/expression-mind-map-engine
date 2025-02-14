@@ -40,6 +40,8 @@ public class EditExpressionConfigRequest implements Serializable {
 //    @Schema(description = "表达式内容")
     private String expressionContent;
 
+    private String configurabilityJson;
+
     /**
      * 表达式状态:0.启用,1.禁用
      */

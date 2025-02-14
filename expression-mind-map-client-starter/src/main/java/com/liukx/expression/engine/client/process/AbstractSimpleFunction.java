@@ -1,6 +1,7 @@
 package com.liukx.expression.engine.client.process;
 
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.date.DateUtil;
 import com.googlecode.aviator.runtime.function.AbstractVariadicFunction;
 import com.googlecode.aviator.runtime.function.FunctionUtils;
 import com.googlecode.aviator.runtime.type.AviatorObject;
@@ -18,9 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 简单的函数定义
@@ -200,6 +199,64 @@ public abstract class AbstractSimpleFunction extends AbstractVariadicFunction im
         }
 
         return argList;
+    }
+
+    /**
+     * 将参数构建成map
+     * @param funcArgs
+     * @return
+     */
+    protected Map<Object, Object> convertMap(List<Object> funcArgs) {
+        if (funcArgs != null && funcArgs.size() % 2 != 0) {
+            Assert.isTrue(true, "函数参数的长度必须为2的倍数,否则无法构建K,V结构!");
+        }
+
+        Map<Object, Object> map = new HashMap<>(funcArgs != null ? funcArgs.size() / 2 : 10);
+        if (funcArgs != null) {
+            for (int i = 0; i < funcArgs.size(); ) {
+                map.put(getArgsIndexValue(funcArgs, i), getArgsIndexValue(funcArgs, i + 1));
+                i += 2;
+            }
+        }
+        return map;
+    }
+
+    protected Date getArgsIndexDate(List<Object> objectList, int index) {
+        return getArgsIndexDate(objectList, index, null);
+    }
+
+    /**
+     * 获取变量中的时间类型，统一转换成Date。
+     * 包含：Date,Long,String-> [年月日:2025-01-01,年月日时分秒:2025-01-01 00:11:22]
+     * @param objectList    参数类型
+     * @param index         参数下标
+     * @param defaultValue  找不到的默认值
+     * @return Date
+     */
+    protected Date getArgsIndexDate(List<Object> objectList, int index, Date defaultValue) {
+        Object date = getArgsIndexValue(objectList, index, defaultValue);
+        return getDate(date);
+    }
+
+    /**
+     * 获取变量中的时间字段统一转换
+     *
+     * @param envDate 变量中的时间
+     * @return
+     */
+    protected Date getDate(Object envDate) {
+        if (envDate instanceof Long envLongDate) {
+            return new Date(envLongDate);
+        } else if (envDate instanceof Date) {
+            return (Date) envDate;
+        } else if (envDate instanceof String dateStr) {
+            if (dateStr.length() == 10) {
+                return DateUtil.beginOfDay(DateUtil.parseDate(dateStr));
+            } else {
+                return DateUtil.parseDateTime(dateStr);
+            }
+        }
+        return null;
     }
 
 }

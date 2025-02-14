@@ -114,6 +114,7 @@ public class ExpressionExecutor implements ExpressionExecutorService {
                         .expressionType(configDTO.getExpressionType())
                         .expression(configDTO.getExpressionContent())
                         .title(configDTO.getExpressionTitle())
+                        .configurabilityMap(Jsons.parseMap(configDTO.getConfigurabilityJson()))
                         .nodeExpression(deepConfigInfo).build();
                 deepList.add(configTreeModel);
             }

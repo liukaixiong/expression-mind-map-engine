@@ -32,8 +32,8 @@ public class RestResult<T> implements Serializable {
         return ok(null);
     }
 
-    public static Boolean isOk(RestResult result) {
-        return 200L == result.getCode();
+    public Boolean isOk() {
+        return 200L == getCode();
     }
 
     /**

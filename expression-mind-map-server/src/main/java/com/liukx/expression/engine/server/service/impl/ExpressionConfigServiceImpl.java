@@ -84,7 +84,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         LOG.debug("add config expression result : {} , {} , {}", addSuccess, expressionExecutorDetailConfig.getExpressionCode(), expressionExecutorDetailConfig.getId());
 
         if (addSuccess) {
-            refreshConfigPost(expressionExecutorDetailConfig);
+            refreshConfigPost(expressionExecutorDetailConfig.getExecutorId());
         }
 
         RestResult<ExpressionExecutorDetailConfigDTO> result = new RestResult<>();
@@ -140,7 +140,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         boolean updateSuccess = this.updateById(nodeConfig);
 
         if (updateSuccess) {
-            refreshConfigPost(existOne);
+            refreshConfigPost(existOne.getExecutorId());
         }
 
         ExpressionExecutorDetailConfigDTO expressionExecutorDetailConfigDTO = new ExpressionExecutorDetailConfigDTO();
@@ -148,8 +148,8 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         return updateSuccess ? RestResult.ok(expressionExecutorDetailConfigDTO) : RestResult.failed("数据更新到数据库失败");
     }
 
-    private void refreshConfigPost(ExpressionExecutorDetailConfig nodeConfig) {
-        this.eventPublisher.publishEvent(new ExecutorConfigRefreshEvent(nodeConfig.getExecutorId()));
+    private void refreshConfigPost(Long executorId) {
+        this.eventPublisher.publishEvent(new ExecutorConfigRefreshEvent(executorId));
     }
 
     @Override
@@ -203,13 +203,23 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
 
         LambdaQueryWrapper<ExpressionExecutorDetailConfig> queryWrapper = new LambdaQueryWrapper<ExpressionExecutorDetailConfig>().in(ExpressionExecutorDetailConfig::getId, idSet)
                 .eq(ExpressionExecutorDetailConfig::getDeleted, false);
+
+
         LOG.info("批量删除id集合: {} ", idSet);
         LambdaUpdateWrapper<ExpressionExecutorDetailConfig> updateWrapper = new LambdaUpdateWrapper<ExpressionExecutorDetailConfig>().set(ExpressionExecutorDetailConfig::getUpdateBy, delRequest.getUpdateBy())
                 .set(ExpressionExecutorDetailConfig::getDeleted, true)
                 .set(ExpressionExecutorDetailConfig::getUpdateTime, LocalDateTime.now())
                 .in(ExpressionExecutorDetailConfig::getId, idSet);
 
-        return ServiceCommonUtil.batchDelete(delRequest, "找不到相关记录，不用执行删除操作", getBaseMapper(), queryWrapper, updateWrapper);
+        final RestResult<?> restResult = ServiceCommonUtil.batchDelete(delRequest, "找不到相关记录，不用执行删除操作", getBaseMapper(), queryWrapper, updateWrapper);
+
+        if (restResult.isOk()) {
+            final ExpressionExecutorDetailConfig detailConfig = getOne(queryWrapper);
+            if (detailConfig != null) {
+                refreshConfigPost(detailConfig.getExecutorId());
+            }
+        }
+        return restResult;
     }
 
     /**

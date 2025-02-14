@@ -19,6 +19,7 @@ public class ExpressionEnvContext {
      */
     public static final String ENABLE_TRACE_KEY = "_feature_enableTrace";
     public static final String END_TOP_KEY = "_feature_end_top";
+    public static final String END_RETURN_KEY = "_feature_end_return";
     public static final String END_FORCE_KEY = "_feature_end_force";
 
 
@@ -296,6 +297,13 @@ public class ExpressionEnvContext {
     }
 
     /**
+     * 返回上一级标记，执行完当前表达式的子分支之后,不在继续同级别分支
+     */
+    public void returnEnd() {
+        this.sourceMap.put(END_RETURN_KEY, true);
+    }
+
+    /**
      * 是否强制终止流程
      *
      * @return
@@ -313,6 +321,26 @@ public class ExpressionEnvContext {
         return (boolean) this.sourceMap.getOrDefault(END_TOP_KEY, false);
     }
 
+    public boolean restTopEnd() {
+        this.sourceMap.put(END_TOP_KEY, false);
+        return true;
+    }
+
+    /**
+     * 是否返回上一级标记
+     * @return
+     */
+    public boolean isReturnEnd() {
+        return (boolean) this.sourceMap.getOrDefault(END_RETURN_KEY, false);
+    }
+
+    /**
+     * 重置返回上一级标记
+     */
+    public void restReturnEnd() {
+        this.sourceMap.put(END_RETURN_KEY, false);
+    }
+
 
     /**
      * 清理表达式函数痕迹
@@ -321,6 +349,7 @@ public class ExpressionEnvContext {
         clearFunctionCache();
         clearResultContext();
         this.sourceMap.put(END_TOP_KEY, false);
+        this.sourceMap.put(END_RETURN_KEY, false);
         this.sourceMap.put(END_FORCE_KEY, false);
     }
 

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -44,6 +45,11 @@ public class Jsons {
     }
 
     public static <T> T parseObject(String content, Class<T> valueType) {
+
+        if (!StringUtils.hasText(content)) {
+            return null;
+        }
+
         T result = null;
         try {
             if (valueType.isAssignableFrom(String.class)) {

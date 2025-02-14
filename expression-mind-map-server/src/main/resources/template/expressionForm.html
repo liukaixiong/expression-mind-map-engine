@@ -76,6 +76,13 @@
                 <i class="layui-icon layui-icon-tips "></i>数值越高,优先级越高
             </div>
         </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">能力开关</label>
+            <div class="layui-input-block">
+                <input lay-filter="configurability-checkbox-filter" lay-skin="tag" name="enableNodeAsync" title="开启子分支异步"
+                       type="checkbox"/>
+            </div>
+        </div>
         <div class="layui-form-item">
             <label class="layui-form-label">表达式状态</label>
             <div class="layui-input-inline">
@@ -104,11 +111,28 @@
     let api_edit_path = final_const.api_path.expression_edit;
     let api_expressionFindExpressionInfo = final_const.api_path.expression_findExpressionInfo;
     let api_executor_doc_search_list = final_const.api_path.executor_doc_search_list;
+    // 复选框 - 选择暂存结果
+    let configurabilityEnableArray = new Set();
+    // 配置开关能力记录,新增的能力需要注册到该配置中
+    let configurabilityJson = {};
     let serviceName = null;
     if (dataId) {
         let url = api_expressionFindExpressionInfo + "?id=" + dataId;
         engineUtils.requestPost(url, {}, function (response) {
-            form.val('expression-form', response.data);
+            let defaultData = response.data;
+            let configurabilityJson = defaultData['configurabilityJson'];
+            if (configurabilityJson) {
+                let configJson = JSON.parse(configurabilityJson);
+                if (configJson && configJson.enableSwitch) {
+                    configJson.enableSwitch.forEach(function (item) {
+                        // 初始化配置开关中的复选框
+                        defaultData[item] = true;
+                        // 暂存事件
+                        configurabilityEnableArray.add(item);
+                    });
+                }
+            }
+            form.val('expression-form', defaultData);
         })
     } else {
         let nextExpressionTypeIndex = Math.min(expressionTypeList.indexOf(requestParam.expressionType) + 1, 3);
@@ -118,6 +142,12 @@
         });
         refreshCode();
     }
+
+    form.on('checkbox(configurability-checkbox-filter)', function (data) {
+        console.log(this.value); // 当前点击的checkbox的value值
+        let name = data.elem.name;
+        this.checked ? configurabilityEnableArray.add(name) : configurabilityEnableArray.delete(name);
+    });
 
     //引入自定义插件
     layui.config({
@@ -212,6 +242,9 @@
 
         field['executorId'] = requestParam.executorId;
         field['parentId'] = requestParam.parentId;
+        debugger;
+        configurabilityJson['enableSwitch'] = Array.from(configurabilityEnableArray);
+        field['configurabilityJson'] = JSON.stringify(configurabilityJson);
 
         let submitUrl = api_add_path;
         if (dataId) {
@@ -222,6 +255,7 @@
         engineUtils.requestPost(submitUrl, field, function (response) {
             // 请求成功时的回调函数
             console.log(response);
+
             if (response.code === 200) {
                 field["id"] = response.data.id;
                 layer.alert('操作成功!', {

@@ -2,12 +2,11 @@ package com.liukx.expression.engine.client.api.configurability;
 
 import com.liukx.expression.engine.client.api.ExpressionExecutorPostProcessor;
 import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
-import com.liukx.expression.engine.client.enums.ConfigurabilitySwitchEnum;
+import com.liukx.expression.engine.client.enums.ExecutorCoxnfigurabilitySwitchEnum;
+import com.liukx.expression.engine.client.helper.ConfigurabilityHelper;
 import com.liukx.expression.engine.core.api.model.ExpressionBaseRequest;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigInfo;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,7 +15,7 @@ import java.util.Map;
  * @author liukaixiong
  * @date 2024/9/11 - 11:12
  */
-public abstract class AbstractConfigurabilityProcessor implements ExpressionExecutorPostProcessor {
+public abstract class AbstractExecutorConfigurabilityProcessor implements ExpressionExecutorPostProcessor {
     @Override
     public void beforeExecutor(ExpressionEnvContext envContext, ExpressionBaseRequest baseRequest, ExpressionConfigInfo configInfo) {
         if (switchOn(configInfo)) {
@@ -35,11 +34,7 @@ public abstract class AbstractConfigurabilityProcessor implements ExpressionExec
 
     protected boolean switchOn(ExpressionConfigInfo configInfo) {
         final Map<String, Object> configurabilityMap = configInfo.getConfigurabilityMap();
-        if (configurabilityMap != null) {
-            List<String> list = (List<String>) configurabilityMap.getOrDefault("enableSwitch", Collections.emptyList());
-            return !list.isEmpty() && list.contains(configurabilityKey().name());
-        }
-        return false;
+        return ConfigurabilityHelper.isEnableExecutorConfigurability(configurabilityMap, configurabilityKey());
     }
 
     @Override
@@ -47,5 +42,5 @@ public abstract class AbstractConfigurabilityProcessor implements ExpressionExec
 
     }
 
-    public abstract ConfigurabilitySwitchEnum configurabilityKey();
+    public abstract ExecutorCoxnfigurabilitySwitchEnum configurabilityKey();
 }

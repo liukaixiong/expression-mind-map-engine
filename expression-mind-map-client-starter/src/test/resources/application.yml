@@ -2,13 +2,13 @@ spring:
   plugin:
     express:
       debug: true
-      remote-engine-url: http://127.0.0.1:20876
+      remote-engine-url: http://localhost:20888/
       logger-trace-level: debug
       expression-config-call: http
       enable-trace-log: true
       inject-type-package: com.smp.service.function.control
   application:
-    name: smp-function-control
+    name: expression-mind-map-client
   main:
     allow-bean-definition-overriding: true
 server:

@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 
+import java.util.Objects;
+
 /**
  * 通过redis缓存获取对应的配置信息
  * 适用场景: 客户端和服务端共用同一个redis的库
@@ -43,7 +45,7 @@ public class RedisExpressionConfigService implements RemoteExpressionConfigServi
     public void refreshConfigInfo(String serviceName, String businessCode, String executorCode, ExpressionConfigInfo expressionConfigInfo) {
         String cacheKey = EnginCacheKeyEnums.EXECUTOR_REFRESH_KEY.generateKey(serviceName, businessCode, executorCode);
         if (expressionConfigInfo != null) {
-            redisTemplate.opsForValue().set(cacheKey, Jsons.toJsonString(expressionConfigInfo));
+            redisTemplate.opsForValue().set(cacheKey, Objects.requireNonNull(Jsons.toJsonString(expressionConfigInfo)));
         }
     }
 }

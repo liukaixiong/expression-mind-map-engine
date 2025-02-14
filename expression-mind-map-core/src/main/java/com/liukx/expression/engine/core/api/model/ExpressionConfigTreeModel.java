@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author liukaixiong
@@ -46,5 +47,8 @@ public class ExpressionConfigTreeModel {
 
     private List<ExpressionConfigTreeModel> nodeExpression;
 
-
+    /**
+     * 拓展能力
+     */
+    private Map<String, Object> configurabilityMap;
 }

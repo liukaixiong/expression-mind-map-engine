@@ -50,6 +50,7 @@ public class AddExpressionConfigRequest implements Serializable {
 //    @ApiModelProperty("表达式描述")
     private String expressionDescription;
 
+    private String configurabilityJson;
     /**
      * 表达式状态:0.启用,1.禁用
      */

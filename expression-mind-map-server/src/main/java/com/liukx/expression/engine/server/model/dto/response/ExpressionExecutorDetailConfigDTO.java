@@ -63,6 +63,12 @@ public class ExpressionExecutorDetailConfigDTO implements Serializable {
     @ApiModelProperty("表达式状态")
     private Integer expressionStatus;
 
+    /**
+     * 配置能力开关
+     */
+    @ApiModelProperty("能力开关")
+    private String configurabilityJson;
+
     @ApiModelProperty("优先级顺序")
     private Integer priorityOrder;
 

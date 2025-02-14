@@ -24,9 +24,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -48,7 +49,7 @@ public class ExpressionTraceLogIndexServiceImpl extends ServiceImpl<ExpressionTr
             while (true) {
                 try {
                     final List<ExpressionExecutorResultDTO> resultList = ExpressionResultLogCollect.getInstance().pollBatch(10);
-                    if (resultList != null) {
+                    if (!CollectionUtils.isEmpty(resultList)) {
                         for (ExpressionExecutorResultDTO expressionExecutorResultDTO : resultList) {
                             saveIndexInfo(expressionExecutorResultDTO);
                         }
@@ -113,35 +114,43 @@ public class ExpressionTraceLogIndexServiceImpl extends ServiceImpl<ExpressionTr
 
         final List<ExpressionResultLogDTO> resultLogList = expressionExecutorResultDTO.getResultLogList();
 
-        final List<ExpressionTraceLogInfo> saveInfoList = resultLogList.stream().map(var -> {
+        // 构建函数信息
+        final List<ExpressionTraceLogInfo> saveInfoList = new ArrayList<>();
+        for (ExpressionResultLogDTO expressionResultLogDTO : resultLogList) {
             ExpressionTraceLogInfo traceLogInfo = new ExpressionTraceLogInfo();
-            BeanUtils.copyProperties(var, traceLogInfo);
-            final String resultType = var.getResultType();
+            BeanUtils.copyProperties(expressionResultLogDTO, traceLogInfo);
+            final String resultType = expressionResultLogDTO.getResultType();
             final ExpressionLogTypeEnum expressionLogTypeEnum = ExpressionLogTypeEnum.valueOf(resultType);
-            traceLogInfo.setModuleType(var.getResultType());
-            traceLogInfo.setExpressionDescription(var.getDescription());
+            traceLogInfo.setModuleType(expressionResultLogDTO.getResultType());
+            traceLogInfo.setExpressionDescription(expressionResultLogDTO.getDescription());
             traceLogInfo.setTraceLogId(id);
-            traceLogInfo.setDebugTraceContent(Jsons.toJsonString(var.getDebugTraceContent()));
+            traceLogInfo.setDebugTraceContent(Jsons.toJsonString(expressionResultLogDTO.getDebugTraceContent()));
             traceLogInfo.setExecutorId(expressionExecutorResultDTO.getExecutorId());
-            traceLogInfo.setExpressionResult((Boolean) var.getResult() ? 1 : 0);
+            // 结果构建
+            final Object result = expressionResultLogDTO.getResult();
+            if (result instanceof Boolean) {
+                traceLogInfo.setExpressionResult((Boolean) result ? 1 : 0);
+            } else {
+                traceLogInfo.setExpressionResult(result != null ? 1 : 0);
+            }
+
             if (expressionLogTypeEnum == ExpressionLogTypeEnum.function) {
-                final FunctionApiModel functionApiModel = var.getFunctionApiModel();
-                final List<Object> funcArgs = var.getFuncArgs();
+                final FunctionApiModel functionApiModel = expressionResultLogDTO.getFunctionApiModel();
+                final List<Object> funcArgs = expressionResultLogDTO.getFuncArgs();
                 // 构建函数信息
                 final String name = functionApiModel.getName();
                 final String param = StringUtils.join(funcArgs, ",");
                 String functionName = name + "(" + param + ")";
                 traceLogInfo.setExpressionContent(functionName);
-                if (StringUtils.isEmpty(var.getDescription())) {
+                if (StringUtils.isEmpty(expressionResultLogDTO.getDescription())) {
                     traceLogInfo.setExpressionDescription(functionApiModel.getDescribe());
                 }
             } else {
-                traceLogInfo.setExpressionContent(var.getExpression());
-                traceLogInfo.setExpressionDescription(var.getDescription());
+                traceLogInfo.setExpressionContent(expressionResultLogDTO.getExpression());
+                traceLogInfo.setExpressionDescription(expressionResultLogDTO.getDescription());
             }
-
-            return traceLogInfo;
-        }).collect(Collectors.toList());
+            saveInfoList.add(traceLogInfo);
+        }
 
         traceLogInfoService.saveBatch(saveInfoList);
     }

@@ -39,7 +39,7 @@ public class FnDayRangeFunction extends AbstractSimpleFunction {
 
         final long currentTime = System.currentTimeMillis();
 
-        boolean result = startDateTime.getTime() > currentTime && currentTime < endDateTime.getTime();
+        boolean result = startDateTime.getTime() < currentTime && currentTime <= endDateTime.getTime();
 
         if (!result) {
             final String s = DateUtil.formatDateTime(startDateTime);

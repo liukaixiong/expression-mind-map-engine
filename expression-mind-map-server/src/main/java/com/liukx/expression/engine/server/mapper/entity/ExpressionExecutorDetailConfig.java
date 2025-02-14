@@ -58,6 +58,11 @@ public class ExpressionExecutorDetailConfig implements Serializable {
      * 表达式描述
      */
     private String expressionDescription;
+
+    /**
+     * 配置能力
+     */
+    private String configurabilityJson;
     /**
      * 表达式状态:0.禁用,1.启用
      */

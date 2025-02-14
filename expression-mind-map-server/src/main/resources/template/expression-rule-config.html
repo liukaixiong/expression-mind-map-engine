@@ -53,6 +53,9 @@
     let api_expression_edit_parent = final_const.api_path.expression_edit_parent;
     let api_expression_copy_node = final_const.api_path.expression_copy_node;
     let global_copy_node_id = -1;
+    /**
+     * 记录当前日期版本筛选
+     */
     let global_full_history_start_date;
 
     laydate.render({
@@ -169,6 +172,7 @@
             }, {
                 target: 'addBrother', text: '添加兄弟节点',
                 callback: function (node) {
+                    debugger;
                     openAddHtml(node.parent);
                 }
             }, {
@@ -221,6 +225,7 @@
     }
 
     function openAddHtml(nodeInfo) {
+        debugger;
         var selectNode = nodeInfo;
         if (!nodeInfo) {
             selectNode = jm.get_selected_node()
@@ -235,6 +240,9 @@
                 scrollbar: false,
                 area: ['80%', '80%'],
                 content: api_expression_form + "?executorId=" + executorId + "&&parentId=" + selectNode.id + "&&expressionType=" + selectNode.data.expressionType,
+                end: function () {
+                    reloadMind();
+                }
             });
         }
     }
@@ -364,6 +372,9 @@
         item['expanded'] = true;
 
         let topicText = "【" + item.id + "】" + item.expressionTitle;
+
+        let content = item.expressionContent;
+
         if (item.traceLogInfos !== null) {
             topicText = topicText + "【" + getExpressionIconStatus(item) + "】";
         }
@@ -381,11 +392,14 @@
         }
 
         // 如果是删除了的节点,那么样式需要突出显示
-        let icon = "layui-icon-about";
+        let icon = "";
+        debugger;
         if (item.expressionStatus !== 1) {
             icon = "layui-icon-clear";
             bgColor = "#e2e2e2";
             topicText = "<s>" + topicText + "</s>";
+        } else if (["fn_in_end", "fn_end","fn_return", "fn_force_end"].some(char => content.includes(char))) {
+            icon = "layui-icon-about";
         }
 
         item['leading-line-color'] = bgColor;
@@ -398,6 +412,10 @@
                 topicText = topicText + "<br/>【" + dateTime + "】";
             }
         } else {
+            /**
+             * 锁所表达式内容会触发的值
+             * @type {*|string|jQuery}
+             */
             let searchContext = $("#expression-search-context-id").val();
             if (searchContext !== '') {
                 if (item.expressionContent.includes(searchContext)) {
@@ -464,10 +482,12 @@
                 console.info("触发了选择事件... 选择内容" + node.node);
             } else if (node.evt === "add_node") {
                 console.info("触发了新增节点事件..." + node.node);
-            } else if (node.evt === "insert_node_after") {
-                let nodeInfo = jm.get_node(node.data[0]).parent;
-                openAddHtml(nodeInfo);
-            } else if (node.evt === "update_node") {
+            }
+                // else if (node.evt === "insert_node_after") {
+                //     let nodeInfo = jm.get_node(node.data[0]).parent;
+                //     openAddHtml(nodeInfo);
+            // }
+            else if (node.evt === "update_node") {
                 console.info("触发了修改节点事件..." + node.node);
             } else if (node.evt === "remove_node") {
                 mindRemoveNode(node.data[0]);
