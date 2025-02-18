@@ -72,13 +72,15 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
         final String businessCode = request.getBusinessCode();
         final String eventName = request.getEventName();
         final String executorCode = request.getExecutorCode();
+        final Long userId = request.getUserId();
+        final String unionId = request.getUnionId();
         ExpressionBaseRequest baseRequest = new ExpressionBaseRequest();
         baseRequest.setServiceName(serviceName);
         baseRequest.setBusinessCode(businessCode);
         baseRequest.setEventName(eventName);
         baseRequest.setExecutorCode(executorCode);
-        baseRequest.setUnionId(request.getUnionId());
-        baseRequest.setUserId(request.getUserId());
+        baseRequest.setUnionId(unionId);
+        baseRequest.setUserId(userId);
         Supplier<String> defaultValueSupplier = () -> UUID.fastUUID().toString();
         baseRequest.setTraceId(ObjectUtil.defaultIfEmpty(request.getTraceId(), defaultValueSupplier));
 
@@ -106,6 +108,8 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
 
             // 仅支持单事件匹配，如果存在多事件请循环处理。
             envContext.put("event", eventName);
+            envContext.put("userId", userId);
+            envContext.put("unionId", unionId);
 
             configTreeModelList = configInfo.getConfigTreeModelList();
 
@@ -168,6 +172,8 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
 
             if (!isSkip) {
                 LogHelper.trace(envContext, baseRequest, LogEventEnum.EXPRESSION_CALL, String.format("[%s] 触发in_end流程终止标记! ", treeModel.getTitle()));
+                // 执行到当前分支结束
+                envContext.forceEnd();
                 break;
             }
         }

@@ -19,6 +19,11 @@ import java.util.List;
 public class FnTopEndFunction extends AbstractSimpleFunction {
 
     @Override
+    protected boolean isAllowedCache() {
+        return false;
+    }
+
+    @Override
     public Object processor(ExpressionEnvContext env, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request, List<Object> funArgs) {
         env.topEnd();
         return true;

@@ -20,6 +20,11 @@ import java.util.List;
 public class FnReturnFunction extends AbstractSimpleFunction {
 
     @Override
+    protected boolean isAllowedCache() {
+        return false;
+    }
+
+    @Override
     public Object processor(ExpressionEnvContext env, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request, List<Object> funArgs) {
         env.returnEnd();
         return true;

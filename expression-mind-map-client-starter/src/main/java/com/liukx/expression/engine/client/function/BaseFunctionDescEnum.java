@@ -16,7 +16,7 @@ import java.util.Arrays;
 public enum BaseFunctionDescEnum implements ExpressFunctionDocumentLoader {
 
     END("base", "fn_end", "走完该分支流程之后结束", new String[]{}, "true || false", "fn_end()"),
-    END_IN("base", "fn_in_end", "执行内部子分支流程之后结束", new String[]{}, "true || false", "fn_in_end()"),
+    END_IN("base", "fn_in_end", "执行当前分支的内部子分支流程之后结束", new String[]{}, "true || false", "fn_in_end()"),
     END_RETURN("base", "fn_return", "返回到上层分支，同级别分支不在继续", new String[]{}, "true || false", "fn_return()"),
     END_FORCE("base", "fn_force_end", "强制终止流程,不在继续执行任何流程", new String[]{}, "true || false", "fn_force_end()"),
     DEBUG_BODY("base", "debug_body", "打印请求参数", new String[]{"上下文key"}, "true || false", "debug_body('request')"),
