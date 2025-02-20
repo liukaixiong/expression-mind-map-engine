@@ -154,9 +154,21 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
         if (configTreeModelList == null) {
             return;
         }
+
         ExpressionService expressionService = executorFactory.getExpressionService();
         for (ExpressionConfigTreeModel treeModel : configTreeModelList) {
+            // 后续可以考虑做一些拓展，针对流程控制，允许跳过一些表达式,当然你可以自己设置一些流程分支的表达式去控制,那样也方便
+
+            boolean isSkip = expressionProcessor(baseRequest, envContext, configInfo, treeModel, expressionService);
+
             // 进行流程控制
+            if (!isSkip) {
+                LogHelper.trace(envContext, baseRequest, LogEventEnum.EXPRESSION_CALL, String.format("[%s] 触发in_end全流程流程终止标记! ", treeModel.getTitle()));
+                // 执行到当前分支结束
+                envContext.forceEnd();
+                break;
+            }
+
             if (envContext.isForceEnd()) {
                 LogHelper.trace(envContext, baseRequest, LogEventEnum.EXPRESSION_CALL, String.format("[%s] 触发force_end全流程终止标记! ", treeModel.getTitle()));
                 break;
@@ -168,14 +180,7 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
                 break;
             }
 
-            boolean isSkip = expressionProcessor(baseRequest, envContext, configInfo, treeModel, expressionService);
 
-            if (!isSkip) {
-                LogHelper.trace(envContext, baseRequest, LogEventEnum.EXPRESSION_CALL, String.format("[%s] 触发in_end流程终止标记! ", treeModel.getTitle()));
-                // 执行到当前分支结束
-                envContext.forceEnd();
-                break;
-            }
         }
     }
 
