@@ -9,5 +9,5 @@ public enum LogEventEnum {
     /**
      * 定义一些关键事件
      */
-    CALL_ERROR, FUNCTION_CALL, EXPRESSION_CALL
+    CALL_ERROR, VARIABLE_CALL, FUNCTION_CALL, EXPRESSION_CALL
 }

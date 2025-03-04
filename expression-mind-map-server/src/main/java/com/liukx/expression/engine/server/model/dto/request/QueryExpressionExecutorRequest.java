@@ -27,7 +27,7 @@ public class QueryExpressionExecutorRequest extends PageQuery implements Seriali
      * 执行器名称
      */
 //    @Schema(description="执行器名称")
-    private String executorName;
+    private String executorCode;
     /**
      * 执行器状态:0.创建，1.启用，2.禁用
      */

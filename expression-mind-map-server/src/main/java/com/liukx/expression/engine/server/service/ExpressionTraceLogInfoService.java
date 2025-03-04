@@ -15,5 +15,17 @@ import java.util.List;
  */
 public interface ExpressionTraceLogInfoService extends IService<ExpressionTraceLogInfo> {
 
+    /**
+     * 获取该追踪编号的记录
+     * @param traceLogId    追踪编号
+     * @return
+     */
     List<ExpressionTraceLogInfo> getInfoListByTraceLogId(Long traceLogId);
+
+    /**
+     * 获取表达式最近成功一次成功的记录
+     * @param expressionId  表达式编号
+     * @return
+     */
+    ExpressionTraceLogInfo getExpressionRecentlySuccessLog(Long expressionId);
 }

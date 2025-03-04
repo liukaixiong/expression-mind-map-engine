@@ -2,6 +2,7 @@ package com.liukx.expression.engine.client.process;
 
 
 import com.liukx.expression.engine.client.api.ExpressionVariableRegister;
+import com.liukx.expression.engine.core.api.model.ExpressionBaseRequest;
 import com.liukx.expression.engine.core.model.ContextTemplateRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,8 @@ public class ExpressionVariableManager implements InitializingBean {
     public Object process(String variableName, ContextTemplateRequest contextTemplateCache) {
         ExpressionVariableRegister expressionVariableFinder = getExpressionVariableRegister(variableName);
         if (expressionVariableFinder == null) {
-            logger.warn("变量名:{} 没有匹配到对应的执行器!", variableName);
+            final ExpressionBaseRequest request = contextTemplateCache.getRequest();
+            logger.warn("[{}-{}]变量名:{} 没有匹配到对应的执行器!", request.getBusinessCode(), request.getExecutorCode(), variableName);
             return null;
         }
         return expressionVariableFinder.invoke(variableName, contextTemplateCache);

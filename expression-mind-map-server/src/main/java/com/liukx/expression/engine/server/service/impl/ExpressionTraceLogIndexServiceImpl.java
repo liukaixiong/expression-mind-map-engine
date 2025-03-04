@@ -28,6 +28,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * <p>
@@ -104,10 +105,28 @@ public class ExpressionTraceLogIndexServiceImpl extends ServiceImpl<ExpressionTr
         return true;
     }
 
+    @Override
+    public ExpressionTraceLogIndex getExpressionSampleBody(Long expressionId) {
+        ExpressionTraceLogInfo traceLogInfo = traceLogInfoService.getExpressionRecentlySuccessLog(expressionId);
+        if (traceLogInfo != null) {
+            return getById(traceLogInfo.getTraceLogId());
+        }
+        return null;
+    }
+
     private void saveIndexInfo(ExpressionExecutorResultDTO expressionExecutorResultDTO) {
         ExpressionTraceLogIndex index = new ExpressionTraceLogIndex();
         BeanUtils.copyProperties(expressionExecutorResultDTO, index);
-        index.setEnvBody(null);
+        String envBody = expressionExecutorResultDTO.getEnvBody();
+
+        // 受限于mysql存储字段大小有限制,如果es不会有问题.
+        if (StringUtils.isNotEmpty(envBody)) {
+            if (envBody.length() > 2000) {
+                envBody = envBody.substring(0, 1000);
+            }
+            index.setEnvBody(envBody);
+        }
+
         final boolean save = this.save(index);
 
         final Long id = index.getId();
@@ -131,7 +150,7 @@ public class ExpressionTraceLogIndexServiceImpl extends ServiceImpl<ExpressionTr
             if (result instanceof Boolean) {
                 traceLogInfo.setExpressionResult((Boolean) result ? 1 : 0);
             } else {
-                traceLogInfo.setExpressionResult(result != null ? 1 : 0);
+                traceLogInfo.setExpressionResult(Objects.equals(result, -1) ? -1 : 0);
             }
 
             if (expressionLogTypeEnum == ExpressionLogTypeEnum.function) {

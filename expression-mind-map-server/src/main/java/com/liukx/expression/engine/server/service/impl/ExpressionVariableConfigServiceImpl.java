@@ -31,61 +31,6 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ExpressionVariableConfigServiceImpl extends ServiceImpl<ExpressionVariableConfigMapper, ExpressionVariableConfig> implements ExpressionVariableConfigService, VariableService {
-
-//    @Override
-//    public RestResult<ExpressionVariableDTO> addExpressionVariable(AddExpressionVariableRequest addRequest) {
-//        ExpressionVariableConfig nodeConfig = new ExpressionVariableConfig();
-//        //先查询服务名称是否已经存在
-//        boolean checkExist = new ServiceCommonUtil<>().checkServiceNameExists(addRequest.getServiceName());
-//        if (!checkExist) {
-//            return RestResult.failed(ErrorEnum.NON_EXIST_SERVICE_NAME.code(), ErrorEnum.NON_EXIST_SERVICE_NAME.message());
-//        }
-//        //先查询数据是否已经存在
-//        LambdaQueryChainWrapper<ExpressionVariableConfig> lambdaQuery = this.lambdaQuery().ge(ExpressionVariableConfig::getServiceName, addRequest.getServiceName())
-//                .ge(ExpressionVariableConfig::getServiceName, addRequest.getServiceName());
-//        lambdaQuery.ge(ExpressionVariableConfig::getDeleted, 0)
-//                .ge(ExpressionVariableConfig::getVarCode, addRequest.getVarCode())
-//                .orderByDesc(ExpressionVariableConfig::getCreateTime)
-//                .last("limit 1");
-//        ExpressionVariableConfig existOne = lambdaQuery.one();
-//        if (existOne != null && existOne.getId() != null) {
-//            return RestResult.failed("待添加的注册变量已存在");
-//        }
-//        BeanUtil.copyProperties(addRequest, nodeConfig, CopyOptions.create().setIgnoreError(true).setIgnoreNullValue(true));
-//        nodeConfig.setCreateTime(LocalDateTime.now());
-//        nodeConfig.setDeleted(false);
-//        boolean addSuccess = this.save(nodeConfig);
-//
-//        RestResult<ExpressionVariableDTO> result = new RestResult<>();
-//        if (addSuccess) {
-//            ExpressionVariableDTO nodeDTO = new ExpressionVariableDTO();
-//            BeanUtil.copyProperties(nodeConfig, nodeDTO, CopyOptions.create().setIgnoreError(true).setIgnoreNullValue(true));
-//            result.setCode(ResponseCodeEnum.E_200.getCode());
-//            result.setMsg(ResponseCodeEnum.E_200.getMsg());
-//            result.setData(nodeDTO);
-//        } else {
-//            result.setCode(ResponseCodeEnum.E_500.getCode());
-//            result.setMsg("保存注册变量失败，原因:数据入库失败");
-//        }
-//        return result;
-//    }
-
-//    @Override
-//    public RestResult<ExpressionVariableDTO> editExpressionVariable(EditExpressionVariableRequest editRequest) {
-//        ExpressionVariableConfig varConfig = new ExpressionVariableConfig();
-//        ExpressionVariableConfig existOne = this.getById(editRequest.getId());
-//        if (existOne == null || StringUtils.isBlank(existOne.getVarCode())) {
-//            return RestResult.failed(String.format("找不到id为%d的注册变量，无法完成修改", editRequest.getId()));
-//        }
-//        BeanUtil.copyProperties(editRequest, varConfig, CopyOptions.create().setIgnoreNullValue(true).setIgnoreError(true));
-//        varConfig.setUpdateTime(LocalDateTime.now());
-//        boolean updateSuccess = this.updateById(varConfig);
-//        ExpressionVariableDTO ExpressionVariableDTO = new ExpressionVariableDTO();
-//        BeanUtil.copyProperties(varConfig, ExpressionVariableDTO);
-//        RestResult<ExpressionVariableDTO> result = updateSuccess ? RestResult.ok(ExpressionVariableDTO) : RestResult.failed("数据更新到数据库失败");
-//        return result;
-//    }
-
     @Override
     public RestResult<List<ExpressionVariableDTO>> queryExpressionVariable(QueryExpressionVariableRequest queryRequest) {
         LambdaQueryChainWrapper<ExpressionVariableConfig> lambdaQuery = lambdaQuery().eq(ExpressionVariableConfig::getDeleted, 0);
@@ -97,25 +42,9 @@ public class ExpressionVariableConfigServiceImpl extends ServiceImpl<ExpressionV
         lambdaQuery.eq(StringUtils.isNotBlank(queryRequest.getVarSource()), ExpressionVariableConfig::getVarSource, queryRequest.getVarSource());
         lambdaQuery.eq(queryRequest.getStatus() != null, ExpressionVariableConfig::getStatus, queryRequest.getStatus());
         List<ExpressionVariableConfig> varConfigList = lambdaQuery.orderByDesc(ExpressionVariableConfig::getCreateTime).list();
-
         List<ExpressionVariableDTO> expressionVariableDTOS = ConvertObjectUtils.convertList(varConfigList, ExpressionVariableDTO.class);
-
         return RestResult.ok(expressionVariableDTOS);
     }
-
-//    @Override
-//    public RestResult<?> batchDeleteByIdList(DeleteByIdListRequest delRequest) {
-//        Set<Long> idSet = new HashSet<>();
-//        delRequest.getIdList().stream().filter(idStr -> StringUtils.isNotBlank(idStr) && StringUtils.isNumeric(idStr)).forEach(idStr -> idSet.add(Long.valueOf(idStr)));
-//        LambdaQueryWrapper<ExpressionVariableConfig> queryWrapper = new LambdaQueryWrapper<ExpressionVariableConfig>().in(ExpressionVariableConfig::getId, idSet)
-//                .eq(ExpressionVariableConfig::getDeleted, false);
-//        LambdaUpdateWrapper<ExpressionVariableConfig> updateWrapper = new LambdaUpdateWrapper<ExpressionVariableConfig>().set(ExpressionVariableConfig::getUpdateBy, delRequest.getUpdateBy())
-//                .set(ExpressionVariableConfig::getDeleted, true)
-//                .set(ExpressionVariableConfig::getUpdateTime, LocalDateTime.now())
-//                .in(ExpressionVariableConfig::getId, idSet);
-//        RestResult<?> result = ServiceCommonUtil.batchDelete(delRequest, "找不到相关记录，不用执行删除操作",getBaseMapper(), queryWrapper,updateWrapper);
-//        return result;
-//    }
 
     @Override
     public VariableInfoDto getKeyInfo(String key) {

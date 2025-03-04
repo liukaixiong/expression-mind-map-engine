@@ -1,7 +1,6 @@
+nacos:
+  enable: ${app.nacos.enable:false}
 spring:
-  plugin:
-    express:
-      enable-trace-log: false
   cloud:
     nacos:
       # nacos 服务地址
@@ -11,7 +10,7 @@ spring:
         group: DEFAULT_GROUP
         namespace: ${spring.profiles.active}
         server-addr: ${spring.cloud.nacos.server-addr}
-        enabled: true
+        enabled: ${nacos.enable}
       config:
         server-addr: ${spring.cloud.nacos.server-addr}
         # 配置组
@@ -19,7 +18,7 @@ spring:
         namespace: ${spring.profiles.active}
         import-check:
           enabled: false
-        enabled: true
+        enabled: ${nacos.enable}
     config:
       override-system-properties: false
   config:

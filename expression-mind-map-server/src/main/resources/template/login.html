@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>表达式引擎中枢</title>
+    <script src="//unpkg.com/layui@2.9.14/dist/layui.js"></script>
+    <link href="//unpkg.com/layui@2.9.14/dist/css/layui.css" rel="stylesheet">
+    <script src="/js/Utils.js"></script>
+    <script src="/js/engine-const.js"></script>
+    <style>
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(128, 0, 128, 0.3) 10%, transparent 10.01%);
+            background-size: 20px 20px;
+            z-index: -1;
+            animation: moveDots 5s linear infinite;
+        }
+
+        :root {
+            --primary-color: #3b82f6;
+            --formula-purple: #8b5cf6;
+            --mindmap-line: #94a3b8;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            font-family: 'Segoe UI', system-ui;
+            overflow: hidden;
+        }
+
+        .mindmap-node {
+            position: absolute;
+            background: var(--formula-purple);
+            border-radius: 50%;
+            animation: nodeFloat 6s infinite ease-in-out;
+        }
+
+        .mindmap-line {
+            stroke: var(--mindmap-line);
+            stroke-width: 1;
+            stroke-dasharray: 800;
+            animation: lineFlow 6s linear infinite;
+        }
+
+        @keyframes nodeFloat {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-20px);
+            }
+        }
+
+        @keyframes lineFlow {
+            from {
+                stroke-dashoffset: 800;
+            }
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        /* 气泡效果 */
+        .bubble {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: #8b5cf6cc; /* 淡紫色 */
+            border-radius: 80%;
+            animation: bubbleAnimation 10s infinite ease-in-out;
+        }
+
+        @keyframes bubbleAnimation {
+            0% {
+                transform: translateY(0) translateX(0);
+                opacity: 0.7;
+            }
+            25% {
+                transform: translateY(-100px) translateX(20px);
+                opacity: 1;
+            }
+            50% {
+                transform: translateY(0) translateX(0);
+                opacity: 0.7;
+            }
+            75% {
+                transform: translateY(100px) translateX(-20px);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(0) translateX(0);
+                opacity: 0.7;
+            }
+        }
+
+        /* 表达式引擎主题表单 */
+        .engine-container {
+            position: relative;
+            width: 440px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            margin: 5% auto;
+        }
+
+        .engine-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .engine-title {
+            color: #1e293b;
+            font-size: 32px;
+            font-weight: 600;
+            background: linear-gradient(45deg, var(--primary-color), var(--formula-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* 输入框定制 */
+        .layui-input {
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 8px !important;
+            padding-left: 40px !important;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="%2394a3b8" d="M3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2zm16 6h-4v4h4v-4zM5 7h4v4H5V7zm0 6h4v4H5v-4z"/></svg>') no-repeat 12px center/18px !important;
+        }
+
+        /* 登录按钮 */
+        .engine-btn {
+            background: linear-gradient(45deg, var(--primary-color), var(--formula-purple)) !important;
+            border: none !important;
+            border-radius: 8px !important;
+            height: 44px !important;
+            font-weight: 500;
+            transition: all 0.3s !important;
+        }
+
+        .engine-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.2) !important;
+        }
+    </style>
+</head>
+<body>
+<!-- 思维导图动态背景 -->
+<div class="mindmap-bg">
+    <svg width="100%" height="100%">
+        <path class="mindmap-line" d="M200 300 Q 400 150 600 250"/>
+        <path class="mindmap-line" d="M150 450 Q 300 500 700 200"/>
+    </svg>
+
+    <!-- 添加多个节点 -->
+    <div class="mindmap-node" style="width: 80px; height: 80px; top: 5%; left: 50%"></div>
+    <div class="mindmap-node" style="width: 80px; height: 80px; top: calc(20% - 40px); left: calc(20% - 40px)"></div>
+    <div class="mindmap-node" style="width: 80px; height: 80px; top: calc(20% - 40px); left: calc(80% - 40px)"></div>
+    <div class="mindmap-node" style="width: 80px; height: 80px; top: calc(50% - 40px); left: calc(50% - 40px)"></div>
+    <div class="mindmap-node" style="width: 80px; height: 80px; top: calc(80% - 40px); left: calc(20% - 40px)"></div>
+    <div class="mindmap-node" style="width: 80px; height: 80px; top: calc(80% - 40px); left: calc(80% - 40px)"></div>
+    <div class="mindmap-node" style="width: 80px; height: 80px; top: 65%; left: 50%"></div>
+
+    <!-- 气泡效果 -->
+    <div class="bubble" style="top: 20%; left: 10%; animation-delay: 0s;"></div>
+    <div class="bubble" style="top: 40%; left: 30%; animation-delay: 1s;"></div>
+    <div class="bubble" style="top: 60%; left: 50%; animation-delay: 2s;"></div>
+    <div class="bubble" style="top: 80%; left: 70%; animation-delay: 3s;"></div>
+    <div class="bubble" style="top: 50%; left: 90%; animation-delay: 4s;"></div>
+</div>
+
+<!-- 登录表单 -->
+<div class="engine-container">
+    <div class="engine-header">
+        <h1 class="engine-title">表达式引擎</h1>
+        <p class="layui-font-14" style="color: #64748b">【动态配置+可视化+实时生效】<br/>轻松玩转复杂业务</p>
+    </div>
+
+    <form class="layui-form" id="loginForm">
+        <div class="layui-form-item">
+            <input type="text" name="username" lay-verify="required"
+                   placeholder="用户名" class="layui-input">
+        </div>
+
+        <div class="layui-form-item">
+            <input type="password" name="password" lay-verify="required"
+                   placeholder="密码" class="layui-input">
+        </div>
+
+        <div class="layui-form-item">
+            <div class="layui-input-block" style="margin-left: 150px;">
+                <button class="layui-btn engine-btn" lay-submit lay-filter="login">启动引擎</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    let api_login = final_const.api_path.login;
+    layui.use(['form', 'layer'], function () {
+        const form = layui.form;
+        const layer = layui.layer;
+        // 表单提交事件
+        form.on('submit(login)', function (data) {
+            engineUtils.requestPost(api_login, data.field, function (response) {
+                if (response.code === 200) {
+                    let data = response.data;
+                    // 写入Cookie
+                    setCookie(data['tokenName'], data['tokenValue'], data['tokenTimeoutDay']);
+                    location.href = final_const.template_path.index;
+                } else {
+                    layer.alert(response.message);
+                }
+            })
+            return false;
+        });
+
+        function setCookie(name, value, days) {
+            let expires = '';
+            if (days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = '; expires=' + date.toUTCString();
+            }
+            document.cookie = name + '=' + (value || '') + expires + '; path=/';
+        }
+    });
+</script>
+</body>
+</html>

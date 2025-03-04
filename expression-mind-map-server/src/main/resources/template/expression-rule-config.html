@@ -9,6 +9,11 @@
     <link href="//unpkg.com/layui@2.9.14/dist/css/layui.css" rel="stylesheet">
     <script src="//unpkg.com/layui@2.9.14/dist/layui.js"></script>
     <script src="/js/cdn/jsmind/jsmind.menu.js"></script>
+
+    <script src="/js/cdn/jquery-3.3.1.min.js"></script>
+    <script src="/js/cdn/json-viewer/jquery.json-viewer.js"></script>
+    <link href="/js/cdn/json-viewer/jquery.json-viewer.css" type="text/css" rel="stylesheet">
+
     <script src="/js/Utils.js"></script>
     <script src="/js/engine-const.js"></script>
 </head>
@@ -17,11 +22,18 @@
     <div class="layui-col-xs6">
         <button class="layui-btn" onclick="btnEventClick('expand')" type="button">展开</button>
         <button class="layui-btn" onclick="btnEventClick('collapse')" type="button">收缩</button>
-        <button class="layui-btn" id="history-version-date" type="button"><i
-                class="layui-icon layui-icon-time"></i><span id="history-date-id">日期版本筛选</span>
+        <button class="layui-btn" onclick="btnBoost()" type="button">放大</button>
+        <button class="layui-btn" id="history-version-date" type="button">
+            <i class="layui-icon layui-icon-time"></i><span id="history-date-id">日期版本筛选</span>
         </button>
+
+        <button class="layui-btn" id="find-request-body-context-btn" onclick="findRequestBodyContext()" type="button">
+            <i class="layui-icon layui-icon-search"></i><span>查看请求上下文</span>
+        </button>
+
+
     </div>
-    <div class="layui-col-md6">
+    <div class="layui-col-md3">
         <div class="layui-input-group" style="width: 500px">
             <input class="layui-input" id="expression-search-context-id" placeholder="搜索表达式内容" type="text">
             <div class="layui-input-split layui-input-suffix" onclick="searchContext()" style="cursor: pointer;">
@@ -34,12 +46,13 @@
 <div id="jsmind_container" style="width: 2000px;height: 1000px"></div>
 
 <div id="view"></div>
+
+<pre id="json-renderer"></pre>
 </body>
 
 <script type="text/javascript">
     var layer = layui.layer;
     var laydate = layui.laydate;
-    var $ = layui.$;
     let requestParam = engineUtils.getRequestParams();
     let executorId = requestParam.executorId;
     let executorCode = requestParam.executorCode;
@@ -47,6 +60,7 @@
     let enableEditable = traceLogId === undefined;
     let executorDescription = requestParam.executorDescription;
     let api_expression_list = final_const.api_path.expression_list;
+    let api_trace_object = final_const.api_path.trace_object;
     let api_expression_form = final_const.template_path.expression_form;
 
     let api_expression_del = final_const.api_path.expression_del;
@@ -57,6 +71,10 @@
      * 记录当前日期版本筛选
      */
     let global_full_history_start_date;
+
+    if (enableEditable) {
+        $("#find-request-body-context-btn").remove();
+    }
 
     laydate.render({
         elem: '#history-version-date',
@@ -91,6 +109,11 @@
                     // do something...
                     console.log("dosomething--->>", jm, e);
                     debugger;
+                },
+                'ecs_close': function (jm, e) {
+                    // 关闭所有弹出层
+                    layer.closeAll();
+                    console.log("ecs_close--->>", jm, e);
                 },
                 "tab": function (jm, e) {
                     openAddHtml();
@@ -137,6 +160,7 @@
                 right: 39,    // <Right>
                 down: 40,    // <Down>
                 dosomething: [112],
+                ecs_close: [27],
                 control_c: [4096 + 67],
                 control_v: [4096 + 86],
                 tab: 9
@@ -151,7 +175,7 @@
             showMenu: enableEditable, //showMenu 为 true 则打开右键功能 ，反之关闭
             tipContent: '请选中节点再进行操作!',
             injectionList: [{
-                target: 'edit', text: '编辑节点', callback: function (node) {
+                target: 'edit', text: '编辑规则节点', callback: function (node) {
                     let selectNode = node;
                     layer.open({
                         type: 2,
@@ -165,18 +189,17 @@
                     });
                 }
             }, {
-                target: 'addChild', text: '添加子节点',
+                target: 'addChild', text: '添加规则子节点',
                 callback: function (node) {
                     openAddHtml(node);
                 }
             }, {
-                target: 'addBrother', text: '添加兄弟节点',
+                target: 'addBrother', text: '添加规则兄弟节点',
                 callback: function (node) {
-                    debugger;
                     openAddHtml(node.parent);
                 }
             }, {
-                target: 'delete', text: '删除节点',
+                target: 'delete', text: '删除规则节点',
                 callback: function (node) {
                     //  mindRemoveNode(node.id);
                 }
@@ -194,7 +217,7 @@
             hide_scrollbars_when_draggable: true, // 当设置 draggable = true 时，是否隐藏滚动条
             node_overflow: 'wrap', // 节点文本过长时的样式
             zoom: {             // 配置缩放
-                min: 0.5,       // 最小的缩放比例
+                min: 0.1,       // 最小的缩放比例
                 max: 2.1,       // 最大的缩放比例
                 step: 0.1,      // 缩放比例间隔
             },
@@ -224,9 +247,43 @@
         reloadMind();
     }
 
+    function findRequestBodyContext() {
+        engineUtils.requestPost(api_trace_object + "?id=" + traceLogId, {}, function (response) {
+            if (response.code === 200) {
+                showJson(response.data.envBody);
+            } else {
+                layer.msg(response.message);
+            }
+        })
+    }
+
+
+    function showJson(jsonBody) {
+        let jsonConfig = {collapsed: false, withQuotes: true, withLinks: true}
+        try {
+            if (typeof jsonBody === 'string') {
+                jsonBody = JSON.parse(jsonBody || '{}');
+            }
+        } catch (e) {
+
+        }
+
+        $('#json-renderer').jsonViewer(jsonBody, jsonConfig);
+
+        layer.open({
+            type: 1,
+            offset: 'r',
+            anim: 'slideLeft', // 从右往左
+            area: ['500px', '100%'],
+            shade: 0.1,
+            shadeClose: true,
+            id: 'ID-demo-layer-direction-r',
+            content: $('#json-renderer').show()
+        });
+    }
+
     function openAddHtml(nodeInfo) {
-        debugger;
-        var selectNode = nodeInfo;
+        let selectNode = nodeInfo;
         if (!nodeInfo) {
             selectNode = jm.get_selected_node()
         }
@@ -333,22 +390,33 @@
     function getStatusIconString(status) {
         let icon = "layui-icon-error";
         let color = "#ff5722"
+        let fontSize = '20px';
         if (status === 1) {
             icon = "layui-icon-success";
             color = "#16b777";
+        } else if (status === -1) {
+            icon = "layui-icon-service";
+            color = "#ffffff"
+            fontSize = '30px';
         }
-        return "<i class=\"layui-icon " + icon + "\" style=\"font-size: 20px;color: " + color + ";\"></i>"
+        return "<i class=\"layui-icon " + icon + "\" style=\"font-size: " + fontSize + ";color: " + color + ";\"></i>"
     }
 
-    function getExpressionIconStatus(item) {
+    function getExpressionIconStatus(expressionTraceLogInfo) {
+        if (expressionTraceLogInfo && 'expression' === expressionTraceLogInfo.moduleType) {
+            return getStatusIconString(expressionTraceLogInfo.expressionResult);
+        }
+        return "<i class=\"layui-icon layui-icon-pause\" style=\"font-size: 20px;color: #eeeeee;\"></i>"
+    }
+
+    function getExpressionTraceLogInfo(item) {
         let traceLogList = item.traceLogInfos || [];
         for (let i = 0; i < traceLogList.length; i++) {
             let traceLogInfo = traceLogList[i];
             if ('expression' === traceLogInfo.moduleType) {
-                return getStatusIconString(traceLogInfo.expressionResult);
+                return traceLogInfo;
             }
         }
-        return "<i class=\"layui-icon layui-icon-pause\" style=\"font-size: 20px;color: #eeeeee;\"></i>"
     }
 
     /**
@@ -375,10 +443,6 @@
 
         let content = item.expressionContent;
 
-        if (item.traceLogInfos !== null) {
-            topicText = topicText + "【" + getExpressionIconStatus(item) + "】";
-        }
-
         // 默认的背景颜色,根据类型拆分
         let bgColor = "red";
         if (item.expressionType === 'condition') {
@@ -391,14 +455,22 @@
             bgColor = '#488FF7';
         }
 
+        if (item.traceLogInfos !== null) {
+            let expressionTraceLogInfo = getExpressionTraceLogInfo(item);
+            topicText = topicText + "【" + getExpressionIconStatus(expressionTraceLogInfo) + "】";
+            // 一旦追踪发现出现异常
+            if (expressionTraceLogInfo && expressionTraceLogInfo.expressionResult === -1) {
+                bgColor = '#f74871'
+            }
+        }
+
         // 如果是删除了的节点,那么样式需要突出显示
         let icon = "";
-        debugger;
         if (item.expressionStatus !== 1) {
             icon = "layui-icon-clear";
             bgColor = "#e2e2e2";
             topicText = "<s>" + topicText + "</s>";
-        } else if (["fn_in_end", "fn_end","fn_return", "fn_force_end"].some(char => content.includes(char))) {
+        } else if (["fn_in_end", "fn_end", "fn_return", "fn_force_end"].some(char => content.includes(char))) {
             icon = "layui-icon-about";
         }
 
@@ -445,8 +517,8 @@
         var mind = {
             /* 元数据，定义思维导图的名称、作者、版本等信息 */
             "meta": {
-                "name": "engine_liukaixiong",
-                "author": "444368875@qqq.com",
+                "name": "liukaixiong",
+                "author": "444368875@qq.com",
                 "version": "0.1"
             },
             /* 数据格式声明 */
@@ -468,6 +540,13 @@
                 jm.expand_all();
             }
         }
+    }
+
+    function btnBoost() {
+        let div = $("#jsmind_container");
+        div.height(div.height() + 100);
+        div.width(div.width() + 100);
+        reloadMind();
     }
 
 

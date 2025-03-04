@@ -24,4 +24,12 @@ public interface ExpressionTraceLogIndexService extends IService<ExpressionTrace
     Page<ExpressionTraceLogIndex> queryExpressionTraceLogList(QueryExpressionTraceRequest queryRequest);
 
     ExpressionTraceInfoDTO getTraceInfoList(Long id);
+
+    /**
+     * 配置编号
+     *
+     * @param expressionId 表达式编号
+     * @return
+     */
+    ExpressionTraceLogIndex getExpressionSampleBody(Long expressionId);
 }

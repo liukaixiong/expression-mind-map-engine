@@ -12,6 +12,7 @@ import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfigu
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,21 +30,37 @@ public class ClientServer {
     private ClientEngineFactory clientEngine;
 
     @Test
-    public void executorRemoter() {
+    public void executorRemoter() throws Exception {
         Map<String, Object> envContext = new HashMap<>();
+
+
+        Map<String, Object> requestMap = new HashMap<>();
+        requestMap.put("username", "xxxx");
+        requestMap.put("id", 123L);
+        requestMap.put("age", 18);
+        requestMap.put("created", new Date());
+
         ClientExpressionSubmitRequest request = new ClientExpressionSubmitRequest();
         request.setExecutorCode("visible_bak");
         request.setBusinessCode("shop");
         request.setUserId(1L);
-        request.setRequest(envContext);
+        request.setRequest(requestMap);
         request.setUnionId(UUID.fastUUID().toString());
 
         ExpressionEnvContext context = new ExpressionEnvContext(envContext);
-        final Boolean invoke = clientEngine.invoke(request, context.getSourceMap());
-        System.out.println(invoke);
 
-        final Map<String, Object> resultContext = context.getResultContext();
-        System.out.println(resultContext);
+        context.addEnvContext("test_env_id", 888L);
+        context.addEnvContext("test_env_text", "nibudong");
+
+        try {
+            final Map<String, Object> resultContext = clientEngine.invoke(request, context);
+
+            System.out.println(resultContext);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.in.read();
     }
 
 }

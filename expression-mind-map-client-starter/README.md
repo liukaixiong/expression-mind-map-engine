@@ -1,8 +1,8 @@
-# 通用的函数执行器
+# expression-mind-map-client-starter
 
 该工具是基于模版引擎抽象出来的通用定义，默认是基于Aviator实现，集成Spring拓展而来。该工具可以针对复杂业务进行分层、将业务模型抽象定义成变量、函数，然后通过表达式进行组装执行。
 
-> 本质上所有表达式都存储在服务端进行管理，客户端负责从服务端进行获取规则表达式，在客户端进行本地执行，所以不用担心性能，本质上还是业务表达式的逻辑会成为瓶颈。
+> 本质上所有表达式都存储在服务端进行管理，客户端负责从服务端进行获取规则表达式，所有逻辑都在客户端本地执行，所以不用担心性能，本质上还是业务表达式的逻辑会成为瓶颈。
 
 ## 如何使用?
 
@@ -23,14 +23,17 @@ spring:
   plugin:
     express:
       debug: true
-      remote-engine-url: http://127.0.0.1:20876  # 可直接指定服务端地址，不走注册中心查找
+      remote-engine-url: http://127.0.0.1:20876    # 可直接指定服务端地址，不走注册中心查找，默认是注册中心。
       logger-trace-level: debug 				 # 默认的日志级别配置
       expression-config-call: http				 # 获取表达式配置内容的方式： http、redis ,如果服务端和客户端都处于一个redis库的话,可以考虑配置redis,减少http访问
       enable-trace-log: true					 # 是否打开追踪日志传输，关闭的话，则无法使用追踪能力
-      inject-type-package: com.smp.service.function.control # 注入类型包路径，该属性作用是在搜索表达式的时候，指定entity会检索到对应的属性
+      inject-type-package: com.xxx.service.control # 注入类型包路径，该属性作用是在搜索表达式的时候，指定entity会检索到对应的属性
 ```
 
-## 1、使用表达式
+## 通用的函数
+
+
+## 1、调用引擎
 
 ```java
 // 注入依赖
@@ -40,11 +43,11 @@ private ClientEngineFactory clientEngineFactory;
 // 定义上下文对象
 final ExpressionEnvContext expressionEnvContext = new ExpressionEnvContext();
 expressionEnvContext.setEventName(eventCode);
+
 // 将业务类注入到上下文中,方便函数或者变量获取
 expressionEnvContext.addEnvClassInfo(activityConfig);
 expressionEnvContext.addEnvClassInfo(shareJoinLog);
-expressionEnvContext.addEnvClassInfo(userJoinInfo);
-expressionEnvContext.addEnvClassInfo(activityEventModel);
+
 // 注入自定义变量，可在表达式中进行运用
 expressionEnvContext.addEnvContext("eventCode", eventCode);
 
@@ -77,7 +80,6 @@ final Boolean invoke = clientEngineFactory.invoke(request, expressionEnvContext)
 
 ```java
 public class DemoSendPointFunction extends AbstractSimpleFunction {
-
    
     @Override
     public Object processor(ExpressionEnvContext env, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request, List<Object> funArgs) {
@@ -97,44 +99,30 @@ public class DemoSendPointFunction extends AbstractSimpleFunction {
         // 可以加入追踪页面可查找的日志信息
         // getName() 函数名称 ,  key : 标识  value : 日志内容
         env.recordTraceDebugContent(getName(),"key","内容");
-        return null;
+        
+        // 该函数的返回结果，可以是任意对象。表达式会基于该函数的结果继续运算
+        return true;
     }
 
     @Override
     public Enum<? extends ExpressFunctionDocumentLoader> documentRegister() {
-        // 函数名称定义
+        // 函数名称定义,建议使用枚举类统一管理,后期可通过界面索引到对应的函数信息
         return DemoFunDescDefinitionService.SEND_POINT;
     }
-
+	// 表达式使用 : send_point('积分编码','积分值')
 }
 ```
 
 函数相关的定义，涵盖`名称` 、`参数` 、`描述` 可通过`ExpressFunctionDocumentLoader` 定义，建议使用枚举类统一规范起来。
 
-```java
-public enum DemoFunDescDefinitionService implements ExpressFunctionDocumentLoader {
-
-    SEND_POINT("activity", "send_point", "赠送积分", new String[]{"积分编码", "积分值"}, "true || false", "send_point('aa','50')");
-
-    private FunctionApiModel functionApiModel;
-
-    DemoFunDescDefinitionService(String group, String code, String describe, String[] requestDesc, String returnDescribe, String example) {
-        FunctionApiModel def = new FunctionApiModel();
-        def.setName(code);
-        def.setGroupName(group);
-        def.setDescribe(describe);
-        def.setResultClassType(returnDescribe);
-        def.setArgs(Arrays.asList(requestDesc));
-        def.setExample(example);
-        this.functionApiModel = def;
-    }
-    
-    @Override
-    public FunctionApiModel loadFunctionInfo() {
-        return this.functionApiModel;
-    }
-}
-```
+> 该类有一些可重写方法的能力：
+>
+> - isAllowedCache() : 表示该函数是否需要缓存，默认是true，当一连串的表达式内部调用的函数参数一模一样，则会被缓存到本地中，如果不希望开启可重写方法[比如重复触发]。
+> - generateCacheKey() ：本地函数签名重写，你如果有自己的想法可以重写你想要的。
+> - getArgsIndexValue() ： 获取函数的参数信息，这里没有封装，是什么类型就是什么类型。
+> - getConvertValue()： 获取函数的参数信息，允许转换成特定的对象，比如传递进来的是字符串，你可以直接转成数字型等等。
+> - getArgsIndexDate()： 获取函数的参数信息，直接获取时间类型的参数，你可以传递字符串、Long、Date，都会被统一转成Date
+> - convertMap()：前面的方法都是参数固定的，需要一一对应，一旦有些参数对应不上可能会出问题。然后这种方法就是将函数的参数设计成Map类型，根据Key获取Value，注意必须是2的倍数比如：fun('a',1,'b','c') = map[a=1,b=c]。
 
 #### 函数的参数描述
 
@@ -169,55 +157,24 @@ public enum DemoFunDescDefinitionService implements ExpressFunctionDocumentLoade
         return this.functionApiModel;
     }
 }
+
 ```
 
-2. 实现函数
+## 通用函数列表【BaseFunctionDescEnum】
 
-```java
-/**
- * 发送积分案例
- *
- * @author liukaixiong
- * @date 2023/12/7
- */
-public class DemoSendPointFunction extends AbstractSimpleFunction {
-
-    @Override
-    public Object processor(Map<String, Object> env, ExpressionBaseRequest request, List<Object> funArgs) {
-        /*
-            以下是一些常用的工具类案例使用方式
-         */
-        // 获取第一个参数，如果没有获取到则会抛出异常。适用于必填参数是否填写.
-        Object firstArgs = getArgsIndexValue(funArgs, 0);
-
-        // 获取第二个参数，如果没有的话，则返回默认值，适用于兼容老的函数
-        Long argsIndexValue = getArgsIndexValue(funArgs, 1, 100L);
-
-        // 从上下文变量中获取上游注入的对象：FunctionRequestDocumentModel
-        // 适用于针对特定的业务模型函数获取该业务的上下文参数对象
-        FunctionRequestDocumentModel documentModel = ExpressionContextHelper.getObject(env, FunctionRequestDocumentModel.class);
-        return null;
-    }
-
-    @Override
-    public Enum<? extends ExpressFunctionDocumentLoader> documentRegister() {
-        return DemoFunDescDefinitionService.SEND_POINT;
-    }
-
-}
-```
-
-## 通用函数列表
-
-| 函数类型    | 函数名称                                             | 函数作用                          |
-|---------|--------------------------------------------------|-------------------------------|
-| 流程分支控制  | fn_end()                                         | 满足当前分支，能继续进入子分支，不在进入往后的同级别分支。 |
-| 流程分支控制  | fn_force_end()                                   | 满足当前节点，则直接结束流程，不在往下执行         |
-| 调试函数    | debug_body()                                     | 追踪链路中打印请求参数体                  |
-| 调试函数    | debug_object()                                   | 追踪链路页面中：打印指定的参数对象             |
-| 条件-时间类型 | fn_sys_date_hour_range(9,20)                     | 是否在小时时间范围处理(基于系统时间)           |
-| 条件-时间类型 | fn_sys_date_day_range('2024-08-21','2024-08-25') | 是否在当前日期范围内                    |
-| 上下文设置   | fn_record_result_context('result','abc')         | 手动设置变量到上下文中                   |
+| 函数类型      | 函数名称                                         | 函数作用                                                     |
+| ------------- | ------------------------------------------------ | ------------------------------------------------------------ |
+| 流程分支控制  | fn_in_end()                                      | 执行当前分支的内部子分支流程之后结束                         |
+| 流程分支控制  | fn_force_end()                                   | 满足当前节点，则直接结束流程，不在往下执行                   |
+| 流程分支控制  | fn_return()                                      | 返回到上层分支，同级别分支不在继续                           |
+| 调试函数      | debug_body()                                     | 追踪链路中打印请求参数体                                     |
+| 调试函数      | debug_object()                                   | 追踪链路页面中：打印指定的参数对象                           |
+| 条件-时间类型 | fn_sys_date_hour_range(9,20)                     | 是否在小时时间范围处理(基于系统时间)                         |
+| 条件-时间类型 | fn_sys_date_day_range('2024-08-21','2024-08-25') | 是否在当前日期范围内，允许传递第3个参数为时间类型,默认系统时间 |
+| 上下文设置    | fn_record_result_context('result','abc')         | 将变量设置到结果对象【resultMap】中，返回值中会体现。        |
+| 上下文设置    | fn_put_value('key','value')                      | 将变量设置到当前上下文中，供所有表达式使用                   |
+| 上下文设置    | fn_get_value('key')                              | 获取当前上下文中的变量的值                                   |
+| 上下文设置    | fn_add_env_list('key','value')                   | 将变量添加一个集合到上下文中，有则追加，没有则初始化并加入   |
 
 > 你可以根据自己的想法制定想要的能力，在表达式中注入即可。通用实现类在: `com.liukx.expression.engine.client.function`中
 
@@ -235,76 +192,72 @@ public class DemoSendPointFunction extends AbstractSimpleFunction {
 ### 3.1 抽象业务变量
 
 ```java
-public abstract class AbstractExpressionVariableContext implements ExpressionVariableRegister {
-
-    protected Logger log = LoggerFactory.getLogger(getClass());
-
-    @Override
-    public boolean finderVariable(String name) {
-        return variableName().name().equals(name);
-    }
-
-    public abstract BaseVariableEnums variableName();
-
-    @Override
-    public Object invoke(String name, ContextTemplateRequest cache) {
-        final Object processor = processor(name, cache.getRequest(), cache.getEnvContext()); 
-        return processor;
-    }
+/**
+ * 获取当前系统时间
+ *
+ * @code env_date_local_date.year       获取年份
+ * @code env_date_local_date.monthValue 获取月份
+ * @code env_date_local_date.dayOfMonth 获取月份第几天
+ * @code env_date_local_date.hour   获取当前小时数
+ * @code env_date_local_date.minute 获取当前分钟数
+ * @author liukaixiong
+ * @date 2025/2/27 - 15:51
+ */
+@Component
+public class BaseEnvDateLocalDateTimeVariable extends AbstractExpressionVariableContextProcessor {
 
     @Override
-    public List<VariableApiModel> loadVariableList() {
-        final BaseVariableEnums baseVariableEnums = variableName();
-        VariableApiModel variables = new VariableApiModel();
-        variables.setName(baseVariableEnums.name());
-        variables.setDescribe(baseVariableEnums.getDesc());
-        variables.setGroupName(groupName());
-        variables.setType(baseVariableEnums.getReturnType().getSimpleName());
-        return Collections.singletonList(variables);
+    public Enum<? extends VariableDefinitionalService> variableName() {
+        // 可自行定义
+        return BaseVariableEnums.env_date_local_date_time;
     }
 
     @Override
-    public VariableApiModel getVariableInfo(String group, String name) {
-        return null;
+    public Object processor(String name, ExpressionBaseRequest request, Map<String, Object> envContext) {
+        // 自行实现变量逻辑
+        return LocalDateTime.now();
     }
-
-    @Override
-    public String groupName() {
-        return "var";
-    }
-
-    public abstract Object processor(String name, ExpressionBaseRequest request, Map<String, Object> envContext);
 }
 ```
 
-枚举管理: 将所有变量维护到该类中，包括变量定义、描述，出参类型。可方便后续检索
+枚举管理: 将所有变量维护到该类中，请实现`VariableDefinitionalService` 接口，包括变量定义、描述，出参类型，可方便后续检索。
 
 ```java
 @Getter
-public enum BaseVariableEnums {
-    env_family_valid_order_obj("家庭首个有效订单信息", DshCustomerOrder.class),
-    env_family_valid_order_obj_v2("家庭首个有效订单信息(涵盖研学)", DshCustomerOrder.class),
-    env_yqr_family_valid_order_obj("邀请人家庭首个有效订单信息", DshCustomerOrder.class),
-    env_yqr_family_valid_order_obj_v2("邀请人家庭首个有效订单信息(涵盖研学)", DshCustomerOrder.class),
-    env_user_obj("用户信息", DshStudent.class),
-    env_user_yqr_obj("邀请人用户信息", DshStudent.class);
+public enum BaseVariableEnums implements VariableDefinitionalService {
+    env_date_local_date_time("获取LocalDate对象", LocalDate.class),
+    ;
 
-    // 变量描述
+
     private final String desc;
-    // 出参类型, 直接指定对象即可.
-    // 变量通过: spring.plugin.express.inject-type-package 扫描之后,可以在表达式配置页面进行索引
     private final Class<?> returnType;
 
     BaseVariableEnums(String desc, Class<?> returnType) {
         this.desc = desc;
         this.returnType = returnType;
     }
+
+
+    @Override
+    public String getVariableName() {
+        return this.name();
+    }
+
+    @Override
+    public String getVariableDescription() {
+        return getDesc();
+    }
+
+    @Override
+    public Class<?> getVariableReturnType() {
+        return getReturnType();
+    }
 }
 ```
 
 ```java
 @Component
-public class UserEnvVariableRegister extends AbstractExpressionVariableContext {
+public class UserEnvVariableRegister extends AbstractExpressionVariableContextProcessor {
 
     @Resource
     private IXService service;
@@ -370,18 +323,12 @@ public class DemoEnvRegister implements ExpressionVariableRegister {
 
 ![image-20241224164743320](../doc/images/image-20241224164743320.png)
 
-### 4.1 执行器拦截 ExpressionExecutorPostProcessor
+> 执行过程： 执行器 -> 表达式 -> 函数|变量
 
-在获取到规则之后，可执行beforeExecutor、afterExecutor回调
-
-### 4.2 表达式拦截 : ExpressionConfigExecutorIntercept
-
-执行到每条表达式的时候，可实现进行拦截处理
-
-### 4.3 函数拦截: ExpressionFunctionPostProcessor
-
-在执行到每个函数的时候，前、后、异常都可拦截
-
-### 4.4 函数责任链 : ExpressionFunctionFilter
-
-函数执行前后拦截，可强制变更结果。
+| **阶段**        | **接口/类名**                       | **触发时机**     | **作用**                         | 默认实现                                                     |
+| --------------- | ----------------------------------- | ---------------- | -------------------------------- | ------------------------------------------------------------ |
+| 执行器执行前/后 | `ExpressionExecutorPostProcessor`   | 获取规则前后     | 全局预处理、结果变更             | ExpressionConfigIdFilterSupport: 表达式筛选。ExpressionVarConfigRegisterSupport - 配置变量注入TraceSwitchConfigurabilityProcessor: 执行器能力触发执行 |
+| 单条表达式执行  | `ExpressionConfigExecutorIntercept` | 每条表达式执行时 | 表达式级拦截（链路追踪）         | ExecutorTraceCollectIntercept - 收集表达式日志               |
+| 函数执行前后    | `ExpressionFunctionPostProcessor`   | 每个函数调用时   | 记录日志、异常处理               | ExecutorTraceCollectIntercept - 收集表达式日志               |
+| 函数责任链      | `ExpressionFunctionFilter`          | 函数执行前后     | 强制修改参数或结果（如兜底逻辑） | ExpressionFunctionNameFilterSupport : 过滤函数名称，替换函数结果 |
+| 远端调用        | RemoteExpressionConfigService       | 获取规则         | 获取执行器和表达式配置信息       | HttpExpressionConfigService、RedisExpressionConfigService    |

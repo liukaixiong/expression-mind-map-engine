@@ -2,7 +2,7 @@ spring:
   plugin:
     express:
       debug: true
-      remote-engine-url: http://localhost:20888/
+      remote-engine-url: http://localhost:20888
       logger-trace-level: debug
       expression-config-call: http
       enable-trace-log: true

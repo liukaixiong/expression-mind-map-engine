@@ -15,17 +15,23 @@
             <div class="layui-input-prefix">
                 <i class="layui-icon layui-icon-username"></i>
             </div>
-            <input class="layui-input" lay-affix="clear" name="serviceName" placeholder="服务名称" type="text" value="">
+            <label>
+                <input class="layui-input" lay-affix="clear" name="serviceName" placeholder="服务名称" type="text" value="">
+            </label>
         </div>
     </div>
     <div class="layui-col-md4">
         <div class="layui-input-wrap">
-            <input class="layui-input" lay-affix="clear" name="businessCode" placeholder="业务组" type="text">
+            <label>
+                <input class="layui-input" lay-affix="clear" name="businessCode" placeholder="业务组" type="text">
+            </label>
         </div>
     </div>
     <div class="layui-col-md4">
         <div class="layui-input-wrap">
-            <input class="layui-input" lay-affix="clear" name="executorCode" placeholder="业务编码" type="text">
+            <label>
+                <input class="layui-input" lay-affix="clear" name="executorCode" placeholder="业务编码" type="text">
+            </label>
         </div>
     </div>
     <!--    <div class="layui-col-md4">-->
@@ -49,18 +55,18 @@
         <a class="layui-btn layui-btn-xs" lay-event="btn-config-rule">配置规则</a>
         <a class="layui-btn layui-btn-xs" lay-event="btn-edit">编辑</a>
         <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="btn-del">删除</a>
-        <a class="layui-btn layui-btn-xs layui-bg-blue" lay-event="btn-download-rule"><i
-                class="layui-icon layui-icon-download-circle"></i>下载规则</a>
+        <a class="layui-btn layui-btn-xs layui-bg-blue" lay-event="btn-download-rule">
+            <i class="layui-icon layui-icon-download-circle"></i>下载规则</a>
     </div>
 </script>
 <script id="executor-toolbar" type="text/html">
     <div class="layui-btn-container">
         <button class="layui-btn layui-btn-sm layui-bg-blue" lay-event="openAddHtml">新增</button>
-        <button class="layui-btn layui-btn-sm layui-bg-blue class-rule-file-upload-json" lay-event="btn-upload-rule"><i
-                class="layui-icon layui-icon-upload-drag"></i>导入覆盖规则
+        <button class="layui-btn layui-btn-sm layui-bg-blue class-rule-file-upload-json" lay-event="btn-upload-rule">
+            <i class="layui-icon layui-icon-upload-drag"></i>导入覆盖规则
         </button>
-        <a class="layui-btn layui-btn-sm layui-bg-blue" href="/template/trace-list.html" target="_blank"><i
-                class="layui-icon layui-icon-search"></i>跳转追踪查询页
+        <a class="layui-btn layui-btn-sm layui-bg-blue" href="/template/trace-list.html" target="_blank">
+            <i class="layui-icon layui-icon-search"></i>跳转追踪查询页
         </a>
     </div>
 </script>
@@ -179,7 +185,7 @@
     });
 
     table.on('toolbar(ID-table-executor-search)', function (obj) {
-        var id = obj.config.id;
+        let id = obj.config.id;
         switch (obj.event) {
             case 'openAddHtml':
                 // layer.alert(layui.util.escape(JSON.stringify(obj)));
@@ -232,8 +238,6 @@
             }
         });
     }
-
-
 </script>
 
 </html>

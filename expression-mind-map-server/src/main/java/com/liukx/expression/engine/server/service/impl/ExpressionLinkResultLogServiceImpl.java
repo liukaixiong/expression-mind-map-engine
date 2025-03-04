@@ -36,6 +36,7 @@ import java.util.Set;
  * @since 2022-06-15
  */
 @Service
+@Deprecated
 public class ExpressionLinkResultLogServiceImpl extends ServiceImpl<ExpressionLinkResultLogMapper, ExpressionLinkResultLog> implements ExpressionLinkResultLogService {
     @Autowired
     private ServiceCommonUtil<ExpressionLinkResultLog, ExpressionLinkResultLogDTO> serviceCommonUtil;

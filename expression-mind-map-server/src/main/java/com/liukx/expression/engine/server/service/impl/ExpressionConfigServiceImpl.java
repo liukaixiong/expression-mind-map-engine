@@ -169,7 +169,6 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         lambdaQuery.orderByDesc(ExpressionExecutorDetailConfig::getPriorityOrder).orderByAsc(ExpressionExecutorDetailConfig::getId);
         List<ExpressionExecutorDetailConfig> expressionExecutorDetailConfigList = lambdaQuery.list();
 
-
         if (CollectionUtil.isNotEmpty(expressionExecutorDetailConfigList)) {
             Map<Long, List<ExpressionTraceLogInfo>> traceConfigMap = new HashMap<>();
             final Long traceLogId = queryRequest.getTraceLogId();

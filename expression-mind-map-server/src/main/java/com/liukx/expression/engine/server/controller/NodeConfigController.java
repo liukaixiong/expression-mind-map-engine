@@ -33,6 +33,7 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 @RequestMapping(BaseConstants.BASE_PATH + "/node")
 @Slf4j
+@Deprecated
 public class NodeConfigController {
 
     @Autowired

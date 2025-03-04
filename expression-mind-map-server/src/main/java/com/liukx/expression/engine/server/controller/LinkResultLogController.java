@@ -30,6 +30,7 @@ import java.util.List;
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping(BaseConstants.BASE_PATH + "/log/success")
+@Deprecated
 public class LinkResultLogController {
     @Autowired
     private ExpressionLinkResultLogService expressionLinkResultLogService;

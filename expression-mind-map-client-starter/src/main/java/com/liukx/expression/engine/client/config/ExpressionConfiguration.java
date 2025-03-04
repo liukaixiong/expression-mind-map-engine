@@ -10,6 +10,7 @@ import com.liukx.expression.engine.client.config.props.ExpressionProperties;
 import com.liukx.expression.engine.client.factory.ExpressionExecutorFactory;
 import com.liukx.expression.engine.client.feature.ExpressionConfigIdFilterSupport;
 import com.liukx.expression.engine.client.feature.ExpressionFunctionNameFilterSupport;
+import com.liukx.expression.engine.client.feature.ExpressionVarConfigRegisterSupport;
 import com.liukx.expression.engine.client.log.LogHelper;
 import com.liukx.expression.engine.client.log.LogTraceService;
 import com.liukx.expression.engine.client.log.Sl4jLogServiceImpl;
@@ -28,7 +29,7 @@ import org.springframework.context.annotation.Import;
 @Configuration
 @EnableConfigurationProperties(value = {ExpressionProperties.class})
 @Import({ExpClientEnginAutoConfiguration.class})
-@ComponentScan(basePackages = {"com.liukx.expression.engine.client.function"})
+@ComponentScan(basePackages = {"com.liukx.expression.engine.client.function", "com.liukx.expression.engine.client.variable"})
 @Slf4j
 public class ExpressionConfiguration {
 
@@ -97,6 +98,11 @@ public class ExpressionConfiguration {
     @Bean
     public ExpressionFunctionNameFilterSupport expressionFunctionNameFilterSupport() {
         return new ExpressionFunctionNameFilterSupport();
+    }
+
+    @Bean
+    public ExpressionVarConfigRegisterSupport expressionVarConfigRegisterSupport() {
+        return new ExpressionVarConfigRegisterSupport();
     }
 
     @Bean

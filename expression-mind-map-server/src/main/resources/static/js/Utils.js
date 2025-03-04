@@ -5,7 +5,9 @@
  * @date  -
  */
 let engineUtils = function () {
+
     let requestPost = function post(url, data, callback) {
+        let $ = layui.$;
         $.ajax({
             url: url, // 替换为你的API端点URL
             type: 'POST',

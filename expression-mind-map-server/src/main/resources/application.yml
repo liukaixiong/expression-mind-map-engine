@@ -49,7 +49,14 @@ spring:
       timeout: 10s
       ssl:
         enabled: false
-
+  plugin:
+    express:
+      enable-trace-log: false
+  expression:
+    server:
+      enable-login: true
+      username: admin
+      password: admin@123
 mybatis-plus:
   mapper-locations: mapper/**/*.xml
   #  需要SQL日志时开启

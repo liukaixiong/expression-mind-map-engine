@@ -11,5 +11,6 @@ public enum ExpressionCoxnfigurabilitySwitchEnum {
      * 开启节点异步能力
      */
     enableNodeAsync,
+    enableSampleBody,
 
 }

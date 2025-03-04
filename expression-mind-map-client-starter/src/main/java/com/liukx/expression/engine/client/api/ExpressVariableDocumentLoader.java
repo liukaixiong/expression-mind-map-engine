@@ -28,6 +28,8 @@ public interface ExpressVariableDocumentLoader extends GroupNameService {
      * @param name
      * @return
      */
-    public VariableApiModel getVariableInfo(String group, String name);
+    default VariableApiModel getVariableInfo(String group, String name) {
+        return null;
+    }
 
 }

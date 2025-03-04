@@ -28,6 +28,8 @@ public class ExpressionConfigInfo {
 
     private String executorName;
 
+    private String varDefinition;
+
     /**
      * 拓展能力
      */

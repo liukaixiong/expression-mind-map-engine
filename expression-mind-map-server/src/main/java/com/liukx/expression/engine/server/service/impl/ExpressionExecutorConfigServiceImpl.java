@@ -128,7 +128,7 @@ public class ExpressionExecutorConfigServiceImpl extends ServiceImpl<ExpressionE
         //业务编码
         lambdaQuery.eq(StringUtils.isNotBlank(queryRequest.getBusinessCode()), ExpressionExecutorBaseInfo::getBusinessCode, queryRequest.getBusinessCode());
         //执行器名称
-        lambdaQuery.like(StringUtils.isNotBlank(queryRequest.getExecutorName()), ExpressionExecutorBaseInfo::getExecutorCode, queryRequest.getExecutorName());
+        lambdaQuery.like(StringUtils.isNotBlank(queryRequest.getExecutorCode()), ExpressionExecutorBaseInfo::getExecutorCode, queryRequest.getExecutorCode());
         //执行器状态
         lambdaQuery.eq(queryRequest.getStatus() != null, ExpressionExecutorBaseInfo::getStatus, queryRequest.getStatus());
         lambdaQuery.orderByDesc(ExpressionExecutorBaseInfo::getId);

@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
  * @author bsy
  * @since 2022-06-12
  */
-@Api(tags = "执行器管理")
+@Api(tags = "执行器表达式追踪")
 @Validated
 @RestController
 @CrossOrigin(origins = "*")
@@ -43,6 +43,13 @@ public class ExecutorTraceController {
     public RestResult<ExpressionTraceInfoDTO> findExecutorList(@RequestParam("id") Long id) {
         final ExpressionTraceInfoDTO info = traceLogIndexService.getTraceInfoList(id);
         return RestResult.ok(info);
+    }
+
+    @ApiOperation("获取表达式样本参数")
+    @PostMapping("/getExpressionSampleBody")
+    public RestResult<ExpressionTraceLogIndex> getExpressionSampleBody(@RequestParam("expressionId") Long expressionId) {
+        ExpressionTraceLogIndex logIndex = traceLogIndexService.getExpressionSampleBody(expressionId);
+        return RestResult.ok(logIndex);
     }
 
 }

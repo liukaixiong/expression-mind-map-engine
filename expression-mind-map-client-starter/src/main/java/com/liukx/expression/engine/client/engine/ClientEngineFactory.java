@@ -30,7 +30,8 @@ public class ClientEngineFactory implements InitializingBean {
     }
 
     /**
-     * 本地执行规则,推荐
+     * 本地执行规则，不建议使用
+     * 建议使用： {@link ClientEngineFactory#invoke(ClientExpressionSubmitRequest, ExpressionEnvContext)}
      *
      * @param request    业务编码
      * @param envContext 上下文变量
@@ -38,6 +39,17 @@ public class ClientEngineFactory implements InitializingBean {
      */
     public Boolean invoke(ClientExpressionSubmitRequest request, Map<String, Object> envContext) {
         return (Boolean) callMap.get(EngineCallType.LOCAL).invoke(request, envContext);
+    }
+
+    /**
+     * 本地规则执行
+     * @param request
+     * @param envContext
+     * @return
+     */
+    public Map<String, Object> invoke(ClientExpressionSubmitRequest request, ExpressionEnvContext envContext) {
+        callMap.get(EngineCallType.LOCAL).invoke(request, envContext);
+        return envContext.getResultContext();
     }
 
     /**

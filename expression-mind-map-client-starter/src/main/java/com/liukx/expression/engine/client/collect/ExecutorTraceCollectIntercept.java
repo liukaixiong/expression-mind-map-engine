@@ -23,6 +23,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -88,7 +89,7 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
         dto.setUserId(baseRequest.getUserId());
         dto.setUnionId(baseRequest.getUnionId());
         dto.setTraceId(baseRequest.getTraceId());
-        dto.setEnvBody(Jsons.toJsonString(envContext.getRequest()));
+        dto.setEnvBody(Jsons.toJsonString(envContext.getBusinessEnvContext()));
         resultLogThreadLocal.set(dto);
     }
 
@@ -165,8 +166,13 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
 
             if (result instanceof Exception) {
                 Exception e = (Exception) result;
-                dto.setResult(false);
-                dto.setDescription(e.getMessage());
+                dto.setResult(-1);
+                Map<String, Object> debugTraceContent = dto.getDebugTraceContent();
+                if (debugTraceContent == null) {
+                    debugTraceContent = new HashMap<>();
+                }
+                debugTraceContent.put("errorMessage", e.getMessage());
+                dto.setDebugTraceContent(debugTraceContent);
             }
 
             resultLogThreadLocal.get().getResultLogList().add(dto);

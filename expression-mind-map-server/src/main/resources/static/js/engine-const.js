@@ -7,6 +7,7 @@
 let final_const = {
 
     api_path: {
+        login: '/login',
 
         executor_add: '/expression-engine/executor/info/addOne',
 
@@ -33,6 +34,15 @@ let final_const = {
         upload_json: '/expression-engine/components/importData',
 
         trace_list: '/expression-engine/executor/trace/list',
+
+        /**
+         * 获取单个追踪信息
+         */
+        trace_object: '/expression-engine/executor/trace/info',
+        /**
+         * 获取表达式的样本参数
+         */
+        trace_sample_object: '/expression-engine/executor/trace/getExpressionSampleBody',
         /**
          * 获取表达式列表
          */
@@ -55,8 +65,8 @@ let final_const = {
     },
 
     template_path: {
+        index: '/template/executor-list.html',
         executor_form: '/template/executor-form.html',
-
         expression_rule_config: '/template/expression-rule-config.html',
         expression_form: '/template/expressionForm.html',
 

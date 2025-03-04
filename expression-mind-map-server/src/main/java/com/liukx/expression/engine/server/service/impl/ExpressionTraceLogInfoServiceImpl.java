@@ -28,4 +28,13 @@ public class ExpressionTraceLogInfoServiceImpl extends ServiceImpl<ExpressionTra
         wrapper.eq(ExpressionTraceLogInfo::getTraceLogId, traceLogId);
         return list(wrapper);
     }
+
+    @Override
+    public ExpressionTraceLogInfo getExpressionRecentlySuccessLog(Long expressionId) {
+        LambdaQueryWrapper<ExpressionTraceLogInfo> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ExpressionTraceLogInfo::getExpressionConfigId, expressionId);
+        wrapper.eq(ExpressionTraceLogInfo::getExpressionResult, 1);
+        wrapper.orderByDesc(ExpressionTraceLogInfo::getId);
+        return getOne(wrapper,false);
+    }
 }

@@ -3,6 +3,7 @@ package com.liukx.expression.engine.core.utils;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -62,6 +63,24 @@ public class Jsons {
         return result;
     }
 
+    public static <T> T parseObject(String content, TypeReference<T> valueType) {
+
+        if (!StringUtils.hasText(content)) {
+            return null;
+        }
+
+        T result = null;
+        try {
+//            if (valueType.isAssignableFrom(String.class)) {
+//                return (T) content;
+//            }
+            result = objectMapper.readValue(content, valueType);
+        } catch (JsonProcessingException e) {
+            log.error("strToObj error -> {} -> {}", content, valueType, e);
+        }
+        return result;
+    }
+
     public static <T> List<T> parseList(String content, Class<T> valueType) {
         List<T> list = new ArrayList<>();
         try {
@@ -79,6 +98,11 @@ public class Jsons {
 
     public static Map<String, Object> objToMap(Object obj) {
         return objectMapper.convertValue(obj, Map.class);
+    }
+
+    public static <K, V> Map<K, V> objToMap2(Object obj, Class<K> keyType, Class<V> valueType) {
+        return objectMapper.convertValue(obj, new TypeReference<>() {
+        });
     }
 
 }

@@ -6,6 +6,10 @@
     <link href="//unpkg.com/layui@2.9.14/dist/css/layui.css" rel="stylesheet">
     <script src="//unpkg.com/layui@2.9.14/dist/layui.js"></script>
 
+    <script src="/js/cdn/jquery-3.3.1.min.js"></script>
+    <script src="/js/cdn/json-viewer/jquery.json-viewer.js"></script>
+    <link href="/js/cdn/json-viewer/jquery.json-viewer.css" type="text/css" rel="stylesheet">
+
     <script src="/js/Utils.js"></script>
     <script src="/js/engine-const.js"></script>
 </head>
@@ -48,13 +52,26 @@
             </div>
         </div>
         <div class="layui-form-item layui-form-text">
-            <label class="layui-form-label">表达式内容
+            <label class="layui-form-label" style="height: 52px">表达式内容
                 <i class="layui-icon layui-icon-tips" style="padding-top: 10px;padding-left: 10px; color: #16baaa">【Ctrl+ALT+空格,会检索当前光标直至上一个空格位置中间的关键字进行检索】</i>
+                <span id="sample_pre_div">
+                    <i class="layui-icon layui-icon-fire" style="color: #16baaa">
+                        <button class="layui-btn layui-btn-radius" id="expression_sample_body"
+                                onclick="getExpressionSampleBody()" type="button">
+                            查看样本参数
+                        </button>
+                        <button class="layui-btn layui-btn-radius" id="expression_sample_link"
+                                onclick="linkExpressionSampleBody()" type="button">
+                            跳转追踪示例
+                        </button>
+                    </i>
+                </span>
             </label>
             <div class="layui-input-block">
-                <textarea class="layui-textarea" id="expression_input_search"
+                <textarea style="min-height: 150px" class="layui-textarea" id="expression_input_search"
                           name="expressionContent"
                           placeholder="请输入表达式内容,如果为空的情况下建议填true"></textarea>
+
             </div>
         </div>
         <div class="layui-form-item">
@@ -79,8 +96,10 @@
         <div class="layui-form-item layui-form-text">
             <label class="layui-form-label">能力开关</label>
             <div class="layui-input-block">
-                <input lay-filter="configurability-checkbox-filter" lay-skin="tag" name="enableNodeAsync" title="开启子分支异步"
+                <input lay-filter="configurability-checkbox-filter" lay-skin="tag" name="enableNodeAsync"
+                       title="开启子分支异步"
                        type="checkbox"/>
+                <!--                <input lay-filter="configurability-checkbox-filter" lay-skin="tag" name="enableSampleBody" title="样本参数" type="checkbox"/>-->
             </div>
         </div>
         <div class="layui-form-item">
@@ -98,11 +117,12 @@
         </div>
     </form>
 </div>
+<pre id="json-renderer"></pre>
 </body>
 <script type="text/javascript">
     var layer = layui.layer;
     var form = layui.form;
-    var $ = layui.$;
+    var util = layui.util
     let requestParam = engineUtils.getRequestParams();
     var expressionTypeList = final_const.final_constants.expression_type_list;
     let dataId = requestParam["id"];
@@ -110,12 +130,15 @@
     let api_add_path = final_const.api_path.expression_add;
     let api_edit_path = final_const.api_path.expression_edit;
     let api_expressionFindExpressionInfo = final_const.api_path.expression_findExpressionInfo;
+    let api_trace_sample_object = final_const.api_path.trace_sample_object;
     let api_executor_doc_search_list = final_const.api_path.executor_doc_search_list;
     // 复选框 - 选择暂存结果
     let configurabilityEnableArray = new Set();
     // 配置开关能力记录,新增的能力需要注册到该配置中
     let configurabilityJson = {};
     let serviceName = null;
+
+    // 代表修改
     if (dataId) {
         let url = api_expressionFindExpressionInfo + "?id=" + dataId;
         engineUtils.requestPost(url, {}, function (response) {
@@ -135,12 +158,14 @@
             form.val('expression-form', defaultData);
         })
     } else {
+        // 代表新增逻辑
         let nextExpressionTypeIndex = Math.min(expressionTypeList.indexOf(requestParam.expressionType) + 1, 3);
         form.val('expression-form', {
             'expressionType': expressionTypeList[nextExpressionTypeIndex],
             'priorityOrder': 100,
         });
         refreshCode();
+        $("#sample_pre_div").remove();
     }
 
     form.on('checkbox(configurability-checkbox-filter)', function (data) {
@@ -183,7 +208,7 @@
                 }]
             ], //设置表头
             type: 'sugTable', //设置输入框提示类型：sug-下拉框，sugTable-下拉表格
-            url: api_executor_doc_search_list + "?executorId=" + executorId + "&&limit=8&&name=" //设置异步数据接口,url为必填项,params为字段名
+            url: api_executor_doc_search_list + "?executorId=" + executorId + "&&expressionId=" + (dataId || '') + "&&limit=8&&name=" //设置异步数据接口,url为必填项,params为字段名
             , parseData: function (res) {
                 return {
                     "code": res.code === 200 ? 0 : res.code, //解析接口状态
@@ -200,49 +225,62 @@
                 return text;
             }
         });
-
-        //初始化工号输入提示框
-        // yutons_sug.render({
-        //     id: "userCode", //设置容器唯一id
-        //     height: "167",
-        //     cols: [
-        //         [{
-        //             field: 'userName',
-        //             title: '员工姓名'
-        //         }, {
-        //             field: 'userCode',
-        //             title: '员工工号'
-        //         }, {
-        //             field: 'deptName',
-        //             title: '所属部门'
-        //         }]
-        //     ], //设置表头
-        //     type: 'sugTable', //设置输入框提示类型：sug-下拉框，sugTable-下拉表格
-        //     url: sessionStorage.getItem("url") + "?params=" //设置异步数据接口,url为必填项
-        // });
-        //
-        // //初始化部门输入提示框
-        // yutons_sug.render({
-        //     id: "deptName", //设置容器唯一id
-        //     type: 'sug', //设置输入框提示类型：sug-下拉框，sugTable-下拉表格
-        //     url: sessionStorage.getItem("url") + "?params=" //设置异步数据接口,url为必填项
-        // });
     });
 
-
+    // 刷新编码
     function refreshCode() {
         form.val('expression-form', {
             'expressionCode': generateRandomString(10),
         })
     }
 
+    function getExpressionSampleBody() {
+        if (dataId) {
+            let jsonConfig = {collapsed: false, withQuotes: true, withLinks: true}
+            engineUtils.requestPost(api_trace_sample_object + "?expressionId=" + dataId, {}, function (response) {
+                if (response.code === 200) {
+                    let data = response.data || {'envBody': '{}'};
+                    $('#json-renderer').jsonViewer(JSON.parse(data.envBody), jsonConfig);
+                    layer.open({
+                        title: '追踪可使用变量',
+                        type: 1,
+                        offset: 'r',
+                        anim: 'slideLeft', // 从右往左
+                        area: ['320px', '100%'],
+                        shade: 0.1,
+                        shadeClose: true,
+                        content: $('#json-renderer').show()
+                    });
+                } else {
+                    layer.msg(response.message);
+                }
+            })
+        }
+    }
+
+    function linkExpressionSampleBody() {
+        engineUtils.requestPost(api_trace_sample_object + "?expressionId=" + dataId, {}, function (response) {
+            if (response.code === 200) {
+                if (!response.data) {
+                    layer.msg('没有找到对应的追踪信息!');
+                    return;
+                }
+                let data = response.data;
+                util.openWin({
+                    url: `/template/expression-rule-config.html?traceLogId=${data.id}&executorId=${data.executorId}&executorCode=${data.executorCode}&executorDescription=${encodeURIComponent(data.executorName)}`
+                });
+            } else {
+                layer.msg(response.message);
+            }
+        })
+    }
+
     // 提交事件
     form.on('submit(demo1)', function (data) {
-        var field = data.field; // 获取表单字段值
+        let field = data.field; // 获取表单字段值
 
         field['executorId'] = requestParam.executorId;
         field['parentId'] = requestParam.parentId;
-        debugger;
         configurabilityJson['enableSwitch'] = Array.from(configurabilityEnableArray);
         field['configurabilityJson'] = JSON.stringify(configurabilityJson);
 

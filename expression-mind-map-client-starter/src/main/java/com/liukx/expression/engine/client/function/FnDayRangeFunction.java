@@ -10,6 +10,7 @@ import com.liukx.expression.engine.core.api.model.ExpressionConfigTreeModel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -27,6 +28,10 @@ public class FnDayRangeFunction extends AbstractSimpleFunction {
         final String startDateStr = getArgsIndexValue(funArgs, 0);
 
         final String endDateStr = getArgsIndexValue(funArgs, 1);
+
+        // 获取时间类型参数，允许是String、Date、Long等等，默认是当前时间来进行计算。
+        final Date currentConfigDate = getArgsIndexDate(funArgs, 2, new Date());
+
         DateTime startDateTime;
         DateTime endDateTime;
         if (startDateStr.length() == 10) {
@@ -37,15 +42,15 @@ public class FnDayRangeFunction extends AbstractSimpleFunction {
             endDateTime = DateUtil.parseDateTime(endDateStr);
         }
 
-        final long currentTime = System.currentTimeMillis();
+        final long currentTime = currentConfigDate.getTime();
 
         boolean result = startDateTime.getTime() < currentTime && currentTime <= endDateTime.getTime();
 
         if (!result) {
             final String s = DateUtil.formatDateTime(startDateTime);
             final String e = DateUtil.formatDateTime(endDateTime);
-            env.recordTraceDebugContent(getName(), "debug", String.format("当前时间不满足 %s - %s", s, e));
-            log.info("系统时间不在指定时间范围内,startHour={};endHour={} ", s, e);
+            final String c = DateUtil.formatDateTime(currentConfigDate);
+            env.recordTraceDebugContent(getName(), "debug", String.format("配置时间[%s]不满足 %s ~ %s 区间", c, s, e));
         }
 
         return result;

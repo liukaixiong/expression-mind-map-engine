@@ -44,6 +44,8 @@ public class ExpressionEnvContext {
     private final Logger logger = LoggerFactory.getLogger(ExpressionEnvContext.class);
     private final Map<String, Object> sourceMap;
 
+    private final Map<String, Object> businessEnvContext = new HashMap<>();
+
     public ExpressionEnvContext(Map<String, Object> m) {
         this.sourceMap = m;
     }
@@ -112,13 +114,18 @@ public class ExpressionEnvContext {
     }
 
     /**
-     * 添加对应的K,V到上下文中
+     * 添加业务对应的K,V到上下文中
      *
      * @param key
      * @param value
      */
     public void addEnvContext(String key, Object value) {
         this.sourceMap.put(key, value);
+        this.businessEnvContext.put(key, value);
+    }
+
+    public Map<String, Object> getBusinessEnvContext() {
+        return businessEnvContext;
     }
 
     /**
@@ -245,7 +252,7 @@ public class ExpressionEnvContext {
      * @param expressionIds 表达式配置编号
      */
     public void enableExpressionConfigIdContainFilter(Set<Long> expressionIds) {
-        this.addEnvContext(FEATURE_EXPRESSION_CONFIG_ID_CONTAIN_KEY, expressionIds);
+        this.sourceMap.put(FEATURE_EXPRESSION_CONFIG_ID_CONTAIN_KEY, expressionIds);
     }
 
     /**
@@ -265,7 +272,7 @@ public class ExpressionEnvContext {
      * @param skipExpressionConfigIds
      */
     public void enableExpressionConfigIdSkipFilter(Set<Long> skipExpressionConfigIds) {
-        this.addEnvContext(FEATURE_EXPRESSION_CONFIG_ID_SKIP_KEY, skipExpressionConfigIds);
+        this.sourceMap.put(FEATURE_EXPRESSION_CONFIG_ID_SKIP_KEY, skipExpressionConfigIds);
     }
 
     @SuppressWarnings("unchecked")
@@ -274,7 +281,7 @@ public class ExpressionEnvContext {
     }
 
     public void enableExpressionFunctionNameSkipFilter(Set<String> skipExpressionFunctionName) {
-        this.addEnvContext(FEATURE_EXPRESSION_FUNCTION_NAME_SKIP_KEY, skipExpressionFunctionName);
+        this.sourceMap.put(FEATURE_EXPRESSION_FUNCTION_NAME_SKIP_KEY, skipExpressionFunctionName);
     }
 
     @SuppressWarnings("unchecked")

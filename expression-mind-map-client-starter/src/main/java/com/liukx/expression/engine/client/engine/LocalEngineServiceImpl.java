@@ -68,7 +68,7 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
     }
 
     @Override
-    public Object invoke(ClientExpressionSubmitRequest request, Map<String, Object> envContext) {
+    public Object invoke(ClientExpressionSubmitRequest request, ExpressionEnvContext expressionEnvContext) {
         final String businessCode = request.getBusinessCode();
         final String eventName = request.getEventName();
         final String executorCode = request.getExecutorCode();
@@ -84,7 +84,6 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
         Supplier<String> defaultValueSupplier = () -> UUID.fastUUID().toString();
         baseRequest.setTraceId(ObjectUtil.defaultIfEmpty(request.getTraceId(), defaultValueSupplier));
 
-        ExpressionEnvContext expressionEnvContext = new ExpressionEnvContext(envContext);
         // 上游存在循环调用，会导致结果集混乱
         expressionEnvContext.clearAllExpressionFunctionCache();
 
@@ -94,9 +93,15 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
         expressionEnvContext.addEnvClassInfo(baseRequest);
         expressionEnvContext.addEnvClassInfo(request);
 
+        // 仅支持单事件匹配，如果存在多事件请循环处理。
+        expressionEnvContext.addEnvContext("event", eventName);
+        expressionEnvContext.addEnvContext("userId", userId);
+        expressionEnvContext.addEnvContext("unionId", unionId);
+
         List<ExpressionConfigTreeModel> configTreeModelList;
         ExpressionConfigInfo configInfo = null;
         try {
+
             // 向引擎获取对应的业务编码相关的配置
             configInfo = getExpressionConfigInfo(expressionEnvContext.getSourceMap(), businessCode, executorCode);
 
@@ -106,11 +111,6 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
 
             Assert.notNull(configInfo, "业务编码：" + businessCode + ",远端配置获取失败");
 
-            // 仅支持单事件匹配，如果存在多事件请循环处理。
-            envContext.put("event", eventName);
-            envContext.put("userId", userId);
-            envContext.put("unionId", unionId);
-
             configTreeModelList = configInfo.getConfigTreeModelList();
 
             executorExpression(baseRequest, expressionEnvContext, configInfo, configTreeModelList);
@@ -119,6 +119,12 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
             executorPostProcessors.forEach(var -> var.afterExecutor(expressionEnvContext, baseRequest, finalConfigInfo));
         }
         return true;
+    }
+
+    @Override
+    public Object invoke(ClientExpressionSubmitRequest request, Map<String, Object> envContext) {
+        ExpressionEnvContext expressionEnvContext = new ExpressionEnvContext(envContext);
+        return invoke(request, expressionEnvContext);
     }
 
     private ExpressionConfigInfo getExpressionConfigInfo(Map<String, Object> envContext, String businessGroupCode, String executorCode) {
@@ -136,9 +142,8 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
         baseRequest.setServiceName(serviceName);
         baseRequest.setBusinessCode(businessGroupCode);
         baseRequest.setExecutorCode(executorCode);
-        ExpressionConfigInfo configInfo = configCallManager.getConfigInfo(serviceName, businessGroupCode, executorCode);
-        envContext.put(key, configInfo);
-        return configInfo;
+
+        return configCallManager.getConfigInfo(serviceName, businessGroupCode, executorCode);
     }
 
 

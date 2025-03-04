@@ -3,6 +3,9 @@ package com.liukx.expression.engine.server.constants;
 public class BaseConstants {
     public static final String BASE_PATH = "/expression-engine";
     public static final String BASE_PROJECT_NAME = "expression-engine";
+    public static final String TOKEN_NAME = "Authorization";
+    public static final String HTML_LOGIN_PATH = "/template/login.html";
+    public static final String LOGIN_URL = "/login";
 
     /**
      * 代表有效状态

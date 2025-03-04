@@ -53,7 +53,6 @@ public class ExpressionConfigSyncDataServiceImpl implements SyncDataService<Expr
         final String executorCode = baseInfo.getExecutorCode();
 
         // 如果不应用导入的id,那么优先清空掉所有id.
-
         ExpressionExecutorBaseDTO expressionExecutorBaseDTO = executorConfigService.queryExecutorInfo(serviceName, businessCode, executorCode);
 
         // 构建树形结构
@@ -69,16 +68,18 @@ public class ExpressionConfigSyncDataServiceImpl implements SyncDataService<Expr
 
         // 如果没有执行器信息，那么说明可以直接覆盖当前执行器和表达式配置信息
         if (expressionExecutorBaseDTO == null) {
+            if (baseInfo.getId() != null) {
+                LOG.info(">>>>> sync data info insert >>> executorId 存在 : {} 尝试清理!", baseInfo.getId());
+                baseInfo.setId(null);
+            }
             boolean save = executorConfigService.save(baseInfo);
             Long executorId = baseInfo.getId();
             LOG.info(">>>>> sync data info insert >>> executorId : {} ", executorId);
-
             if (save) {
                 deepInfoConfigSave(treeList, idCache, executorId);
                 return true;
             }
         } else {
-
             // 强制关联已经匹配出来的id信息，直接覆盖，避免不一致
             baseInfo.setId(expressionExecutorBaseDTO.getId());
             Long executorId = expressionExecutorBaseDTO.getId();
@@ -183,6 +184,7 @@ public class ExpressionConfigSyncDataServiceImpl implements SyncDataService<Expr
         // 根据之前的上级编号，去缓存中查看是否更新，存储新的级联关系
         Long newParentId = idCache.get(infoConfig.getParentId());
         infoConfig.setParentId(newParentId);
+        infoConfig.setId(null);
         expressionConfigService.save(infoConfig);
 
         Long newInfoId = infoConfig.getId();

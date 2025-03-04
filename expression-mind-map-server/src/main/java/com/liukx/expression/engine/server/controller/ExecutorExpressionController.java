@@ -36,7 +36,6 @@ public class ExecutorExpressionController {
     @Autowired
     private ExpressionConfigService expressionConfigService;
 
-
     @ApiOperation("添加单个表达式")
     @PostMapping("/addOne")
     public RestResult<ExpressionExecutorDetailConfigDTO> addOne(@Validated @RequestBody AddExpressionConfigRequest addRequest) {
@@ -87,6 +86,8 @@ public class ExecutorExpressionController {
     public RestResult<?> batchDelete(@RequestBody @Validated DeleteByIdListRequest delRequest) {
         return expressionConfigService.batchDeleteByIdList(delRequest);
     }
+
+
 
 //    @ApiOperation("表达式翻译")
 //    @PostMapping("/translate")
