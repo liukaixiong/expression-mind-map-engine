@@ -1,5 +1,5 @@
 nacos:
-  enable: ${app.nacos.enable:false}
+  enable: ${app.nacos.enable:true}
 spring:
   cloud:
     nacos:
