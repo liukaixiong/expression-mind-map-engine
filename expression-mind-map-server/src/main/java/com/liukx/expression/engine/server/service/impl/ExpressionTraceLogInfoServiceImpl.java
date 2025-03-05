@@ -35,6 +35,7 @@ public class ExpressionTraceLogInfoServiceImpl extends ServiceImpl<ExpressionTra
         wrapper.eq(ExpressionTraceLogInfo::getExpressionConfigId, expressionId);
         wrapper.eq(ExpressionTraceLogInfo::getExpressionResult, 1);
         wrapper.orderByDesc(ExpressionTraceLogInfo::getId);
-        return getOne(wrapper,false);
+        wrapper.last("limit 1");
+        return getOne(wrapper, false);
     }
 }

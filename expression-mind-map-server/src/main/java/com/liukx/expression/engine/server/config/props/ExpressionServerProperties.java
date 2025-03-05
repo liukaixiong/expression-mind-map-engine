@@ -2,6 +2,7 @@ package com.liukx.expression.engine.server.config.props;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 
 /**
  *
@@ -11,6 +12,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  */
 @ConfigurationProperties(prefix = "spring.expression.server")
 @Data
+@RefreshScope
 public class ExpressionServerProperties {
     /**
      * 是否启用登录
