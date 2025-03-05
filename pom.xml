@@ -57,6 +57,7 @@
 
         <lombok.version>1.18.30</lombok.version>
         <commons-lang3.version>3.5</commons-lang3.version>
+        <disruptor.version>3.4.4</disruptor.version>
 
         <therapi-runtime-javadoc.version>0.15.0</therapi-runtime-javadoc.version>
         <guava.version>32.1.2-jre</guava.version>
@@ -110,6 +111,11 @@
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.lmax</groupId>
+                <artifactId>disruptor</artifactId>
+                <version>${disruptor.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>

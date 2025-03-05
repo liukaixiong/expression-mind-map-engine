@@ -122,9 +122,10 @@ public class ExpressionTraceLogIndexServiceImpl extends ServiceImpl<ExpressionTr
         // 受限于mysql存储字段大小有限制,如果es不会有问题.
         if (StringUtils.isNotEmpty(envBody)) {
             if (envBody.length() > 2000) {
-                envBody = envBody.substring(0, 1000);
+                index.setEnvBody(Jsons.compressReserveJsonKeyString(envBody));
+            } else {
+                index.setEnvBody(envBody);
             }
-            index.setEnvBody(envBody);
         }
 
         final boolean save = this.save(index);

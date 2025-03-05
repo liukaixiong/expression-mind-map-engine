@@ -5,7 +5,10 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -103,6 +106,42 @@ public class Jsons {
     public static <K, V> Map<K, V> objToMap2(Object obj, Class<K> keyType, Class<V> valueType) {
         return objectMapper.convertValue(obj, new TypeReference<>() {
         });
+    }
+
+    /**
+     * 压缩json字符串，保留key值，清理掉所有value为String的值，数组集合清空
+     *
+     * @param jsonStr
+     * @return
+     */
+    public static String compressReserveJsonKeyString(String jsonStr) {
+        try {
+            JsonNode rootNode = objectMapper.readTree(jsonStr);
+            clearValuesRecursive(rootNode);
+            return objectMapper.writeValueAsString(rootNode);
+        } catch (Exception e) {
+            log.warn("compressReserveJsonKeyString error : {} body:{}", e.getMessage(), jsonStr);
+        }
+        return "";
+    }
+
+    private static void clearValuesRecursive(JsonNode node) {
+        if (node.isObject()) {
+            ObjectNode objNode = (ObjectNode) node;
+            objNode.fieldNames().forEachRemaining(key -> {
+                JsonNode value = objNode.get(key);
+                if (value.isObject() || value.isArray()) {
+                    clearValuesRecursive(value); // 递归处理子节点
+                }
+                if (value.isTextual()) {
+                    objNode.put(key, ""); // 清空当前Key的Value
+                }
+            });
+        } else if (node.isArray()) {
+            // 数组直接清空
+            ArrayNode arrayNode = (ArrayNode) node;
+            arrayNode.removeAll();
+        }
     }
 
 }

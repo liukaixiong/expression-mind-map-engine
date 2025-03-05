@@ -514,7 +514,7 @@
             convertMindNodeData(item);
             treeNode.push(item);
         });
-        var mind = {
+        return {
             /* 元数据，定义思维导图的名称、作者、版本等信息 */
             "meta": {
                 "name": "liukaixiong",
@@ -526,7 +526,6 @@
             /* 数据内容 */
             "data": treeNode
         };
-        return mind;
     }
 
     function btnEventClick(type) {
@@ -576,8 +575,7 @@
                     "id": node.node
                 };
                 layer.confirm('是否要迁移节点？一旦迁移父子关系将会发生变化,是否确认?', {icon: 3}, function () {
-                    let node = nodeInfo;
-                    engineUtils.requestPost(api_expression_edit_parent, node, function (res) {
+                    engineUtils.requestPost(api_expression_edit_parent, nodeInfo, function (res) {
                         if (res.code === 200) {
                             layer.msg("迁移成功");
                         } else {
