@@ -56,6 +56,10 @@
                 <i class="layui-icon layui-icon-tips" style="padding-top: 10px;padding-left: 10px; color: #16baaa">【Ctrl+ALT+空格,会检索当前光标直至上一个空格位置中间的关键字进行检索】</i>
                 <span id="sample_pre_div">
                     <i class="layui-icon layui-icon-fire" style="color: #16baaa">
+                        <button class="layui-btn layui-btn-radius" id="expression_translate_body"
+                                onclick="getExpressionTranslateBody()" type="button">
+                            查看表达式详情
+                        </button>
                         <button class="layui-btn layui-btn-radius" id="expression_sample_body"
                                 onclick="getExpressionSampleBody()" type="button">
                             查看样本参数
@@ -71,7 +75,6 @@
                 <textarea style="min-height: 150px" class="layui-textarea" id="expression_input_search"
                           name="expressionContent"
                           placeholder="请输入表达式内容,如果为空的情况下建议填true"></textarea>
-
             </div>
         </div>
         <div class="layui-form-item">
@@ -131,6 +134,7 @@
     let api_edit_path = final_const.api_path.expression_edit;
     let api_expressionFindExpressionInfo = final_const.api_path.expression_findExpressionInfo;
     let api_trace_sample_object = final_const.api_path.trace_sample_object;
+    let api_executor_doc_translate_list = final_const.api_path.executor_doc_translate_list;
     let api_executor_doc_search_list = final_const.api_path.executor_doc_search_list;
     // 复选框 - 选择暂存结果
     let configurabilityEnableArray = new Set();
@@ -240,17 +244,42 @@
             engineUtils.requestPost(api_trace_sample_object + "?expressionId=" + dataId, {}, function (response) {
                 if (response.code === 200) {
                     let data = response.data || {'envBody': '{}'};
-                    $('#json-renderer').jsonViewer(JSON.parse(data.envBody), jsonConfig);
-                    layer.open({
-                        title: '追踪可使用变量',
-                        type: 1,
-                        offset: 'r',
-                        anim: 'slideLeft', // 从右往左
-                        area: ['320px', '100%'],
-                        shade: 0.1,
-                        shadeClose: true,
-                        content: $('#json-renderer').show()
-                    });
+                    showJsonView(data.envBody);
+                } else {
+                    layer.msg(response.message);
+                }
+            })
+        }
+    }
+
+    function showJsonView(data) {
+        let jsonConfig = {collapsed: false, withQuotes: true, withLinks: true}
+        let jsonBody = data;
+        if (typeof data === 'string') {
+            jsonBody = JSON.parse(data);
+        }
+        $('#json-renderer').jsonViewer(jsonBody, jsonConfig);
+        layer.open({
+            title: '查看表达式详情',
+            type: 1,
+            offset: 'r',
+            anim: 'slideLeft', // 从右往左
+            area: ['320px', '100%'],
+            shade: 0.1,
+            shadeClose: true,
+            content: $('#json-renderer').show()
+        });
+    }
+
+    /**
+     * 获取表达式翻译详情
+     */
+    function getExpressionTranslateBody() {
+        if (dataId) {
+            engineUtils.requestPost(api_executor_doc_translate_list + "?expressionId=" + dataId, {}, function (response) {
+                if (response.code === 200) {
+                    let data = response.data || [];
+                    showJsonView(data);
                 } else {
                     layer.msg(response.message);
                 }

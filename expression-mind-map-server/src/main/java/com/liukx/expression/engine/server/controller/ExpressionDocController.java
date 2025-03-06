@@ -7,13 +7,12 @@ import com.liukx.expression.engine.core.api.model.api.VariableApiModel;
 import com.liukx.expression.engine.core.utils.Jsons;
 import com.liukx.expression.engine.server.constants.BaseConstants;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorBaseInfo;
+import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorDetailConfig;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionTraceLogIndex;
 import com.liukx.expression.engine.server.model.dto.response.RestResult;
-import com.liukx.expression.engine.server.service.ExpressionDocService;
-import com.liukx.expression.engine.server.service.ExpressionExecutorConfigService;
-import com.liukx.expression.engine.server.service.ExpressionTraceLogIndexService;
-import com.liukx.expression.engine.server.service.ExpressionVarTypeService;
+import com.liukx.expression.engine.server.service.*;
 import com.liukx.expression.engine.server.service.model.doc.ExpressionDocDto;
+import com.liukx.expression.engine.server.util.ExpressionUtils;
 import com.liukx.expression.engine.server.util.MapFlattenUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -46,9 +45,11 @@ public class ExpressionDocController {
     @Autowired
     private ExpressionExecutorConfigService executorConfigService;
     @Autowired
+    private ExpressionConfigService expressionConfigService;
+    @Autowired
     private ExpressionTraceLogIndexService traceLogIndexService;
 
-    @ApiOperation("查询信息")
+    @ApiOperation("查询函数变量信息")
     @GetMapping("/getList")
     public RestResult<List<ExpressionDocDto>> findFuncList(@RequestParam("executorId") Long executorId, @RequestParam(value = "expressionId", required = false) Long expressionId, @RequestParam("name") String name, @RequestParam(value = "limit", required = false, defaultValue = "10") Integer limit) {
         final ExpressionExecutorBaseInfo executorBaseInfo = executorConfigService.getById(executorId);
@@ -65,11 +66,41 @@ public class ExpressionDocController {
             matchExpressionList.addAll(injectEnvNameList(envContext, serviceName, name, "执行器注入变量"));
         }
 
-
         List<ExpressionDocDto> expressionList = documentService.getLikeName(executorBaseInfo.getServiceName(), name, limit);
         if (!expressionList.isEmpty()) {
             matchExpressionList.addAll(expressionList);
         }
+        return RestResult.ok(matchExpressionList);
+    }
+
+    @ApiOperation("查询函数变量信息")
+    @PostMapping("/translateExpression")
+    public RestResult<List<ExpressionDocDto>> translateExpression(@RequestParam(value = "expressionId") Long expressionId) {
+        final ExpressionExecutorDetailConfig executorDetailConfig = expressionConfigService.getById(expressionId);
+        final ExpressionExecutorBaseInfo executorBaseInfo = executorConfigService.getById(executorDetailConfig.getExecutorId());
+        final String serviceName = executorBaseInfo.getServiceName();
+        final String varDefinition = executorBaseInfo.getVarDefinition();
+
+        List<ExpressionDocDto> matchExpressionList = new ArrayList<>();
+        final String expressionContent = executorDetailConfig.getExpressionContent();
+
+        for (String variableName : ExpressionUtils.getExpressionVariableList(expressionContent)) {
+            // 注入追踪变量
+            injectTraceEnvList(matchExpressionList, expressionId, variableName, serviceName);
+
+            if (StringUtils.isNotEmpty(varDefinition) && varDefinition.contains(variableName)) {
+                final Map<String, String> envContext = Splitter.on(',').withKeyValueSeparator("=").split(varDefinition);
+                matchExpressionList.addAll(injectEnvNameList(envContext, serviceName, variableName, "执行器注入变量"));
+            }
+        }
+
+        for (String functionName : ExpressionUtils.getExpressionFunctionList(expressionContent)) {
+            List<ExpressionDocDto> expressionList = documentService.getLikeName(executorBaseInfo.getServiceName(), functionName, 1);
+            if (!expressionList.isEmpty()) {
+                matchExpressionList.addAll(expressionList);
+            }
+        }
+
         return RestResult.ok(matchExpressionList);
     }
 

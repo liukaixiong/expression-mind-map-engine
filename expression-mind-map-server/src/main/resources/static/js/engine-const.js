@@ -24,6 +24,11 @@ let final_const = {
         executor_doc_search_list: '/expression-engine/doc/getList',
 
         /**
+         * 表达式翻译
+         */
+        executor_doc_translate_list: '/expression-engine/doc/translateExpression',
+
+        /**
          * 下载json文件
          */
         download_json: '/expression-engine/components/exportData',

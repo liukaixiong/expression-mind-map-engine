@@ -2,6 +2,8 @@ package com.liukx.expression.engine.server.util;
 
 import com.googlecode.aviator.AviatorEvaluator;
 
+import java.util.List;
+
 /**
  * 表达式工具类
  * @author liukaixiong
@@ -9,6 +11,9 @@ import com.googlecode.aviator.AviatorEvaluator;
  */
 public class ExpressionUtils {
 
+    static {
+        AviatorEvaluator.getInstance().setCachedExpressionByDefault(false);
+    }
 
     /**
      * 校验表达式
@@ -23,6 +28,24 @@ public class ExpressionUtils {
             return e.getMessage();
         }
         return null;
+    }
+
+    /**
+     * 获取函数列表
+     * @param expression
+     * @return
+     */
+    public static List<String> getExpressionFunctionList(String expression) {
+        return AviatorEvaluator.compile(expression).getFunctionNames();
+    }
+
+    /**
+     * 获取变量列表
+     * @param expression
+     * @return
+     */
+    public static List<String> getExpressionVariableList(String expression) {
+        return AviatorEvaluator.compile(expression).getVariableNames();
     }
 
 }
