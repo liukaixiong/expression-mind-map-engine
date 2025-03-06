@@ -43,4 +43,11 @@ public class AviatorCase {
         System.out.println(execute);
     }
 
+    @Test
+    public void testExpressionValid() {
+        Map<String, Object> envContext = new HashMap<>();
+        envContext.put("test_env_id", 888L);
+        instance.validate("(fn_object_is_not_null(test_env_id,a)");
+    }
+
 }

@@ -3,6 +3,7 @@ package com.liukx.expression.engine.server.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.liukx.expression.engine.core.enums.ExpressionLogTypeEnum;
 import com.liukx.expression.engine.server.mapper.ExpressionTraceLogInfoMapper;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionTraceLogInfo;
 import com.liukx.expression.engine.server.service.ExpressionTraceLogInfoService;
@@ -34,6 +35,7 @@ public class ExpressionTraceLogInfoServiceImpl extends ServiceImpl<ExpressionTra
         LambdaQueryWrapper<ExpressionTraceLogInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ExpressionTraceLogInfo::getExpressionConfigId, expressionId);
         wrapper.eq(ExpressionTraceLogInfo::getExpressionResult, 1);
+        wrapper.eq(ExpressionTraceLogInfo::getModuleType, ExpressionLogTypeEnum.expression.name());
         wrapper.orderByDesc(ExpressionTraceLogInfo::getId);
         wrapper.last("limit 1");
         return getOne(wrapper, false);

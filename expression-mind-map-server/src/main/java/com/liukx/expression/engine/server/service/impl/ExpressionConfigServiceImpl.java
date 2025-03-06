@@ -27,6 +27,7 @@ import com.liukx.expression.engine.server.model.dto.response.ExpressionExecutorD
 import com.liukx.expression.engine.server.model.dto.response.RestResult;
 import com.liukx.expression.engine.server.service.ExpressionConfigService;
 import com.liukx.expression.engine.server.service.ExpressionTraceLogInfoService;
+import com.liukx.expression.engine.server.util.ExpressionUtils;
 import com.liukx.expression.engine.server.util.ServiceCommonUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -66,7 +67,8 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
     @Override
     public RestResult<ExpressionExecutorDetailConfigDTO> addExpression(AddExpressionConfigRequest request) {
         Throws.check(StringUtils.isEmpty(request.getExpressionCode()), ErrorEnum.EXPRESSION_CODE_NULL.message());
-        if (StrUtil.isBlank(request.getExpressionContent())) {
+        final String expressionContent = request.getExpressionContent();
+        if (StrUtil.isBlank(expressionContent)) {
             return RestResult.failed(ErrorEnum.EXPRESSION_CONTENT_NULL.code(), ErrorEnum.EXPRESSION_CONTENT_NULL.message());
         }
 
@@ -75,6 +77,8 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         if (!checkExpressionTypeLegal(request.getExpressionType())) {
             return RestResult.failed(ErrorEnum.EXPRESSION_ILLEGAL_TYPE_ADD.code(), ErrorEnum.EXPRESSION_ILLEGAL_TYPE_ADD.message());
         }
+
+        validExpressionValid(expressionContent);
 
         ExpressionExecutorDetailConfig expressionExecutorDetailConfig = new ExpressionExecutorDetailConfig();
         BeanUtil.copyProperties(request, expressionExecutorDetailConfig, CopyOptions.create().setIgnoreError(true).setIgnoreNullValue(true));
@@ -99,6 +103,15 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
             result.setMessage(ErrorEnum.ADD_TO_DB_ERROR.message());
         }
         return result;
+    }
+
+    /**
+     * 校验表达式格式是否有效
+     * @param expressionContent 表达式内容
+     */
+    private void validExpressionValid(String expressionContent) {
+        final String validExpression = ExpressionUtils.isValidExpression(expressionContent);
+        Throws.check(StringUtils.isNotEmpty(validExpression), "表达式不符合格式:" + validExpression);
     }
 
     private void checkExpressionCodeUnion(Long executorId, Long id, String expressionCode) {
@@ -133,6 +146,8 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
 
         // 检查表达式编码是否唯一
         checkExpressionCodeUnion(existOne.getExecutorId(), editRequest.getId(), editRequest.getExpressionCode());
+
+        validExpressionValid(editRequest.getExpressionContent());
 
         ExpressionExecutorDetailConfig nodeConfig = new ExpressionExecutorDetailConfig();
         BeanUtil.copyProperties(editRequest, nodeConfig, CopyOptions.create().setIgnoreNullValue(true).setIgnoreError(true));
