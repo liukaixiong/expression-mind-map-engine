@@ -4,6 +4,7 @@ import com.liukx.expression.engine.client.api.ClientEngineInvokeService;
 import com.liukx.expression.engine.client.api.RemoteExpressionConfigService;
 import com.liukx.expression.engine.client.api.config.ExpressionConfigCallManager;
 import com.liukx.expression.engine.client.api.config.HttpExpressionConfigService;
+import com.liukx.expression.engine.client.api.config.HttpCacheExpressionConfigService;
 import com.liukx.expression.engine.client.api.config.RedisExpressionConfigService;
 import com.liukx.expression.engine.client.api.configurability.TraceSwitchConfigurabilityProcessor;
 import com.liukx.expression.engine.client.engine.ClientEngineFactory;
@@ -50,6 +51,10 @@ public class ExpClientEnginAutoConfiguration {
     @Bean
     public RemoteExpressionConfigService httpExpressionConfigService() {
         return new HttpExpressionConfigService();
+    }
+    @Bean
+    public HttpCacheExpressionConfigService httpLocalCacheExpressionConfigService() {
+        return new HttpCacheExpressionConfigService();
     }
 
     @Bean

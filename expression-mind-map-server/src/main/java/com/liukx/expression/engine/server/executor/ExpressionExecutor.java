@@ -58,7 +58,7 @@ public class ExpressionExecutor implements ExpressionExecutorService {
             configurabilityMap = Jsons.parseMap(expressionExecutorBase.getConfigurabilityJson());
         }
 
-        return ExpressionConfigInfo.builder().executorId(expressionExecutorBase.getId()).configurabilityMap(configurabilityMap).executorCode(expressionExecutorBase.getExecutorCode()).executorName(expressionExecutorBase.getExecutorDescription()).serviceName(serviceName).businessCode(businessCode).varDefinition(expressionExecutorBase.getVarDefinition()).configTreeModelList(deepConfigInfo).build();
+        return ExpressionConfigInfo.builder().timestamp(System.currentTimeMillis()).executorId(expressionExecutorBase.getId()).configurabilityMap(configurabilityMap).executorCode(expressionExecutorBase.getExecutorCode()).executorName(expressionExecutorBase.getExecutorDescription()).serviceName(serviceName).businessCode(businessCode).varDefinition(expressionExecutorBase.getVarDefinition()).configTreeModelList(deepConfigInfo).build();
     }
 
 

@@ -1,6 +1,7 @@
 package com.liukx.expression.engine;
 
 import cn.hutool.core.lang.UUID;
+import com.liukx.expression.engine.client.config.ExpClientEnginAutoConfiguration;
 import com.liukx.expression.engine.client.config.ExpressionConfiguration;
 import com.liukx.expression.engine.client.engine.ClientEngineFactory;
 import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
@@ -23,7 +24,7 @@ import java.util.Map;
  * @date 2025/1/15 - 17:50
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {ExpressionConfiguration.class, RestTemplateAutoConfiguration.class})
+@SpringBootTest(classes = {ExpClientEnginAutoConfiguration.class, ExpressionConfiguration.class, RestTemplateAutoConfiguration.class})
 public class ClientServer {
 
     @Autowired
