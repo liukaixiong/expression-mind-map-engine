@@ -331,4 +331,4 @@ public class DemoEnvRegister implements ExpressionVariableRegister {
 | 单条表达式执行  | `ExpressionConfigExecutorIntercept` | 每条表达式执行时 | 表达式级拦截（链路追踪）         | ExecutorTraceCollectIntercept - 收集表达式日志               |
 | 函数执行前后    | `ExpressionFunctionPostProcessor`   | 每个函数调用时   | 记录日志、异常处理               | ExecutorTraceCollectIntercept - 收集表达式日志               |
 | 函数责任链      | `ExpressionFunctionFilter`          | 函数执行前后     | 强制修改参数或结果（如兜底逻辑） | ExpressionFunctionNameFilterSupport : 过滤函数名称，替换函数结果 |
-| 远端调用        | RemoteExpressionConfigService       | 获取规则         | 获取执行器和表达式配置信息       | HttpExpressionConfigService、RedisExpressionConfigService    |
+| 远端调用        | RemoteExpressionConfigService       | 获取规则         | 获取执行器和表达式配置信息       | HttpExpressionConfigService、RedisExpressionConfigService、HttpCacheExpressionConfigService |

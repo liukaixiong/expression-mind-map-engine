@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class HttpCacheExpressionConfigService implements RemoteExpressionConfigService {
     private final Logger log = LoggerFactory.getLogger(getClass());
+
     @Autowired
     private HttpExpressionConfigService httpExpressionConfigService;
 
@@ -31,6 +32,9 @@ public class HttpCacheExpressionConfigService implements RemoteExpressionConfigS
      */
     private final Map<String, Long> versionMap = new ConcurrentHashMap<>();
 
+    /**
+     * 本地配置缓存
+     */
     private final Map<String, ExpressionConfigInfo> configInfoMap = new ConcurrentHashMap<>();
 
     @Override
@@ -43,21 +47,25 @@ public class HttpCacheExpressionConfigService implements RemoteExpressionConfigS
         ExpressionConfigInfo configInfo;
         try {
             configInfo = httpExpressionConfigService.getConfigInfo(serviceName, businessCode, executorCode);
-            // backup 逻辑, 只要服务端没有发生变动，可减少redis更新次数
-            final Long timestamp = configInfo.getTimestamp();
-            if (timestamp != null) {
-                final String key = getCacheKey(serviceName, businessCode, executorCode);
-                final Long versionTimestamp = versionMap.getOrDefault(key, 0L);
-                if (!Objects.equals(versionTimestamp, timestamp)) {
-                    versionMap.put(key, timestamp);
-                    refreshConfigCache(serviceName, businessCode, executorCode, configInfo);
-                }
-            }
+            backUpConfig(serviceName, businessCode, executorCode, configInfo);
         } catch (Exception e) {
             log.error("http获取配置失败，尝试使用缓存获取配置", e);
             configInfo = getConfigCache(serviceName, businessCode, executorCode);
         }
         return configInfo;
+    }
+
+    private void backUpConfig(String serviceName, String businessCode, String executorCode, ExpressionConfigInfo configInfo) {
+        // backup 逻辑, 只要服务端没有发生变动，可减少redis更新次数
+        final Long timestamp = configInfo.getTimestamp();
+        if (timestamp != null) {
+            final String key = getCacheKey(serviceName, businessCode, executorCode);
+            final Long versionTimestamp = versionMap.getOrDefault(key, 0L);
+            if (!Objects.equals(versionTimestamp, timestamp)) {
+                versionMap.put(key, timestamp);
+                refreshConfigCache(serviceName, businessCode, executorCode, configInfo);
+            }
+        }
     }
 
     /**
@@ -85,10 +93,14 @@ public class HttpCacheExpressionConfigService implements RemoteExpressionConfigS
      * @param configInfo    配置信息
      */
     private void refreshConfigCache(String serviceName, String businessCode, String executorCode, ExpressionConfigInfo configInfo) {
-        if (redisExpressionConfigService != null) {
-            redisExpressionConfigService.refreshConfigInfo(serviceName, businessCode, executorCode, configInfo);
-        } else {
-            configInfoMap.put(getCacheKey(serviceName, businessCode, executorCode), configInfo);
+        try {
+            if (redisExpressionConfigService != null) {
+                redisExpressionConfigService.refreshConfigInfo(serviceName, businessCode, executorCode, configInfo);
+            } else {
+                configInfoMap.put(getCacheKey(serviceName, businessCode, executorCode), configInfo);
+            }
+        } catch (Exception e) {
+            log.error("表达式配置缓存刷新失败", e);
         }
     }
 }
