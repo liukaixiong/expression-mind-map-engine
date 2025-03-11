@@ -62,3 +62,5 @@ mybatis-plus:
   #  需要SQL日志时开启
   configuration:
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+logging:
+  config: classpath:logback-plus.xml

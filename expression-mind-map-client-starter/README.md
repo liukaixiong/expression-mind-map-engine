@@ -9,7 +9,7 @@
 引入依赖
 
 ```xml
- <dependency>
+<dependency>
      <groupId>com.liukx.expression.engine</groupId>
      <artifactId>expression-mind-map-client-starter</artifactId>
      <version>${project.version}</version>
@@ -162,19 +162,21 @@ public enum DemoFunDescDefinitionService implements ExpressFunctionDocumentLoade
 
 ## 通用函数列表【BaseFunctionDescEnum】
 
-| 函数类型      | 函数名称                                         | 函数作用                                                     |
-| ------------- | ------------------------------------------------ | ------------------------------------------------------------ |
-| 流程分支控制  | fn_in_end()                                      | 执行当前分支的内部子分支流程之后结束                         |
-| 流程分支控制  | fn_force_end()                                   | 满足当前节点，则直接结束流程，不在往下执行                   |
-| 流程分支控制  | fn_return()                                      | 返回到上层分支，同级别分支不在继续                           |
-| 调试函数      | debug_body()                                     | 追踪链路中打印请求参数体                                     |
-| 调试函数      | debug_object()                                   | 追踪链路页面中：打印指定的参数对象                           |
-| 条件-时间类型 | fn_sys_date_hour_range(9,20)                     | 是否在小时时间范围处理(基于系统时间)                         |
-| 条件-时间类型 | fn_sys_date_day_range('2024-08-21','2024-08-25') | 是否在当前日期范围内，允许传递第3个参数为时间类型,默认系统时间 |
-| 上下文设置    | fn_record_result_context('result','abc')         | 将变量设置到结果对象【resultMap】中，返回值中会体现。        |
-| 上下文设置    | fn_put_value('key','value')                      | 将变量设置到当前上下文中，供所有表达式使用                   |
-| 上下文设置    | fn_get_value('key')                              | 获取当前上下文中的变量的值                                   |
-| 上下文设置    | fn_add_env_list('key','value')                   | 将变量添加一个集合到上下文中，有则追加，没有则初始化并加入   |
+| 函数类型      | 函数名称                                             | 函数作用                                                     |
+| ------------- | ---------------------------------------------------- | ------------------------------------------------------------ |
+| 流程分支控制  | fn_in_end()                                          | 执行当前分支的内部子分支流程之后结束                         |
+| 流程分支控制  | fn_force_end()                                       | 满足当前节点，则直接结束流程，不在往下执行                   |
+| 流程分支控制  | fn_return()                                          | 返回到上层分支，同级别分支不在继续                           |
+| 调试函数      | debug_body()                                         | 追踪链路中打印请求参数体                                     |
+| 调试函数      | debug_object()                                       | 追踪链路页面中：打印指定的参数对象                           |
+| 条件-时间类型 | fn_sys_date_hour_range(9,20)                         | 是否在小时时间范围处理(基于系统时间)                         |
+| 条件-时间类型 | fn_sys_date_day_range('2024-08-21','2024-08-25')     | 是否在当前日期范围内，允许传递第3个参数为时间类型,默认系统时间 |
+| 上下文设置    | fn_record_result_context('result','abc')             | 将变量设置到结果对象【resultMap】中，返回值中会体现。        |
+| 上下文设置    | fn_put_value('key','value')                          | 将变量设置到当前上下文中，供所有表达式使用                   |
+| 上下文设置    | fn_get_value('key')                                  | 获取当前上下文中的变量的值                                   |
+| 上下文设置    | fn_add_env_list('key','value')                       | 将变量添加一个集合到上下文中，有则追加，没有则初始化并加入   |
+| 对象操作      | fn_object_is_not_null(xxx1,xxx2)                     | 判断值是否为空,允许传递多个值,请传递变量                     |
+| 变量操作      | fn_env_invoke_method(obj,'xxMethod',seq.list(1,2,3)) | 执行变量中对应的方法，比如变量是一个对象，需要调用它的方法。 |
 
 > 你可以根据自己的想法制定想要的能力，在表达式中注入即可。通用实现类在: `com.liukx.expression.engine.client.function`中
 
@@ -182,10 +184,12 @@ public enum DemoFunDescDefinitionService implements ExpressFunctionDocumentLoade
 
 变量可以分为静态和动态两种方式:
 
-- 静态变量是直接在调用的时候，将值设置到上下文中，比如： `ExpressionEnvContext`
+- 静态变量是直接在调用引擎的时候，将值设置到上下文中，比如： `ExpressionEnvContext`
     - `expressionEnvContext.addEnvContext("eventCode", eventCode)`
+    - 还有一种方式就是在创建执行器的时候，可通过页面方式直接配置变量
 - 动态变量：在表达式中指定，表达式解析完成之后会调用`ExpressionVariableRegister` 进行查找匹配，找到之后会放入上下文中。
     - 来源可以从数据库、内调调用、第三方调用，根据自己的业务逻辑实现即可。
+    - ![image-20250311103637291](../doc/images/image-20250311103637291.png)
 
 通过实现`ExpressionVariableRegister`接口即可。建议变量的管理和枚举进行绑定，比如：
 
