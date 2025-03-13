@@ -3,16 +3,16 @@
     <!-- 日志输出格式 -->
     <property name="log.pattern"
               value="%red(%d{yyyy-MM-dd HH:mm:ss}) [%X{traceId}] %green([%thread]) %highlight(%-5level) %boldMagenta(%logger{36}) - %msg%n"/>
-    <property name="log.path" value="logs/${project.artifactId}"/>
-    <springProfile name="!prod">
-        <!-- 控制台输出 -->
-        <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
-            <encoder>
-                <pattern>${log.pattern}</pattern>
-                <charset>utf-8</charset>
-            </encoder>
-        </appender>
+    <property name="log.path" value="logs/expression-mind-map-server"/>
+    <!-- 控制台输出 -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${log.pattern}</pattern>
+            <charset>utf-8</charset>
+        </encoder>
+    </appender>
 
+    <springProfile name="!prod">
         <logger name="com.liukx.expression" level="DEBUG"/>
         <root level="INFO">
             <appender-ref ref="console"/>
@@ -22,23 +22,23 @@
     <!--系统操作日志-->
     <springProfile name="prod">
         <!-- 控制台输出 -->
-        <appender name="file_console" class="ch.qos.logback.core.rolling.RollingFileAppender">
-            <file>${log.path}/console.log</file>
-            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-                <!-- 日志文件名格式 -->
-                <fileNamePattern>${log.path}/console.%d{yyyy-MM-dd}.log</fileNamePattern>
-                <!-- 日志最大 1天 -->
-                <maxHistory>1</maxHistory>
-            </rollingPolicy>
-            <encoder>
-                <pattern>${log.pattern}</pattern>
-                <charset>utf-8</charset>
-            </encoder>
-            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-                <!-- 过滤的级别 -->
-                <level>INFO</level>
-            </filter>
-        </appender>
+        <!--        <appender name="file_console" class="ch.qos.logback.core.rolling.RollingFileAppender">-->
+        <!--            <file>${log.path}/console.log</file>-->
+        <!--            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">-->
+        <!--                &lt;!&ndash; 日志文件名格式 &ndash;&gt;-->
+        <!--                <fileNamePattern>${log.path}/console.%d{yyyy-MM-dd}.log</fileNamePattern>-->
+        <!--                &lt;!&ndash; 日志最大 1天 &ndash;&gt;-->
+        <!--                <maxHistory>1</maxHistory>-->
+        <!--            </rollingPolicy>-->
+        <!--            <encoder>-->
+        <!--                <pattern>${log.pattern}</pattern>-->
+        <!--                <charset>utf-8</charset>-->
+        <!--            </encoder>-->
+        <!--            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">-->
+        <!--                &lt;!&ndash; 过滤的级别 &ndash;&gt;-->
+        <!--                <level>INFO</level>-->
+        <!--            </filter>-->
+        <!--        </appender>-->
 
         <!-- 系统日志输出 -->
         <appender name="file_info" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -104,10 +104,13 @@
             <!-- 添加附加的appender,最多只能添加一个 -->
             <appender-ref ref="file_error"/>
         </appender>
+
+        <logger name="com.liukx.expression" level="INFO"/>
+
         <root level="INFO">
             <appender-ref ref="async_info"/>
             <appender-ref ref="async_error"/>
-            <appender-ref ref="file_console"/>
+            <appender-ref ref="console"/>
         </root>
     </springProfile>
 
