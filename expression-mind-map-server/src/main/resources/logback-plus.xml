@@ -4,17 +4,18 @@
     <property name="log.pattern"
               value="%red(%d{yyyy-MM-dd HH:mm:ss}) [%X{traceId}] %green([%thread]) %highlight(%-5level) %boldMagenta(%logger{36}) - %msg%n"/>
 
-    <!-- 控制台输出 -->
-    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>${log.pattern}</pattern>
-            <charset>utf-8</charset>
-        </encoder>
-    </appender>
 
-    <logger name="com.liukx.expression" level="DEBUG"/>
 
     <springProfile name="!prod">
+        <!-- 控制台输出 -->
+        <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${log.pattern}</pattern>
+                <charset>utf-8</charset>
+            </encoder>
+        </appender>
+
+        <logger name="com.liukx.expression" level="DEBUG"/>
         <root level="INFO">
             <appender-ref ref="console"/>
         </root>
