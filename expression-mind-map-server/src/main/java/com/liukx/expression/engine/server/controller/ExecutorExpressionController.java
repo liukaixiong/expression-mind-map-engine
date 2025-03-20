@@ -3,7 +3,7 @@ package com.liukx.expression.engine.server.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.liukx.expression.engine.server.constants.BaseConstants;
-import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorDetailConfig;
+import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorInfoConfig;
 import com.liukx.expression.engine.server.model.dto.request.AddExpressionConfigRequest;
 import com.liukx.expression.engine.server.model.dto.request.DeleteByIdListRequest;
 import com.liukx.expression.engine.server.model.dto.request.EditExpressionConfigRequest;
@@ -51,7 +51,7 @@ public class ExecutorExpressionController {
     @ApiOperation("修改父子关系")
     @PostMapping("/editParentId")
     public RestResult<Boolean> editParentId(@RequestBody @Validated EditExpressionConfigRequest editRequest) {
-        ExpressionExecutorDetailConfig config = new ExpressionExecutorDetailConfig();
+        ExpressionExecutorInfoConfig config = new ExpressionExecutorInfoConfig();
         config.setId(editRequest.getId());
         config.setParentId(editRequest.getParentId());
         return RestResult.ok(expressionConfigService.updateById(config));
@@ -60,7 +60,7 @@ public class ExecutorExpressionController {
     @ApiOperation("复制节点")
     @PostMapping("/copyNode")
     public RestResult<Boolean> copyNode(@RequestBody @Validated EditExpressionConfigRequest editRequest) {
-        ExpressionExecutorDetailConfig config = new ExpressionExecutorDetailConfig();
+        ExpressionExecutorInfoConfig config = new ExpressionExecutorInfoConfig();
         config.setId(editRequest.getId());
         config.setParentId(editRequest.getParentId());
         return RestResult.ok(expressionConfigService.copyNode(config));
@@ -75,7 +75,7 @@ public class ExecutorExpressionController {
     @ApiOperation("查询单个表达式")
     @PostMapping("/findExpressionInfo")
     public RestResult<ExpressionExecutorDetailConfigDTO> findExpressionInfo(@RequestParam("id") Long id) {
-        final ExpressionExecutorDetailConfig config = expressionConfigService.getById(id);
+        final ExpressionExecutorInfoConfig config = expressionConfigService.getById(id);
         ExpressionExecutorDetailConfigDTO expressionExecutorDetailConfigDTO = new ExpressionExecutorDetailConfigDTO();
         BeanUtil.copyProperties(config, expressionExecutorDetailConfigDTO);
         return RestResult.ok(expressionExecutorDetailConfigDTO);

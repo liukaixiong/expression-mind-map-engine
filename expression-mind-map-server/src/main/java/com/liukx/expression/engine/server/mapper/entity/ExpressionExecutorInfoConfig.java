@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @TableName("expression_executor_info_config")
-public class ExpressionExecutorDetailConfig implements Serializable {
+public class ExpressionExecutorInfoConfig implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

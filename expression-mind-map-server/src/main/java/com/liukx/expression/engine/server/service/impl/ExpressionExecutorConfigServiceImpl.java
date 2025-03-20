@@ -15,23 +15,24 @@ import com.liukx.expression.engine.server.event.ExecutorConfigRefreshEvent;
 import com.liukx.expression.engine.server.exception.Throws;
 import com.liukx.expression.engine.server.mapper.ExpressionExecutorConfigMapper;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorBaseInfo;
+import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorInfoConfig;
 import com.liukx.expression.engine.server.model.dto.request.AddExpressionExecutorRequest;
 import com.liukx.expression.engine.server.model.dto.request.DeleteByIdListRequest;
 import com.liukx.expression.engine.server.model.dto.request.EditExpressionExecutorRequest;
 import com.liukx.expression.engine.server.model.dto.request.QueryExpressionExecutorRequest;
 import com.liukx.expression.engine.server.model.dto.response.ExpressionExecutorBaseDTO;
 import com.liukx.expression.engine.server.model.dto.response.RestResult;
+import com.liukx.expression.engine.server.service.ExpressionConfigService;
 import com.liukx.expression.engine.server.service.ExpressionExecutorConfigService;
 import com.liukx.expression.engine.server.util.ServiceCommonUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * <p>
@@ -46,6 +47,9 @@ public class ExpressionExecutorConfigServiceImpl extends ServiceImpl<ExpressionE
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    private ExpressionConfigService configService;
 
     @Override
     public RestResult<ExpressionExecutorBaseDTO> addExpressionExecutor(AddExpressionExecutorRequest addRequest) {
@@ -69,7 +73,7 @@ public class ExpressionExecutorConfigServiceImpl extends ServiceImpl<ExpressionE
         }
 
         BeanUtil.copyProperties(addRequest, executorConfig, CopyOptions.create().setIgnoreError(true).setIgnoreNullValue(true));
-        executorConfig.setCreateTime(LocalDateTime.now());
+        executorConfig.setCreateTime(new Date());
         executorConfig.setStatus(addRequest.getStatus() != null ? addRequest.getStatus() : BaseConstants.BASE_VALID_STATUS);
         executorConfig.setDeleted(false);
         boolean addSuccess = this.save(executorConfig);
@@ -106,7 +110,7 @@ public class ExpressionExecutorConfigServiceImpl extends ServiceImpl<ExpressionE
         Throws.check(existOne == null || StringUtils.isBlank(existOne.getBusinessCode()), "找不到数据");
 
         BeanUtil.copyProperties(editRequest, executorConfig, CopyOptions.create().setIgnoreNullValue(true).setIgnoreError(true));
-        executorConfig.setUpdateTime(LocalDateTime.now());
+        executorConfig.setUpdateTime(new Date());
         boolean updateSuccess = this.updateById(executorConfig);
 
         if (updateSuccess) {
@@ -132,6 +136,15 @@ public class ExpressionExecutorConfigServiceImpl extends ServiceImpl<ExpressionE
         //执行器状态
         lambdaQuery.eq(queryRequest.getStatus() != null, ExpressionExecutorBaseInfo::getStatus, queryRequest.getStatus());
         lambdaQuery.orderByDesc(ExpressionExecutorBaseInfo::getId);
+
+        if (StringUtils.isNotBlank(queryRequest.getExpressionContent()) || queryRequest.getChangeDate() != null) {
+            final List<ExpressionExecutorInfoConfig> expressionExecutorInfoConfigs = configService.queryExpressionContent(queryRequest.getExpressionContent(), queryRequest.getChangeDate());
+            if (!CollectionUtils.isEmpty(expressionExecutorInfoConfigs)) {
+                final List<Long> idList = expressionExecutorInfoConfigs.stream().map(ExpressionExecutorInfoConfig::getExecutorId).distinct().toList();
+                lambdaQuery.in(!idList.isEmpty(), ExpressionExecutorBaseInfo::getId, idList);
+            }
+        }
+
         Page<ExpressionExecutorBaseInfo> page = new Page<>(queryRequest.getPageNum(), queryRequest.getPageSize());
 
         return getBaseMapper().selectPage(page, lambdaQuery);

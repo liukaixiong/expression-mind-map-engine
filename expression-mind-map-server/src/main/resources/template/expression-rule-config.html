@@ -467,9 +467,11 @@
         // 如果是删除了的节点,那么样式需要突出显示
         let icon = "";
         if (item.expressionStatus !== 1) {
+            debugger;
             icon = "layui-icon-clear";
             bgColor = "#e2e2e2";
             topicText = "<s>" + topicText + "</s>";
+            item['expanded'] = false;
         } else if (["fn_in_end", "fn_end", "fn_return", "fn_force_end"].some(char => content.includes(char))) {
             icon = "layui-icon-about";
         }

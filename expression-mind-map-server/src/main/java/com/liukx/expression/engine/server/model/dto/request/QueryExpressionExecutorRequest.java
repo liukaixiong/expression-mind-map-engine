@@ -3,10 +3,12 @@ package com.liukx.expression.engine.server.model.dto.request;
 //import io.swagger.v3.oas.annotations.media.Schema;
 //import io.swagger.v3.oas.annotations.tags.Tag;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
+import java.util.Date;
 
 //@Tag(name="查询表达式")
 @EqualsAndHashCode(callSuper = true)
@@ -39,4 +41,11 @@ public class QueryExpressionExecutorRequest extends PageQuery implements Seriali
      */
 //    @Schema(description="回调结果")
     private String callbackResult;
+
+    /**
+     * 表达式搜索
+     */
+    private String expressionContent;
+
+    private Date changeDate;
 }

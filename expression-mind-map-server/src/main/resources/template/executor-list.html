@@ -16,7 +16,8 @@
                 <i class="layui-icon layui-icon-username"></i>
             </div>
             <label>
-                <input class="layui-input" lay-affix="clear" name="serviceName" placeholder="服务名称" type="text" value="">
+                <input class="layui-input" lay-affix="clear" name="serviceName" placeholder="服务名称" type="text"
+                       value="">
             </label>
         </div>
     </div>
@@ -34,14 +35,24 @@
             </label>
         </div>
     </div>
-    <!--    <div class="layui-col-md4">-->
-    <!--        <div class="layui-input-wrap">-->
-    <!--            <div class="layui-input-prefix">-->
-    <!--                <i class="layui-icon layui-icon-date"></i>-->
-    <!--            </div>-->
-    <!--            <input type="text" name="C" readonly placeholder="Field C" class="layui-input demo-table-search-date">-->
-    <!--        </div>-->
-    <!--    </div>-->
+    <div class="layui-col-md4">
+        <div class="layui-input-wrap">
+            <label>
+                <input class="layui-input" lay-affix="clear" name="expressionContent" placeholder="表达式搜索"
+                       type="text">
+            </label>
+        </div>
+    </div>
+    <div class="layui-col-md4">
+        <div class="layui-input-wrap">
+            <label>
+                <input class="layui-input executor-table-search-date" lay-affix="clear" name="changeDate"
+                       placeholder="变动时间"
+                       type="text">
+            </label>
+        </div>
+    </div>
+
     <div class="layui-btn-container layui-col-xs12">
         <button class="layui-btn" lay-filter="executor-table-search" lay-submit>Search</button>
         <button class="layui-btn layui-btn-primary" type="reset">Clear</button>
@@ -126,7 +137,7 @@
             },
             {
                 field: 'createTime', title: '创建时间', sort: true, templet: function (d) {
-                    return util.toDateString(d.created, 'yyyy-MM-dd HH:mm:ss');
+                    return util.toDateString(d.createTime, 'yyyy-MM-dd HH:mm:ss');
                 }
             },
             {fixed: 'right', title: '操作', toolbar: '#id-operation-bar'}
@@ -168,7 +179,7 @@
 
     // 日期
     laydate.render({
-        elem: '.demo-table-search-date'
+        elem: '.executor-table-search-date'
     });
     // 搜索提交
     form.on('submit(executor-table-search)', function (data) {

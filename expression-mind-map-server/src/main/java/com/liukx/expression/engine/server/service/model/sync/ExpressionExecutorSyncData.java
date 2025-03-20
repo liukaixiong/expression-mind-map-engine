@@ -1,7 +1,7 @@
 package com.liukx.expression.engine.server.service.model.sync;
 
 import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorBaseInfo;
-import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorDetailConfig;
+import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorInfoConfig;
 import lombok.Data;
 
 import java.util.List;
@@ -16,7 +16,7 @@ public class ExpressionExecutorSyncData {
 
     private ExpressionExecutorBaseInfo baseInfo;
 
-    private List<ExpressionExecutorDetailConfig> nodeInfo;
+    private List<ExpressionExecutorInfoConfig> nodeInfo;
 
 
 }

@@ -17,7 +17,7 @@ import com.liukx.expression.engine.server.constants.enums.ResponseCodeEnum;
 import com.liukx.expression.engine.server.event.ExecutorConfigRefreshEvent;
 import com.liukx.expression.engine.server.exception.Throws;
 import com.liukx.expression.engine.server.mapper.ExpressionConfigMapper;
-import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorDetailConfig;
+import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorInfoConfig;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionTraceLogInfo;
 import com.liukx.expression.engine.server.model.dto.request.AddExpressionConfigRequest;
 import com.liukx.expression.engine.server.model.dto.request.DeleteByIdListRequest;
@@ -50,7 +50,7 @@ import static org.slf4j.LoggerFactory.getLogger;
  * @since 2022-06-12
  */
 @Service
-public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMapper, ExpressionExecutorDetailConfig> implements ExpressionConfigService {
+public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMapper, ExpressionExecutorInfoConfig> implements ExpressionConfigService {
 
     private final Logger LOG = getLogger(ExpressionConfigServiceImpl.class);
 
@@ -60,7 +60,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
     @Autowired
     private ExpressionTraceLogInfoService traceLogInfoService;
 
-    private static List<ExpressionExecutorDetailConfigDTO> convertExpressionExecutorDetailConfigDTO(List<ExpressionExecutorDetailConfig> expressionExecutorDetailConfigs) {
+    private static List<ExpressionExecutorDetailConfigDTO> convertExpressionExecutorDetailConfigDTO(List<ExpressionExecutorInfoConfig> expressionExecutorDetailConfigs) {
         return expressionExecutorDetailConfigs.stream().map(config -> Convert.convert(ExpressionExecutorDetailConfigDTO.class, config)).collect(Collectors.toList());
     }
 
@@ -80,7 +80,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
 
         validExpressionValid(expressionContent);
 
-        ExpressionExecutorDetailConfig expressionExecutorDetailConfig = new ExpressionExecutorDetailConfig();
+        ExpressionExecutorInfoConfig expressionExecutorDetailConfig = new ExpressionExecutorInfoConfig();
         BeanUtil.copyProperties(request, expressionExecutorDetailConfig, CopyOptions.create().setIgnoreError(true).setIgnoreNullValue(true));
         expressionExecutorDetailConfig.setCreateTime(LocalDateTime.now());
         expressionExecutorDetailConfig.setDeleted(false);
@@ -116,13 +116,13 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
 
     private void checkExpressionCodeUnion(Long executorId, Long id, String expressionCode) {
         //表达式编码必须唯一
-        LambdaQueryChainWrapper<ExpressionExecutorDetailConfig> lambdaQuery = lambdaQuery()
-                .eq(ExpressionExecutorDetailConfig::getExecutorId, executorId)
-                .eq(ExpressionExecutorDetailConfig::getExpressionCode, expressionCode)
-                .eq(ExpressionExecutorDetailConfig::getDeleted, false)
-                .orderByAsc(ExpressionExecutorDetailConfig::getId)
+        LambdaQueryChainWrapper<ExpressionExecutorInfoConfig> lambdaQuery = lambdaQuery()
+                .eq(ExpressionExecutorInfoConfig::getExecutorId, executorId)
+                .eq(ExpressionExecutorInfoConfig::getExpressionCode, expressionCode)
+                .eq(ExpressionExecutorInfoConfig::getDeleted, false)
+                .orderByAsc(ExpressionExecutorInfoConfig::getId)
                 .last("limit 1");
-        ExpressionExecutorDetailConfig existOne = lambdaQuery.one();
+        ExpressionExecutorInfoConfig existOne = lambdaQuery.one();
 
         Throws.check((id == null && existOne != null) || (existOne != null && !existOne.getId().equals(id)), ErrorEnum.REPEATED_EXPRESSION_ADD.message());
     }
@@ -134,7 +134,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
     @Override
     public RestResult<ExpressionExecutorDetailConfigDTO> editExpression(EditExpressionConfigRequest editRequest) {
 
-        ExpressionExecutorDetailConfig existOne = this.getById(editRequest.getId());
+        ExpressionExecutorInfoConfig existOne = this.getById(editRequest.getId());
 
         if (existOne == null || StringUtils.isBlank(existOne.getExpressionContent())) {
             return RestResult.failed(ErrorEnum.UPDATE_NOT_EXIST_DATA.code(), String.format("找不到id为%d的表达式，无法完成修改", editRequest.getId()));
@@ -149,7 +149,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
 
         validExpressionValid(editRequest.getExpressionContent());
 
-        ExpressionExecutorDetailConfig nodeConfig = new ExpressionExecutorDetailConfig();
+        ExpressionExecutorInfoConfig nodeConfig = new ExpressionExecutorInfoConfig();
         BeanUtil.copyProperties(editRequest, nodeConfig, CopyOptions.create().setIgnoreNullValue(true).setIgnoreError(true));
         nodeConfig.setUpdateTime(LocalDateTime.now());
         boolean updateSuccess = this.updateById(nodeConfig);
@@ -174,15 +174,15 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
 //        if (queryRequest.getParentId() == null) {
 //            queryRequest.setParentId(BaseConstants.BASE_ROOT_ID);
 //        }
-        LambdaQueryChainWrapper<ExpressionExecutorDetailConfig> lambdaQuery = lambdaQuery().eq(ExpressionExecutorDetailConfig::getDeleted, 0);
-        lambdaQuery.eq(ExpressionExecutorDetailConfig::getExecutorId, queryRequest.getExecutorId());
-        lambdaQuery.eq(queryRequest.getParentId() != null, ExpressionExecutorDetailConfig::getParentId, queryRequest.getParentId());
-        lambdaQuery.eq(StringUtils.isNotBlank(queryRequest.getExpressionType()), ExpressionExecutorDetailConfig::getExpressionType, queryRequest.getExpressionType());
-        lambdaQuery.eq(queryRequest.getExpressionStatus() != null, ExpressionExecutorDetailConfig::getExpressionStatus, queryRequest.getExpressionStatus());
-        lambdaQuery.like(StringUtils.isNotBlank(queryRequest.getExpressionContent()), ExpressionExecutorDetailConfig::getExpressionContent, queryRequest.getExpressionContent());
-        lambdaQuery.like(StringUtils.isNotBlank(queryRequest.getExpressionDescription()), ExpressionExecutorDetailConfig::getExpressionDescription, queryRequest.getExpressionDescription());
-        lambdaQuery.orderByDesc(ExpressionExecutorDetailConfig::getPriorityOrder).orderByAsc(ExpressionExecutorDetailConfig::getId);
-        List<ExpressionExecutorDetailConfig> expressionExecutorDetailConfigList = lambdaQuery.list();
+        LambdaQueryChainWrapper<ExpressionExecutorInfoConfig> lambdaQuery = lambdaQuery().eq(ExpressionExecutorInfoConfig::getDeleted, 0);
+        lambdaQuery.eq(ExpressionExecutorInfoConfig::getExecutorId, queryRequest.getExecutorId());
+        lambdaQuery.eq(queryRequest.getParentId() != null, ExpressionExecutorInfoConfig::getParentId, queryRequest.getParentId());
+        lambdaQuery.eq(StringUtils.isNotBlank(queryRequest.getExpressionType()), ExpressionExecutorInfoConfig::getExpressionType, queryRequest.getExpressionType());
+        lambdaQuery.eq(queryRequest.getExpressionStatus() != null, ExpressionExecutorInfoConfig::getExpressionStatus, queryRequest.getExpressionStatus());
+        lambdaQuery.like(StringUtils.isNotBlank(queryRequest.getExpressionContent()), ExpressionExecutorInfoConfig::getExpressionContent, queryRequest.getExpressionContent());
+        lambdaQuery.like(StringUtils.isNotBlank(queryRequest.getExpressionDescription()), ExpressionExecutorInfoConfig::getExpressionDescription, queryRequest.getExpressionDescription());
+        lambdaQuery.orderByDesc(List.of(ExpressionExecutorInfoConfig::getExpressionStatus, ExpressionExecutorInfoConfig::getPriorityOrder)).orderByAsc(ExpressionExecutorInfoConfig::getId);
+        List<ExpressionExecutorInfoConfig> expressionExecutorDetailConfigList = lambdaQuery.list();
 
         if (CollectionUtil.isNotEmpty(expressionExecutorDetailConfigList)) {
             Map<Long, List<ExpressionTraceLogInfo>> traceConfigMap = new HashMap<>();
@@ -215,20 +215,20 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
 
         deepAllIdBuilder(idSet, delRequest.getIdList());
 
-        LambdaQueryWrapper<ExpressionExecutorDetailConfig> queryWrapper = new LambdaQueryWrapper<ExpressionExecutorDetailConfig>().in(ExpressionExecutorDetailConfig::getId, idSet)
-                .eq(ExpressionExecutorDetailConfig::getDeleted, false);
+        LambdaQueryWrapper<ExpressionExecutorInfoConfig> queryWrapper = new LambdaQueryWrapper<ExpressionExecutorInfoConfig>().in(ExpressionExecutorInfoConfig::getId, idSet)
+                .eq(ExpressionExecutorInfoConfig::getDeleted, false);
 
 
         LOG.info("批量删除id集合: {} ", idSet);
-        LambdaUpdateWrapper<ExpressionExecutorDetailConfig> updateWrapper = new LambdaUpdateWrapper<ExpressionExecutorDetailConfig>().set(ExpressionExecutorDetailConfig::getUpdateBy, delRequest.getUpdateBy())
-                .set(ExpressionExecutorDetailConfig::getDeleted, true)
-                .set(ExpressionExecutorDetailConfig::getUpdateTime, LocalDateTime.now())
-                .in(ExpressionExecutorDetailConfig::getId, idSet);
+        LambdaUpdateWrapper<ExpressionExecutorInfoConfig> updateWrapper = new LambdaUpdateWrapper<ExpressionExecutorInfoConfig>().set(ExpressionExecutorInfoConfig::getUpdateBy, delRequest.getUpdateBy())
+                .set(ExpressionExecutorInfoConfig::getDeleted, true)
+                .set(ExpressionExecutorInfoConfig::getUpdateTime, LocalDateTime.now())
+                .in(ExpressionExecutorInfoConfig::getId, idSet);
 
         final RestResult<?> restResult = ServiceCommonUtil.batchDelete(delRequest, "找不到相关记录，不用执行删除操作", getBaseMapper(), queryWrapper, updateWrapper);
 
         if (restResult.isOk()) {
-            final ExpressionExecutorDetailConfig detailConfig = getOne(queryWrapper);
+            final ExpressionExecutorInfoConfig detailConfig = getOne(queryWrapper);
             if (detailConfig != null) {
                 refreshConfigPost(detailConfig.getExecutorId());
             }
@@ -243,13 +243,13 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
      * @param parentIdList 父类节点
      */
     private void deepAllIdBuilder(Set<Long> deleteIdList, List<Long> parentIdList) {
-        LambdaQueryChainWrapper<ExpressionExecutorDetailConfig> lambdaQuery = lambdaQuery().eq(ExpressionExecutorDetailConfig::getDeleted, 0);
+        LambdaQueryChainWrapper<ExpressionExecutorInfoConfig> lambdaQuery = lambdaQuery().eq(ExpressionExecutorInfoConfig::getDeleted, 0);
         // 查询所有子节点
-        lambdaQuery.in(ExpressionExecutorDetailConfig::getParentId, parentIdList);
-        List<ExpressionExecutorDetailConfig> expressionExecutorDetailConfigs = lambdaQuery.select(ExpressionExecutorDetailConfig::getId).list();
+        lambdaQuery.in(ExpressionExecutorInfoConfig::getParentId, parentIdList);
+        List<ExpressionExecutorInfoConfig> expressionExecutorDetailConfigs = lambdaQuery.select(ExpressionExecutorInfoConfig::getId).list();
 
         if (!CollectionUtil.isEmpty(expressionExecutorDetailConfigs)) {
-            List<Long> ids = expressionExecutorDetailConfigs.stream().map(ExpressionExecutorDetailConfig::getId).collect(Collectors.toList());
+            List<Long> ids = expressionExecutorDetailConfigs.stream().map(ExpressionExecutorInfoConfig::getId).collect(Collectors.toList());
             deleteIdList.addAll(ids);
             deepAllIdBuilder(deleteIdList, ids);
         }
@@ -258,46 +258,46 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
     @Override
     public List<ExpressionExecutorDetailConfigDTO> getEventInfo(Long baseId, Long parentId, String eventName, ExpressionTypeEnum typeEnum) {
 
-        LambdaQueryWrapper<ExpressionExecutorDetailConfig> queryWrapper = Wrappers.lambdaQuery();
-        queryWrapper.eq(ExpressionExecutorDetailConfig::getExecutorId, baseId);
-        queryWrapper.eq(ExpressionExecutorDetailConfig::getParentId, parentId);
-        queryWrapper.eq(ExpressionExecutorDetailConfig::getExpressionType, typeEnum.getCode());
-        queryWrapper.eq(ExpressionExecutorDetailConfig::getExpressionStatus, true);
-        queryWrapper.eq(ExpressionExecutorDetailConfig::getDeleted, false);
-        queryWrapper.eq(StringUtils.isNotEmpty(eventName), ExpressionExecutorDetailConfig::getExpressionCode, eventName);
-        List<ExpressionExecutorDetailConfig> expressionExecutorDetailConfigs = this.getBaseMapper().selectList(queryWrapper);
+        LambdaQueryWrapper<ExpressionExecutorInfoConfig> queryWrapper = Wrappers.lambdaQuery();
+        queryWrapper.eq(ExpressionExecutorInfoConfig::getExecutorId, baseId);
+        queryWrapper.eq(ExpressionExecutorInfoConfig::getParentId, parentId);
+        queryWrapper.eq(ExpressionExecutorInfoConfig::getExpressionType, typeEnum.getCode());
+        queryWrapper.eq(ExpressionExecutorInfoConfig::getExpressionStatus, true);
+        queryWrapper.eq(ExpressionExecutorInfoConfig::getDeleted, false);
+        queryWrapper.eq(StringUtils.isNotEmpty(eventName), ExpressionExecutorInfoConfig::getExpressionCode, eventName);
+        List<ExpressionExecutorInfoConfig> expressionExecutorDetailConfigs = this.getBaseMapper().selectList(queryWrapper);
 
         return convertExpressionExecutorDetailConfigDTO(expressionExecutorDetailConfigs);
     }
 
     @Override
     public List<ExpressionExecutorDetailConfigDTO> getNodeExpressionInfo(Long baseId, Long parentId) {
-        LambdaQueryWrapper<ExpressionExecutorDetailConfig> queryWrapper = Wrappers.lambdaQuery();
-        queryWrapper.eq(ExpressionExecutorDetailConfig::getExecutorId, baseId);
-        queryWrapper.eq(parentId != null, ExpressionExecutorDetailConfig::getParentId, parentId);
-        queryWrapper.eq(ExpressionExecutorDetailConfig::getExpressionStatus, true);
-        queryWrapper.eq(ExpressionExecutorDetailConfig::getDeleted, false);
-        queryWrapper.orderByDesc(ExpressionExecutorDetailConfig::getPriorityOrder).orderByAsc(ExpressionExecutorDetailConfig::getId);
-        List<ExpressionExecutorDetailConfig> expressionExecutorDetailConfigs = this.getBaseMapper().selectList(queryWrapper);
+        LambdaQueryWrapper<ExpressionExecutorInfoConfig> queryWrapper = Wrappers.lambdaQuery();
+        queryWrapper.eq(ExpressionExecutorInfoConfig::getExecutorId, baseId);
+        queryWrapper.eq(parentId != null, ExpressionExecutorInfoConfig::getParentId, parentId);
+        queryWrapper.eq(ExpressionExecutorInfoConfig::getExpressionStatus, true);
+        queryWrapper.eq(ExpressionExecutorInfoConfig::getDeleted, false);
+        queryWrapper.orderByDesc(ExpressionExecutorInfoConfig::getPriorityOrder).orderByAsc(ExpressionExecutorInfoConfig::getId);
+        List<ExpressionExecutorInfoConfig> expressionExecutorDetailConfigs = this.getBaseMapper().selectList(queryWrapper);
         return convertExpressionExecutorDetailConfigDTO(expressionExecutorDetailConfigs);
     }
 
     @Override
-    public List<ExpressionExecutorDetailConfig> getExpressionListByBaseId(Long baseId) {
-        LambdaQueryWrapper<ExpressionExecutorDetailConfig> queryWrapper = Wrappers.lambdaQuery();
-        queryWrapper.eq(ExpressionExecutorDetailConfig::getExecutorId, baseId);
+    public List<ExpressionExecutorInfoConfig> getExpressionListByBaseId(Long baseId) {
+        LambdaQueryWrapper<ExpressionExecutorInfoConfig> queryWrapper = Wrappers.lambdaQuery();
+        queryWrapper.eq(ExpressionExecutorInfoConfig::getExecutorId, baseId);
         // 禁用的数据,也需要查询出来
 //        queryWrapper.eq(ExpressionExecutorDetailConfig::getExpressionStatus, true);
-        queryWrapper.eq(ExpressionExecutorDetailConfig::getDeleted, false);
-        queryWrapper.orderByAsc(ExpressionExecutorDetailConfig::getId);
+        queryWrapper.eq(ExpressionExecutorInfoConfig::getDeleted, false);
+        queryWrapper.orderByAsc(ExpressionExecutorInfoConfig::getId);
         return this.getBaseMapper().selectList(queryWrapper);
     }
 
     @Override
-    public boolean copyNode(ExpressionExecutorDetailConfig config) {
+    public boolean copyNode(ExpressionExecutorInfoConfig config) {
         final Long id = config.getId();
         final Long parentId = config.getParentId();
-        final ExpressionExecutorDetailConfig executorDetailConfig = getById(id);
+        final ExpressionExecutorInfoConfig executorDetailConfig = getById(id);
         // 清空主键
         executorDetailConfig.setId(null);
         final String expressionCode = executorDetailConfig.getExpressionCode();
@@ -306,5 +306,13 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         final boolean result = save(executorDetailConfig);
         LOG.info("【复制节点】 将 {} 对象 加入到 {} 中 -> {}", id, parentId, executorDetailConfig);
         return result;
+    }
+
+    @Override
+    public List<ExpressionExecutorInfoConfig> queryExpressionContent(String expressionContent, Date changeDate) {
+        LambdaQueryWrapper<ExpressionExecutorInfoConfig> queryWrapper = Wrappers.lambdaQuery();
+        queryWrapper.like(StringUtils.isNotEmpty(expressionContent), ExpressionExecutorInfoConfig::getExpressionContent, expressionContent);
+        queryWrapper.and(changeDate != null, var -> var.ge(ExpressionExecutorInfoConfig::getCreateTime, changeDate).or(v2 -> v2.ge(ExpressionExecutorInfoConfig::getUpdateTime, changeDate)));
+        return list(queryWrapper);
     }
 }

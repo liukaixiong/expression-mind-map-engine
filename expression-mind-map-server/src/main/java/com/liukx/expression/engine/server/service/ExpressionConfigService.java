@@ -2,7 +2,7 @@ package com.liukx.expression.engine.server.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.liukx.expression.engine.core.enums.ExpressionTypeEnum;
-import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorDetailConfig;
+import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorInfoConfig;
 import com.liukx.expression.engine.server.model.dto.request.AddExpressionConfigRequest;
 import com.liukx.expression.engine.server.model.dto.request.DeleteByIdListRequest;
 import com.liukx.expression.engine.server.model.dto.request.EditExpressionConfigRequest;
@@ -10,6 +10,7 @@ import com.liukx.expression.engine.server.model.dto.request.QueryExpressionConfi
 import com.liukx.expression.engine.server.model.dto.response.ExpressionExecutorDetailConfigDTO;
 import com.liukx.expression.engine.server.model.dto.response.RestResult;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -20,7 +21,7 @@ import java.util.List;
  * @author bsy
  * @since 2022-06-12
  */
-public interface ExpressionConfigService extends IService<ExpressionExecutorDetailConfig> {
+public interface ExpressionConfigService extends IService<ExpressionExecutorInfoConfig> {
     /**
      * 添加单个表达式
      *
@@ -79,12 +80,14 @@ public interface ExpressionConfigService extends IService<ExpressionExecutorDeta
      * @param baseId
      * @return
      */
-    public List<ExpressionExecutorDetailConfig> getExpressionListByBaseId(Long baseId);
+    public List<ExpressionExecutorInfoConfig> getExpressionListByBaseId(Long baseId);
 
     /**
      * 拷贝节点
      * @param config
      * @return
      */
-    boolean copyNode(ExpressionExecutorDetailConfig config);
+    boolean copyNode(ExpressionExecutorInfoConfig config);
+
+    List<ExpressionExecutorInfoConfig> queryExpressionContent(String expressionContent, Date changeDate);
 }

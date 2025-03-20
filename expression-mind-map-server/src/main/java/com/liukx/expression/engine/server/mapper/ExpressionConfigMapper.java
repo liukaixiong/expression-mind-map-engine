@@ -1,7 +1,7 @@
 package com.liukx.expression.engine.server.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorDetailConfig;
+import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorInfoConfig;
 
 /**
  * <p>
@@ -11,6 +11,6 @@ import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorDetail
  * @author bsy
  * @since 2022-06-12
  */
-public interface ExpressionConfigMapper extends BaseMapper<ExpressionExecutorDetailConfig> {
+public interface ExpressionConfigMapper extends BaseMapper<ExpressionExecutorInfoConfig> {
 
 }

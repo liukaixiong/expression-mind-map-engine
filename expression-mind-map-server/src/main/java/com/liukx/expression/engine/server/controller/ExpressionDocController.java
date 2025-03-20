@@ -7,7 +7,7 @@ import com.liukx.expression.engine.core.api.model.api.VariableApiModel;
 import com.liukx.expression.engine.core.utils.Jsons;
 import com.liukx.expression.engine.server.constants.BaseConstants;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorBaseInfo;
-import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorDetailConfig;
+import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorInfoConfig;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionTraceLogIndex;
 import com.liukx.expression.engine.server.model.dto.response.RestResult;
 import com.liukx.expression.engine.server.service.*;
@@ -76,7 +76,7 @@ public class ExpressionDocController {
     @ApiOperation("查询函数变量信息")
     @PostMapping("/translateExpression")
     public RestResult<List<ExpressionDocDto>> translateExpression(@RequestParam(value = "expressionId") Long expressionId) {
-        final ExpressionExecutorDetailConfig executorDetailConfig = expressionConfigService.getById(expressionId);
+        final ExpressionExecutorInfoConfig executorDetailConfig = expressionConfigService.getById(expressionId);
         final ExpressionExecutorBaseInfo executorBaseInfo = executorConfigService.getById(executorDetailConfig.getExecutorId());
         final String serviceName = executorBaseInfo.getServiceName();
         final String varDefinition = executorBaseInfo.getVarDefinition();

@@ -4,7 +4,7 @@
 
     <!-- 通用查询映射结果 -->
     <resultMap id="BaseResultMap"
-               type="com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorDetailConfig">
+               type="com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorInfoConfig">
         <id column="id" property="id"/>
         <result column="expression_type" property="expressionType"/>
         <result column="expression_content" property="expressionContent"/>
