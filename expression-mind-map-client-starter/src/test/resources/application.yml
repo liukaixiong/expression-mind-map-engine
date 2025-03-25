@@ -4,7 +4,7 @@ spring:
       debug: true
       remote-engine-url: http://localhost:20888
       logger-trace-level: debug
-      expression-config-call: http_redis
+      expression-config-call: http_cache
       enable-trace-log: true
       inject-type-package: com.smp.service.function.control
   application:
