@@ -129,7 +129,7 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
 
     private ExpressionConfigInfo getExpressionConfigInfo(Map<String, Object> envContext, String businessGroupCode, String executorCode) {
         //允许同一个上下文获取时，进行结果缓存，这里其实可以适当抽象，后期再优化吧
-        String key = "env_config_info:" + businessGroupCode;
+        String key = "env_config_info:" + businessGroupCode + ":" + executorCode;
 
         Object configObject = envContext.get(key);
 
@@ -143,7 +143,14 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
         baseRequest.setBusinessCode(businessGroupCode);
         baseRequest.setExecutorCode(executorCode);
 
-        return configCallManager.getConfigInfo(serviceName, businessGroupCode, executorCode);
+        final ExpressionConfigInfo configInfo = configCallManager.getConfigInfo(serviceName, businessGroupCode, executorCode);
+
+        if (configInfo != null) {
+            LOG.debug("加入本地缓存中获取引擎配置： {} , {} ", key, configInfo);
+            envContext.put(key, configInfo);
+        }
+
+        return configInfo;
     }
 
 

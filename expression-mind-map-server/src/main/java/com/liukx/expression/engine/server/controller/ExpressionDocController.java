@@ -131,8 +131,17 @@ public class ExpressionDocController {
             final ExpressionTraceLogIndex expressionSampleBody = traceLogIndexService.getExpressionSampleBody(expressionId);
             if (expressionSampleBody != null) {
                 final String envBody = expressionSampleBody.getEnvBody();
+
+                if (StringUtils.isEmpty(envBody)) {
+                    return;
+                }
+
                 Map<String, Object> envContext = Jsons.parseObject(envBody, new TypeReference<>() {
                 });
+
+                if (envContext == null) {
+                    return;
+                }
 
                 if (name.indexOf(".") > 0) {
                     envContext = MapFlattenUtil.flatten(envContext);

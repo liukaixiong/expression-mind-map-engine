@@ -162,8 +162,8 @@ public enum DemoFunDescDefinitionService implements ExpressFunctionDocumentLoade
 
 ## 通用函数列表【BaseFunctionDescEnum】
 
-| 函数类型      | 函数名称                                             | 函数作用                                                     |
-| ------------- | ---------------------------------------------------- | ------------------------------------------------------------ |
+| 函数类型      | 函数名称                                                 | 函数作用                                                     |
+| ------------- |------------------------------------------------------| ------------------------------------------------------------ |
 | 流程分支控制  | fn_in_end()                                          | 执行当前分支的内部子分支流程之后结束                         |
 | 流程分支控制  | fn_force_end()                                       | 满足当前节点，则直接结束流程，不在往下执行                   |
 | 流程分支控制  | fn_return()                                          | 返回到上层分支，同级别分支不在继续                           |
@@ -176,6 +176,7 @@ public enum DemoFunDescDefinitionService implements ExpressFunctionDocumentLoade
 | 上下文设置    | fn_get_value('key')                                  | 获取当前上下文中的变量的值                                   |
 | 上下文设置    | fn_add_env_list('key','value')                       | 将变量添加一个集合到上下文中，有则追加，没有则初始化并加入   |
 | 对象操作      | fn_object_is_not_null(xxx1,xxx2)                     | 判断值是否为空,允许传递多个值,请传递变量                     |
+| 对象操作      | fn_str_to_json(jsonStr)                              | 字符串转json对象                     |
 | 变量操作      | fn_env_invoke_method(obj,'xxMethod',seq.list(1,2,3)) | 执行变量中对应的方法，比如变量是一个对象，需要调用它的方法。 |
 
 > 你可以根据自己的想法制定想要的能力，在表达式中注入即可。通用实现类在: `com.liukx.expression.engine.client.function`中
