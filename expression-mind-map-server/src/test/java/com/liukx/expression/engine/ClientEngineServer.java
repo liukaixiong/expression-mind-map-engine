@@ -1,17 +1,15 @@
 package com.liukx.expression.engine;
 
 import cn.hutool.core.lang.UUID;
-import com.liukx.expression.engine.client.config.ExpClientEnginAutoConfiguration;
-import com.liukx.expression.engine.client.config.ExpressionConfiguration;
 import com.liukx.expression.engine.client.engine.ClientEngineFactory;
 import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
 import com.liukx.expression.engine.core.api.model.ClientExpressionSubmitRequest;
+import com.liukx.expression.engine.server.BootApplication;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.web.client.RestTemplateAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -27,12 +25,11 @@ import java.util.concurrent.CompletableFuture;
  * @date 2025/1/15 - 17:50
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {ExpClientEnginAutoConfiguration.class, ExpressionConfiguration.class, RestTemplateAutoConfiguration.class})
-public class ClientServer {
+@SpringBootTest(classes = {BootApplication.class})
+public class ClientEngineServer {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     @Autowired
     private ClientEngineFactory clientEngine;
-
     @Test
     public void executorRemoter() throws Exception {
         Map<String, Object> envContext = new HashMap<>();
@@ -71,7 +68,6 @@ public class ClientServer {
     public void executorLockRemoter() throws Exception {
         Map<String, Object> envContext = new HashMap<>();
 
-
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("username", "xxxx");
         requestMap.put("id", 123L);
@@ -93,7 +89,7 @@ public class ClientServer {
         for (int i = 0; i < 10; i++) {
             CompletableFuture.runAsync(() -> {
                 final Map<String, Object> result = clientEngine.invoke(request, context);
-                logger.info("result:{}", result);
+                logger.info("result===>>>>:{}", result);
             });
         }
 

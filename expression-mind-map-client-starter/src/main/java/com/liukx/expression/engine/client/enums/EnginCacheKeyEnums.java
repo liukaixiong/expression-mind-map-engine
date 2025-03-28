@@ -14,6 +14,8 @@ public enum EnginCacheKeyEnums {
     EXECUTOR_REFRESH_KEY("client_query_config", null),
     EXPRESSION_DOC_KEY("expression_doc", null),
     EXPRESSION_VAR_TYPE_KEY("expression_var_type", null),
+    EXPRESSION_LOCK("expression_lock", null),
+
 
 
     ;

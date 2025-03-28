@@ -3,13 +3,15 @@ package com.liukx.expression.engine.client.config;
 import com.liukx.expression.engine.client.api.ClientEngineInvokeService;
 import com.liukx.expression.engine.client.api.RemoteExpressionConfigService;
 import com.liukx.expression.engine.client.api.config.ExpressionConfigCallManager;
-import com.liukx.expression.engine.client.api.config.HttpExpressionConfigService;
 import com.liukx.expression.engine.client.api.config.HttpCacheExpressionConfigService;
+import com.liukx.expression.engine.client.api.config.HttpExpressionConfigService;
 import com.liukx.expression.engine.client.api.config.RedisExpressionConfigService;
+import com.liukx.expression.engine.client.api.configurability.RedissonLockExpressionConfigurabilityProcessor;
 import com.liukx.expression.engine.client.api.configurability.TraceSwitchConfigurabilityProcessor;
 import com.liukx.expression.engine.client.engine.ClientEngineFactory;
 import com.liukx.expression.engine.client.engine.LocalEngineServiceImpl;
 import com.liukx.expression.engine.client.http.RestRemoteHttpService;
+import org.redisson.api.RedissonClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
@@ -52,6 +54,7 @@ public class ExpClientEnginAutoConfiguration {
     public RemoteExpressionConfigService httpExpressionConfigService() {
         return new HttpExpressionConfigService();
     }
+
     @Bean
     public HttpCacheExpressionConfigService httpLocalCacheExpressionConfigService() {
         return new HttpCacheExpressionConfigService();
@@ -71,6 +74,12 @@ public class ExpClientEnginAutoConfiguration {
     @Bean
     public TraceSwitchConfigurabilityProcessor tracingProcessor() {
         return new TraceSwitchConfigurabilityProcessor();
+    }
+
+    @Bean
+//    @ConditionalOnBean(RedissonClient.class)
+    public RedissonLockExpressionConfigurabilityProcessor redissonLockExpressionConfig(RedissonClient redissonClient) {
+        return new RedissonLockExpressionConfigurabilityProcessor(redissonClient);
     }
 
 }

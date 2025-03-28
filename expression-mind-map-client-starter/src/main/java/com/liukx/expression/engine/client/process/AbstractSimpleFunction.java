@@ -2,6 +2,7 @@ package com.liukx.expression.engine.client.process;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
+import com.google.common.base.Splitter;
 import com.googlecode.aviator.runtime.function.AbstractVariadicFunction;
 import com.googlecode.aviator.runtime.function.FunctionUtils;
 import com.googlecode.aviator.runtime.type.AviatorObject;
@@ -15,6 +16,7 @@ import com.liukx.expression.engine.client.log.LogHelper;
 import com.liukx.expression.engine.core.api.model.ExpressionBaseRequest;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigTreeModel;
 import com.liukx.expression.engine.core.api.model.api.FunctionApiModel;
+import com.liukx.expression.engine.core.utils.Jsons;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
@@ -257,6 +259,39 @@ public abstract class AbstractSimpleFunction extends AbstractVariadicFunction im
             }
         }
         return null;
+    }
+
+    /**
+     * 获取集合信息,参数如果是,号分割的字符串对象
+     * @param objectList
+     * @param index
+     * @return
+     */
+    protected List<String> getArgsIndexList(List<Object> objectList, int index) {
+        return getArgsIndexList(objectList, index, String.class);
+    }
+
+    /**
+     * 获取集合信息,参数如果是,号分割的字符串对象
+     * @param objectList        参数对象
+     * @param index             下标
+     * @param convertClazz      转换类型
+     * @return
+     * @param <T>
+     */
+    @SuppressWarnings({"unchecked"})
+    protected <T> List<T> getArgsIndexList(List<Object> objectList, int index, Class<T> convertClazz) {
+        final String argsString = getArgsIndexValue(objectList, index);
+        List<T> list = new ArrayList<>();
+        final List<String> argList = Splitter.on(",").trimResults().splitToList(argsString);
+        if (convertClazz.isAssignableFrom(String.class)) {
+            return (List<T>) argList;
+        } else {
+            for (String value : argList) {
+                list.add(Jsons.parseObject(value, convertClazz));
+            }
+        }
+        return list;
     }
 
 }

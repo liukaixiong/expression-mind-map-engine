@@ -12,5 +12,6 @@ public enum ExpressionCoxnfigurabilitySwitchEnum {
      */
     enableNodeAsync,
     enableSampleBody,
+    enableGlobalLock,
 
 }

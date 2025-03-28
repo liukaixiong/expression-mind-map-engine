@@ -47,6 +47,7 @@
         <spring-boot.version>3.1.7</spring-boot.version>
         <spring-cloud.version>2022.0.4</spring-cloud.version>
         <spring-cloud-alibaba.version>2022.0.0.0</spring-cloud-alibaba.version>
+        <redisson.version>3.24.2</redisson.version>
 
         <!-- jdk 8 -->
         <!--        <java.version>8</java.version>-->
@@ -82,6 +83,11 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson-spring-boot-starter</artifactId>
+                <version>${redisson.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
