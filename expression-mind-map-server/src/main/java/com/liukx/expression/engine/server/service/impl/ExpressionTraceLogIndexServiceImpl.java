@@ -58,7 +58,7 @@ public class ExpressionTraceLogIndexServiceImpl extends ServiceImpl<ExpressionTr
                         ThreadUtil.sleep(50);
                     }
                 } catch (Exception e) {
-                    log.warn("追踪日志消费失败:{}", e.getMessage());
+                    log.error("追踪日志消费失败", e);
                 } finally {
                     ThreadUtil.sleep(5);
                 }
@@ -114,6 +114,21 @@ public class ExpressionTraceLogIndexServiceImpl extends ServiceImpl<ExpressionTr
         return null;
     }
 
+    /**
+     * 遇到过长的字符串，保留一部分。（MYSQL的长度限制）
+     * @param text  字符串
+     * @return 短字符串
+     */
+    private String getMiniString(String text) {
+        if (StringUtils.isNotEmpty(text)) {
+            int maxLength = 1500;
+            if (text.length() > maxLength) {
+                return text.substring(0, maxLength) + "...";
+            }
+        }
+        return text;
+    }
+
     private void saveIndexInfo(ExpressionExecutorResultDTO expressionExecutorResultDTO) {
         ExpressionTraceLogIndex index = new ExpressionTraceLogIndex();
         BeanUtils.copyProperties(expressionExecutorResultDTO, index);
@@ -144,7 +159,7 @@ public class ExpressionTraceLogIndexServiceImpl extends ServiceImpl<ExpressionTr
             traceLogInfo.setModuleType(expressionResultLogDTO.getResultType());
             traceLogInfo.setExpressionDescription(expressionResultLogDTO.getDescription());
             traceLogInfo.setTraceLogId(id);
-            traceLogInfo.setDebugTraceContent(Jsons.toJsonString(expressionResultLogDTO.getDebugTraceContent()));
+            traceLogInfo.setDebugTraceContent(getMiniString(Jsons.toJsonString(expressionResultLogDTO.getDebugTraceContent())));
             traceLogInfo.setExecutorId(expressionExecutorResultDTO.getExecutorId());
             // 结果构建
             final Object result = expressionResultLogDTO.getResult();
@@ -161,7 +176,7 @@ public class ExpressionTraceLogIndexServiceImpl extends ServiceImpl<ExpressionTr
                 final String name = functionApiModel.getName();
                 final String param = StringUtils.join(funcArgs, ",");
                 String functionName = name + "(" + param + ")";
-                traceLogInfo.setExpressionContent(functionName);
+                traceLogInfo.setExpressionContent(getMiniString(functionName));
                 if (StringUtils.isEmpty(expressionResultLogDTO.getDescription())) {
                     traceLogInfo.setExpressionDescription(functionApiModel.getDescribe());
                 }

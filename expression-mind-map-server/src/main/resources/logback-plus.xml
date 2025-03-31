@@ -3,7 +3,7 @@
     <!-- 日志输出格式 -->
     <property name="log.pattern"
               value="%red(%d{yyyy-MM-dd HH:mm:ss}) [%X{traceId}] %green([%thread]) %highlight(%-5level) %boldMagenta(%logger{36}) - %msg%n"/>
-    <property name="log.path" value="logs/expression-mind-map-server"/>
+    <property name="log.path" value="./logs/expression-mind-map-server"/>
     <!-- 控制台输出 -->
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
