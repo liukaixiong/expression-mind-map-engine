@@ -2,7 +2,6 @@ package com.liukx.expression.engine.client.collect;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.thread.ThreadUtil;
-import com.googlecode.aviator.AviatorEvaluator;
 import com.liukx.expression.engine.client.api.ExpressionConfigExecutorIntercept;
 import com.liukx.expression.engine.client.api.ExpressionExecutorPostProcessor;
 import com.liukx.expression.engine.client.api.ExpressionFunctionPostProcessor;
@@ -26,7 +25,6 @@ import org.springframework.beans.factory.annotation.Value;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 执行器数据收集
@@ -149,13 +147,14 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
 
             if (resultType == ExpressionLogTypeEnum.expression) {
                 final String expression = configTreeModel.getExpression();
-                final List<String> variableFullNames = AviatorEvaluator.compile(expression, true).getVariableNames();
-                if (CollectionUtil.isNotEmpty(variableFullNames)) {
-                    final Map<String, Object> variableMap = variableFullNames.stream().collect(Collectors.toMap(var -> var, var -> envContext.getValue(var) == null ? "null" : envContext.getValue(var)));
-                    dto.setExpression(Jsons.toJsonString(variableMap));
-                } else {
-                    dto.setExpression(expression);
-                }
+                // 有性能问题
+//                final List<String> variableFullNames = AviatorEvaluator.compile(expression, true).getVariableNames();
+//                if (CollectionUtil.isNotEmpty(variableFullNames)) {
+//                    final Map<String, Object> variableMap = variableFullNames.stream().collect(Collectors.toMap(var -> var, var -> envContext.getValue(var) == null ? "null" : envContext.getValue(var)));
+//                    dto.setExpression(Jsons.toJsonString(variableMap));
+//                } else {
+                dto.setExpression(expression);
+//                }
                 dto.setDescription(configTreeModel.getTitle());
             } else {
                 final String functionInfoName = functionInfo.getName();

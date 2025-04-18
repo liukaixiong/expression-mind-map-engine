@@ -46,7 +46,7 @@ public class AviatorEvaluatorServiceImpl extends AbstractExpressionService imple
         evaluator.addFunctionLoader(this);
         // 保留metaspace,也就是每个表达式解析对象
         evaluator.setCachedExpressionByDefault(true);
-        evaluator.useLRUExpressionCache(10000);
+//        evaluator.useLRUExpressionCache(10000);
         try {
             evaluator.addStaticFunctions("objectUtils", ObjectUtils.class);
             evaluator.addStaticFunctions("stringUtils", StringUtils.class);

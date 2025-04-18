@@ -7,6 +7,7 @@ import com.liukx.expression.engine.core.api.model.ExpressionBaseRequest;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigTreeModel;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -23,12 +24,18 @@ public class FnEnvAddListFunction extends AbstractSimpleFunction {
     public Enum<? extends ExpressFunctionDocumentLoader> documentRegister() {
         return BaseFunctionDescEnum.ENV_ADD_LIST;
     }
+
     @Override
+    @SuppressWarnings("unchecked")
     public Object processor(ExpressionEnvContext env, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request, List<Object> funArgs) {
         String key = getConvertValue(funArgs, 0, String.class);
         Object value = getConvertValue(funArgs, 1, Object.class);
         final Set<Object> code = (Set<Object>) env.getSourceMap().computeIfAbsent(key, k -> new HashSet<>());
-        code.add(value);
+        if (value instanceof Collection<?>) {
+            code.addAll((Collection<?>) value);
+        } else {
+            code.add(value);
+        }
         env.recordTraceDebugContent(getName(), "debug", String.format("新增属性到上下文中: %s = %s", key, code));
         return true;
     }
