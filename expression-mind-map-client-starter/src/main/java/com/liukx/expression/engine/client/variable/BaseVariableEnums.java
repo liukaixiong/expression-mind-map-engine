@@ -3,6 +3,7 @@ package com.liukx.expression.engine.client.variable;
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 /**
  * 表达式全局上下文配置
@@ -12,7 +13,8 @@ import java.time.LocalDate;
  */
 @Getter
 public enum BaseVariableEnums implements VariableDefinitionalService {
-    env_date_local_date_time("获取LocalDate对象", LocalDate.class),
+    env_date_local_date_time("获取LocalDateTime对象", LocalDateTime.class),
+    env_date_local_date("获取LocalDate对象", LocalDate.class),
     ;
 
 
