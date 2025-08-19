@@ -77,6 +77,8 @@ public class ExpressionConfigSyncDataServiceImpl implements SyncDataService<Expr
             LOG.info(">>>>> sync data info insert >>> executorId : {} ", executorId);
             if (save) {
                 deepInfoConfigSave(treeList, idCache, executorId);
+                // 刷新缓存
+                this.eventPublisher.publishEvent(new ExecutorConfigRefreshEvent(executorId));
                 return true;
             }
         } else {
@@ -110,11 +112,11 @@ public class ExpressionConfigSyncDataServiceImpl implements SyncDataService<Expr
     /**
      * 递归修改配置信息
      *
-     * @param treeList      导入的数据形成的树结构
-     * @param executorId    执行器编号
-     * @param dbCodeMap     数据库编码的映射表
-     * @param hitCode       命中编码表
-     * @param idCache       上级id关联表
+     * @param treeList   导入的数据形成的树结构
+     * @param executorId 执行器编号
+     * @param dbCodeMap  数据库编码的映射表
+     * @param hitCode    命中编码表
+     * @param idCache    上级id关联表
      */
     private void deepUpdateConfigInfo(List<Tree<Long>> treeList, Long executorId, Map<String, ExpressionExecutorInfoConfig> dbCodeMap, Set<String> hitCode, Map<Long, Long> idCache) {
         // 比如从其他环境导出的数据,要导入当前环境的数据,可能会出现id关联不上,所以这里需要将导出的id和导入的id进行映射,方便到时候进行转换

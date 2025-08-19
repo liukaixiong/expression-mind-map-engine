@@ -1,5 +1,6 @@
 package com.liukx.expression.engine.client.process;
 
+import cn.hutool.core.date.DateUtil;
 import com.googlecode.aviator.*;
 import com.googlecode.aviator.runtime.function.ClassMethodFunction;
 import com.googlecode.aviator.runtime.type.AviatorFunction;
@@ -50,6 +51,7 @@ public class AviatorEvaluatorServiceImpl extends AbstractExpressionService imple
         try {
             evaluator.addStaticFunctions("objectUtils", ObjectUtils.class);
             evaluator.addStaticFunctions("stringUtils", StringUtils.class);
+            evaluator.addStaticFunctions("dateUtils", DateUtil.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

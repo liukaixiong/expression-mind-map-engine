@@ -21,6 +21,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 /**
@@ -251,6 +254,12 @@ public abstract class AbstractSimpleFunction extends AbstractVariadicFunction im
             return new Date(envLongDate);
         } else if (envDate instanceof Date) {
             return (Date) envDate;
+        } else if (envDate instanceof LocalDateTime) {
+            LocalDateTime localDateTime = (LocalDateTime) envDate;
+            return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+        } else if (envDate instanceof LocalDate) {
+            LocalDate localDate = (LocalDate) envDate;
+            return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
         } else if (envDate instanceof String dateStr) {
             if (dateStr.length() == 10) {
                 return DateUtil.beginOfDay(DateUtil.parseDate(dateStr));

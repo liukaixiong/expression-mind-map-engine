@@ -62,7 +62,7 @@ layui.define(['jquery', 'table'], function (exports) {
             // })
 
             getJqOptId(globalOpt).keydown(function (event) {
-                if (event.ctrlKey && event.altKey && event.key === ' ') {
+                if (event.key === 'F4' || event.ctrlKey && event.altKey && event.key === ' ') {
                     globalOpt.obj = this;
                     isEnterSearch = true;
                     getSugTable(event, globalOpt);
@@ -82,7 +82,7 @@ layui.define(['jquery', 'table'], function (exports) {
             //     getSug(opt);
             // })
             getJqOptId(globalOpt).keydown(function (event) {
-                if (event.ctrlKey && event.altKey && event.key === ' ') {
+                if (event.key === 'F4' || (event.ctrlKey && event.altKey && event.key === ' ')) {
                     globalOpt.obj = this;
                     getSug(event, globalOpt);
                 }
