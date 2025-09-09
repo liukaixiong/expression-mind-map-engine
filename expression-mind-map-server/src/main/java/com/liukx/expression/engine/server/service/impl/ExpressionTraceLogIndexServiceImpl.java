@@ -116,7 +116,8 @@ public class ExpressionTraceLogIndexServiceImpl extends ServiceImpl<ExpressionTr
 
     /**
      * 遇到过长的字符串，保留一部分。（MYSQL的长度限制）
-     * @param text  字符串
+     *
+     * @param text 字符串
      * @return 短字符串
      */
     private String getMiniString(String text) {

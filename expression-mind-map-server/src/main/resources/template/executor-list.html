@@ -131,6 +131,15 @@
             {field: 'executorCode', title: '业务编码'},
             {field: 'executorDescription', title: '业务描述'},
             {
+                field: 'enableTrace', title: '启用能力', templet: function (d) {
+                    let html = "";
+                    if (d.configurabilityJson.includes('enableTrace')) {
+                        html += '<span style="color: #1e9fff; ">开启追踪</span>';
+                    }
+                    return html;
+                }
+            },
+            {
                 field: 'status', title: '是否有效', width: 100, templet: function (d) {
                     return d.status === 1 ? '<span style="color: #16baaa; ">有效</span>' : '<span style="color: red; ">无效</span>';
                 }

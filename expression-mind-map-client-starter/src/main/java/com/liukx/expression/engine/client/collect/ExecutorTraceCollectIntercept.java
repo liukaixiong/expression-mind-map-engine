@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 /**
  * 执行器数据收集
@@ -35,7 +36,13 @@ import java.util.Map;
 @Slf4j
 public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIntercept, ExpressionFunctionPostProcessor, ExpressionExecutorPostProcessor, InitializingBean {
 
-    private final ThreadLocal<ExpressionExecutorResultDTO> resultLogThreadLocal = new InheritableThreadLocal<>();
+    // 将 ThreadLocal 改造为 Stack 结构，支持嵌套调用
+    private final ThreadLocal<Stack<ExpressionExecutorResultDTO>> resultLogThreadLocal = new InheritableThreadLocal<>() {
+        @Override
+        protected Stack<ExpressionExecutorResultDTO> initialValue() {
+            return new Stack<>();
+        }
+    };
     @Autowired
     private RemoteHttpService remoteHttpService;
     @Value("${spring.application.name:unknown}")
@@ -74,7 +81,7 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
         }
 
         if (configInfo == null) {
-            log.debug("配置异常,请检查表达式配置相关链路!");
+            log.warn("配置异常,请检查表达式配置相关链路!");
             return;
         }
         ExpressionExecutorResultDTO dto = new ExpressionExecutorResultDTO();
@@ -88,7 +95,9 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
         dto.setUnionId(baseRequest.getUnionId());
         dto.setTraceId(baseRequest.getTraceId());
         dto.setEnvBody(Jsons.toJsonString(envContext.getBusinessEnvContext()));
-        resultLogThreadLocal.set(dto);
+
+        // 使用栈结构压入当前执行器结果
+        resultLogThreadLocal.get().push(dto);
     }
 
     @Override
@@ -98,8 +107,10 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
         }
 
         try {
-            final ExpressionExecutorResultDTO expressionExecutorResultDTO = resultLogThreadLocal.get();
-            if (expressionExecutorResultDTO != null) {
+            // 从栈中弹出当前执行器结果
+            Stack<ExpressionExecutorResultDTO> stack = resultLogThreadLocal.get();
+            if (!stack.isEmpty()) {
+                ExpressionExecutorResultDTO expressionExecutorResultDTO = stack.pop();
                 ExpressionResultLogCollect.getInstance().add(expressionExecutorResultDTO);
             } else {
                 log.warn("追踪日志数据构建异常!");
@@ -107,7 +118,11 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
         } catch (Exception e) {
             log.warn("追踪日志设置失败:{}", e.getMessage());
         } finally {
-            resultLogThreadLocal.remove();
+            // 安全清理：如果栈为空，则清理 ThreadLocal
+            Stack<ExpressionExecutorResultDTO> stack = resultLogThreadLocal.get();
+            if (stack.isEmpty()) {
+                resultLogThreadLocal.remove();
+            }
         }
     }
 
@@ -137,6 +152,14 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
             if (!envContext.isEnableTrace()) {
                 return;
             }
+
+            // 从栈中获取当前执行器结果
+            Stack<ExpressionExecutorResultDTO> stack = resultLogThreadLocal.get();
+            if (stack.isEmpty()) {
+                log.warn(">>> 执行器结果栈为空，无法记录日志! <<<");
+                return;
+            }
+
             ExpressionResultLogDTO dto = new ExpressionResultLogDTO();
             dto.setExecutorId(configTreeModel.getExecutorId());
             dto.setResultType(resultType.name());
@@ -174,9 +197,10 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
                 dto.setDebugTraceContent(debugTraceContent);
             }
 
-            resultLogThreadLocal.get().getResultLogList().add(dto);
+            // 获取当前执行器结果并添加日志
+            stack.peek().getResultLogList().add(dto);
         } catch (Exception e) {
-            log.debug("追踪结果日志构建失败! -> {}", e.getMessage());
+            log.warn("追踪结果日志构建失败! -> {}", e.getMessage());
         }
     }
 }

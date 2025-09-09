@@ -29,6 +29,10 @@ public class ServiceConfiguration {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
         // 添加分页插件
         interceptor.addInnerInterceptor(new PaginationInnerInterceptor());
+
+        // 添加动态表名插件
+//        DynamicTableNameInnerInterceptor dynamicTableNameInnerInterceptor = new DynamicTableNameInnerInterceptor(tableNameHandler);
+//        interceptor.addInnerInterceptor(dynamicTableNameInnerInterceptor);
         return interceptor;
     }
 
