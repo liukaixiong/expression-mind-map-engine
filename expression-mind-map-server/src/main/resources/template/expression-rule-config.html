@@ -209,9 +209,10 @@
             }, {
                 target: 'showNode', text: '聚焦节点',
                 callback: function (node) {
+                    debugger;
                     // 打开一个 url
                     layer_util.openWin({
-                        url: api_expression_rule_config + "?executorId=" + executorId + "&&expressionId=" + node.id,
+                        url: api_expression_rule_config + "?executorId=" + executorId + "&&expressionId=" + node.id + "&&executorCode=" + node.data.expressionCode + "&&executorDescription=" + node.data.expressionTitle,
                     });
                 }
             }],  //这是完整的功能列表
@@ -514,9 +515,9 @@
 
     function convertMindData(data) {
         var treeNode = [];
-        var varExecutorCode = expressionId ? data[0].id : executorCode;
-        var varExecutorDescription = expressionId ? data[0].expressionTitle : executorDescription;
-
+        var varExecutorCode = executorCode;
+        var varExecutorDescription = executorDescription;
+        debugger;
         treeNode.push({
             "id": expressionId || '0',
             "isroot": true,
