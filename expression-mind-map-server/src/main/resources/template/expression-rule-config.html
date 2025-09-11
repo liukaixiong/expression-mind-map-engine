@@ -43,7 +43,7 @@
     </div>
 </div>
 
-<div id="jsmind_container" style="width: 2000px;height: 1000px"></div>
+<div id="jsmind_container" style="width: 100vw; height: 100vh;"></div>
 
 <div id="view"></div>
 
@@ -52,9 +52,11 @@
 
 <script type="text/javascript">
     var layer = layui.layer;
+    var layer_util = layui.util;
     var laydate = layui.laydate;
     let requestParam = engineUtils.getRequestParams();
     let executorId = requestParam.executorId;
+    let expressionId = requestParam.expressionId;
     let executorCode = requestParam.executorCode;
     let traceLogId = requestParam.traceLogId;
     let enableEditable = traceLogId === undefined;
@@ -62,11 +64,13 @@
     let api_expression_list = final_const.api_path.expression_list;
     let api_trace_object = final_const.api_path.trace_object;
     let api_expression_form = final_const.template_path.expression_form;
+    let api_expression_rule_config = final_const.template_path.expression_rule_config;
 
     let api_expression_del = final_const.api_path.expression_del;
     let api_expression_edit_parent = final_const.api_path.expression_edit_parent;
     let api_expression_copy_node = final_const.api_path.expression_copy_node;
     let global_copy_node_id = -1;
+    let global_mind_config_mode = 'full';
     /**
      * 记录当前日期版本筛选
      */
@@ -101,14 +105,13 @@
             cousin_space: 0            // 相邻节点的子节点之间的额外的垂直间距
         },                             // [可选] 主题
         log_level: 'info',             // 布局模式
-        mode: 'side',
+        mode: global_mind_config_mode,
         shortcut: {
             enable: true,               // 是否启用快捷键
             handles: {
                 'dosomething': function (jm, e) {
                     // do something...
                     console.log("dosomething--->>", jm, e);
-                    debugger;
                 },
                 'ecs_close': function (jm, e) {
                     // 关闭所有弹出层
@@ -203,6 +206,14 @@
                 callback: function (node) {
                     //  mindRemoveNode(node.id);
                 }
+            }, {
+                target: 'showNode', text: '聚焦节点',
+                callback: function (node) {
+                    // 打开一个 url
+                    layer_util.openWin({
+                        url: api_expression_rule_config + "?executorId=" + executorId + "&&expressionId=" + node.id,
+                    });
+                }
             }],  //这是完整的功能列表
         },
         view: {
@@ -234,7 +245,8 @@
     function reloadMind() {
         engineUtils.requestPost(api_expression_list, {
             "executorId": executorId,
-            "traceLogId": traceLogId
+            "traceLogId": traceLogId,
+            "id": expressionId
         }, function (response) {
             // 请求成功时的回调函数
             if (response.code === 200) {
@@ -467,7 +479,6 @@
         // 如果是删除了的节点,那么样式需要突出显示
         let icon = "";
         if (item.expressionStatus !== 1) {
-            debugger;
             icon = "layui-icon-clear";
             bgColor = "#e2e2e2";
             topicText = "<s>" + topicText + "</s>";
@@ -503,14 +514,17 @@
 
     function convertMindData(data) {
         var treeNode = [];
+        var varExecutorCode = expressionId ? data[0].id : executorCode;
+        var varExecutorDescription = expressionId ? data[0].expressionTitle : executorDescription;
+
         treeNode.push({
-            "id": '0',
+            "id": expressionId || '0',
             "isroot": true,
-            "topic": "【" + executorCode + "】 " + executorDescription,
+            "topic": "【" + varExecutorCode + "】 " + varExecutorDescription,
             "expanded": true,
             "background-color": "#4669EA",
             "executorId": executorId,
-            "parentid": 0
+            "parentid": '0'
         });
         data.forEach(function (item) {
             convertMindNodeData(item);
@@ -550,8 +564,8 @@
         reloadMind();
     }
 
-
     function readerMind(data) {
+
         var mind = convertMindData(data);
 
         jm.show(mind);

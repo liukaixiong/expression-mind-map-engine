@@ -171,9 +171,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
     public RestResult<List<ExpressionExecutorDetailConfigDTO>> queryExpression(QueryExpressionConfigRequest queryRequest) {
         Throws.nullError(queryRequest.getExecutorId(), "executorId");
         List<ExpressionExecutorDetailConfigDTO> dtoList = new ArrayList<>();
-//        if (queryRequest.getParentId() == null) {
-//            queryRequest.setParentId(BaseConstants.BASE_ROOT_ID);
-//        }
+
         LambdaQueryChainWrapper<ExpressionExecutorInfoConfig> lambdaQuery = lambdaQuery().eq(ExpressionExecutorInfoConfig::getDeleted, 0);
         lambdaQuery.eq(ExpressionExecutorInfoConfig::getExecutorId, queryRequest.getExecutorId());
         lambdaQuery.eq(queryRequest.getParentId() != null, ExpressionExecutorInfoConfig::getParentId, queryRequest.getParentId());

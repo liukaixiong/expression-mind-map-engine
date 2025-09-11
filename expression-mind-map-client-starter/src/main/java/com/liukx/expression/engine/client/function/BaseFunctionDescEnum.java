@@ -14,7 +14,7 @@ import java.util.Arrays;
  * @date 2023/12/7
  */
 public enum BaseFunctionDescEnum implements ExpressFunctionDocumentLoader {
-
+    // @Formatter:off
     END("base", "fn_end", "走完该分支流程之后结束", new String[]{}, "true || false", "fn_end()"),
     END_IN("base", "fn_in_end", "执行当前分支的内部子分支流程之后结束", new String[]{}, "true || false", "fn_in_end()"),
     END_RETURN("base", "fn_return", "返回到上层分支，同级别分支不在继续", new String[]{}, "true || false", "fn_return()"),
@@ -32,6 +32,7 @@ public enum BaseFunctionDescEnum implements ExpressFunctionDocumentLoader {
     SYS_DATE_DAY_TO_LOCAL_DATE("base", "fn_sys_date_to_local_date", "将date对象转换成LocalDate对象", new String[]{"Date or 字符串日期"}, "true || false", "fn_sys_date_to_local_date('2024-08-21')"),
     SYS_DATE_DAY_TO_LOCAL_DATE_TIME("base", "fn_sys_date_to_local_date_time", "将date对象转换成LocalDateTime对象", new String[]{"Date or 字符串日期"}, "true || false", "fn_sys_date_to_local_date_time('2024-08-21 12:12:12')"),
     RECORD_RESULT_CONTEXT("base", "fn_record_result_context", "设置结果到上下文中", new String[]{"键", "值"}, "true || false", "fn_record_result_context('result','abc')"),
+    RECORD_RESULT_MAP_CONTEXT("base", "fn_record_result_map_context", "设置结果到上下文中", new String[]{"组", "键", "值"}, "true || false", "fn_record_result_map_context('result','abc')"),
     OBJECT_IS_NOT_NULL("base", "fn_object_is_not_null", "判断值是否为空,允许传递多个值,请传递变量", new String[]{"值1", "值2"}, "true || false", "fn_object_is_not_null(a1,a2)"),
     OBJECT_STR_TO_JSON("base", "fn_str_to_json", "字符串转json对象", new String[]{"json字符串"}, "true || false", "fn_str_to_json(jsonStr)"),
     ;

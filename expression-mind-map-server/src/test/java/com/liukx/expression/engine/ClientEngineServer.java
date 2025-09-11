@@ -16,11 +16,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 /**
- *
- *
  * @author liukaixiong
  * @date 2025/1/15 - 17:50
  */
@@ -30,6 +27,7 @@ public class ClientEngineServer {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     @Autowired
     private ClientEngineFactory clientEngine;
+
     @Test
     public void executorRemoter() throws Exception {
         Map<String, Object> envContext = new HashMap<>();
@@ -87,10 +85,10 @@ public class ClientEngineServer {
         context.addEnvContext("test_env_text", "nibudong");
 
         for (int i = 0; i < 10; i++) {
-            CompletableFuture.runAsync(() -> {
-                final Map<String, Object> result = clientEngine.invoke(request, context);
-                logger.info("result===>>>>:{}", result);
-            });
+//            CompletableFuture.runAsync(() -> {
+            final Map<String, Object> result = clientEngine.invoke(request, context);
+            logger.info("result===>>>>:{}", result);
+//            });
         }
 
         System.in.read();

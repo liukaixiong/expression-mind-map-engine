@@ -9,6 +9,7 @@ import java.io.Serializable;
 @Data
 public class QueryExpressionConfigRequest implements Serializable {
 
+    private Long id;
     //    @Schema(description = "执行器编号")
     private Integer executorId;
     //    @Schema(description = "上级编号")
