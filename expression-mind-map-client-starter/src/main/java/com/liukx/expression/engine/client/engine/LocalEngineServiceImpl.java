@@ -2,10 +2,12 @@ package com.liukx.expression.engine.client.engine;
 
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.ttl.threadpool.TtlExecutors;
 import com.liukx.expression.engine.client.api.*;
 import com.liukx.expression.engine.client.api.config.ExpressionConfigCallManager;
 import com.liukx.expression.engine.client.enums.EngineCallType;
 import com.liukx.expression.engine.client.enums.ExpressionCoxnfigurabilitySwitchEnum;
+import com.liukx.expression.engine.client.enums.FlowControlEnum;
 import com.liukx.expression.engine.client.factory.ExpressionExecutorFactory;
 import com.liukx.expression.engine.client.helper.ConfigurabilityHelper;
 import com.liukx.expression.engine.client.log.LogEventEnum;
@@ -175,12 +177,12 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
         ExpressionService expressionService = executorFactory.getExpressionService();
         for (ExpressionConfigTreeModel treeModel : expressionConfigTreelList) {
             // 后续可以考虑做一些拓展，针对流程控制，允许跳过一些表达式,当然你可以自己设置一些流程分支的表达式去控制,那样也方便
-            boolean isSkip = expressionProcessor(baseRequest, envContext, configInfo, treeModel, expressionService);
+            final FlowControlEnum flowControlEnum = expressionProcessor(baseRequest, envContext, configInfo, treeModel, expressionService);
 
             // 进行流程控制
-            if (!isSkip) {
+            if (FlowControlEnum.IN_END == flowControlEnum) {
                 LogHelper.trace(envContext, baseRequest, LogEventEnum.EXPRESSION_CALL, String.format("[%s] 触发in_end全流程流程终止标记! ", treeModel.getTitle()));
-                // 执行到当前分支结束
+                // 执行到当前分支终止所有流程
                 envContext.forceEnd();
                 break;
             }
@@ -190,16 +192,16 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
                 break;
             }
 
-            if (envContext.isReturnEnd()) {
-                envContext.restReturnEnd();
-                LogHelper.trace(envContext, baseRequest, LogEventEnum.EXPRESSION_CALL, String.format("[%s] 触发return_end,同级分支不在执行! ", treeModel.getTitle()));
+            // 这个标记只适合在没有子分支的情况下使用,同级别不再继续分支
+            if (FlowControlEnum.RETURN_END == flowControlEnum || FlowControlEnum.IN_RETURN_END == flowControlEnum) {
+                LogHelper.trace(envContext, baseRequest, LogEventEnum.EXPRESSION_CALL, String.format("[%s] 触发 %s,同级分支不在执行! ", treeModel.getTitle(), flowControlEnum.name()));
                 break;
             }
 
         }
     }
 
-    private boolean expressionProcessor(ExpressionBaseRequest baseRequest, ExpressionEnvContext envContext, ExpressionConfigInfo configInfo, ExpressionConfigTreeModel treeModel, ExpressionService expressionService) {
+    private FlowControlEnum expressionProcessor(ExpressionBaseRequest baseRequest, ExpressionEnvContext envContext, ExpressionConfigInfo configInfo, ExpressionConfigTreeModel treeModel, ExpressionService expressionService) {
         Object execute;
         final Long expressionId = treeModel.getExpressionId();
         String expressionType = treeModel.getExpressionType();
@@ -226,8 +228,7 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
 
         LogHelper.trace(envContext, baseRequest, LogEventEnum.EXPRESSION_CALL, " [{}] [{}] [title:{}],[表达式:{}] -> 结果:[{}]", expressionType, expressionId, title, expression, execute);
 
-        // 是否终止下一个同级别分支
-        boolean isBreakNextBranch = !(envContext.isTopEnd() && envContext.restTopEnd());
+        final FlowControlEnum flowControl = calculateFlowControlInfo(envContext, treeModel);
 
         if (execute instanceof Boolean) {
             if ((Boolean) execute) {
@@ -239,7 +240,7 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
                     }
                     LogHelper.trace(envContext, baseRequest, LogEventEnum.EXPRESSION_CALL, " [{}] [{}] [title:{}],[表达式:{}] -> 启用子分支异步能力", expressionType, expressionId, title, expression);
                     final List<ExpressionConfigTreeModel> nodeExpressionList = treeModel.getNodeExpression();
-                    final List<CompletableFuture<Void>> taskList = nodeExpressionList.stream().map(nodeExpression -> CompletableFuture.runAsync(() -> expressionProcessor(baseRequest, envContext, configInfo, nodeExpression, expressionService), executor.executorService())).toList();
+                    final List<CompletableFuture<Void>> taskList = nodeExpressionList.stream().map(nodeExpression -> CompletableFuture.runAsync(() -> expressionProcessor(baseRequest, envContext, configInfo, nodeExpression, expressionService), TtlExecutors.getTtlExecutorService(executor.executorService()))).toList();
                     CompletableFuture.allOf(taskList.toArray(new CompletableFuture[0])).join();
                 } else {
                     executorExpression(baseRequest, envContext, configInfo, treeModel.getNodeExpression());
@@ -255,7 +256,32 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
             }
         }
 
-        return isBreakNextBranch;
+        return flowControl;
+    }
+
+    /**
+     * 计算流程控制信息
+     *
+     * @param envContext
+     * @param treeModel
+     * @return
+     */
+    private FlowControlEnum calculateFlowControlInfo(ExpressionEnvContext envContext, ExpressionConfigTreeModel treeModel) {
+        FlowControlEnum flowControl = FlowControlEnum.GO_ON;
+        // 是否终止下一个同级别分支
+//        boolean isBreakNextBranch = !(envContext.isTopEnd() && envContext.restTopEnd());
+
+        if (envContext.isTopEnd() && envContext.restTopEnd()) {
+            flowControl = FlowControlEnum.IN_END;
+        } else if (envContext.isReturnEnd()) {
+            if (!CollectionUtils.isEmpty(treeModel.getNodeExpression())) {
+                flowControl = FlowControlEnum.IN_RETURN_END;
+            } else {
+                flowControl = FlowControlEnum.RETURN_END;
+            }
+            envContext.restReturnEnd();
+        }
+        return flowControl;
     }
 
 }

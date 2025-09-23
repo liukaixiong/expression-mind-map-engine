@@ -1,9 +1,11 @@
 package com.liukx.expression.engine.server.model.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 
 @ApiModel
 @Data
@@ -35,5 +37,11 @@ public class QueryExpressionConfigRequest implements Serializable {
      */
 //    @Schema(description = "表达式状态")
     private Integer expressionStatus;
+
+    /**
+     * 未命中的开始时间
+     */
+    @JsonFormat(pattern = "yyyy-MM-dd", timezone = "GMT+8")
+    private Date missStartDate;
 
 }

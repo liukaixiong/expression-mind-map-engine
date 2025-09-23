@@ -9,6 +9,7 @@ import com.liukx.expression.engine.server.mapper.entity.ExpressionTraceLogInfo;
 import com.liukx.expression.engine.server.service.ExpressionTraceLogInfoService;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -40,4 +41,16 @@ public class ExpressionTraceLogInfoServiceImpl extends ServiceImpl<ExpressionTra
         wrapper.last("limit 1");
         return getOne(wrapper, false);
     }
+
+    @Override
+    public boolean getExpressionRecentlySuccessCount(Long expressionId, Date startDate) {
+        LambdaQueryWrapper<ExpressionTraceLogInfo> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ExpressionTraceLogInfo::getExpressionConfigId, expressionId);
+        wrapper.eq(ExpressionTraceLogInfo::getExpressionResult, 1);
+        wrapper.eq(ExpressionTraceLogInfo::getModuleType, ExpressionLogTypeEnum.expression.name());
+        wrapper.ge(startDate != null, ExpressionTraceLogInfo::getCreated, startDate);
+        wrapper.last("limit 1");
+        return getOne(wrapper, false) != null;
+    }
+
 }

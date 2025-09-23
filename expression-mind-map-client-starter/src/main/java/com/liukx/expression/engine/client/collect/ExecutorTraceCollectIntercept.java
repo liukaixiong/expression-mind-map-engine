@@ -2,6 +2,7 @@ package com.liukx.expression.engine.client.collect;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.thread.ThreadUtil;
+import com.alibaba.ttl.TransmittableThreadLocal;
 import com.liukx.expression.engine.client.api.ExpressionConfigExecutorIntercept;
 import com.liukx.expression.engine.client.api.ExpressionExecutorPostProcessor;
 import com.liukx.expression.engine.client.api.ExpressionFunctionPostProcessor;
@@ -37,7 +38,7 @@ import java.util.Stack;
 public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIntercept, ExpressionFunctionPostProcessor, ExpressionExecutorPostProcessor, InitializingBean {
 
     // 将 ThreadLocal 改造为 Stack 结构，支持嵌套调用
-    private final ThreadLocal<Stack<ExpressionExecutorResultDTO>> resultLogThreadLocal = new InheritableThreadLocal<>() {
+    private final ThreadLocal<Stack<ExpressionExecutorResultDTO>> resultLogThreadLocal = new TransmittableThreadLocal<>() {
         @Override
         protected Stack<ExpressionExecutorResultDTO> initialValue() {
             return new Stack<>();

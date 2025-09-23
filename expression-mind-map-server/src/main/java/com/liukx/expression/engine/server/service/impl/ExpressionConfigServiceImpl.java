@@ -107,6 +107,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
 
     /**
      * 校验表达式格式是否有效
+     *
      * @param expressionContent 表达式内容
      */
     private void validExpressionValid(String expressionContent) {
@@ -193,11 +194,29 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
                 }
             }
             Map<Long, List<ExpressionTraceLogInfo>> finalTraceConfigMap = traceConfigMap;
+            Set<Long> missTraceId = new HashSet<>();
+
             expressionExecutorDetailConfigList.forEach(expressionExecutorDetailConfig -> {
                 ExpressionExecutorDetailConfigDTO expressionExecutorDetailConfigDTO = new ExpressionExecutorDetailConfigDTO();
                 BeanUtil.copyProperties(expressionExecutorDetailConfig, expressionExecutorDetailConfigDTO);
+                Long expressionId = expressionExecutorDetailConfigDTO.getId();
                 // 绑定追踪日志
-                expressionExecutorDetailConfigDTO.setTraceLogInfos(finalTraceConfigMap.get(expressionExecutorDetailConfigDTO.getId()));
+                expressionExecutorDetailConfigDTO.setTraceLogInfos(finalTraceConfigMap.get(expressionId));
+
+                // 获取最近未命中的节点信息
+                if (queryRequest.getMissStartDate() != null && expressionExecutorDetailConfigDTO.getExpressionStatus() == 1) {
+                    if (missTraceId.contains(expressionExecutorDetailConfigDTO.getParentId())) {
+                        expressionExecutorDetailConfigDTO.setLastMissed(true);
+                        missTraceId.add(expressionId);
+                    } else {
+                        if (!traceLogInfoService.getExpressionRecentlySuccessCount(expressionId, queryRequest.getMissStartDate())) {
+                            expressionExecutorDetailConfigDTO.setLastMissed(true);
+                            missTraceId.add(expressionId);
+                        } else {
+                            expressionExecutorDetailConfigDTO.setLastMissed(false);
+                        }
+                    }
+                }
                 dtoList.add(expressionExecutorDetailConfigDTO);
             });
         }

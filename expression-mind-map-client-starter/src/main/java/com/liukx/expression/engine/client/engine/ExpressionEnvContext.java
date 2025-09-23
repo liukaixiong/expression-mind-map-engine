@@ -20,6 +20,7 @@ public class ExpressionEnvContext {
     public static final String ENABLE_TRACE_KEY = "_feature_enableTrace";
     public static final String END_TOP_KEY = "_feature_end_top";
     public static final String END_RETURN_KEY = "_feature_end_return";
+
     public static final String END_FORCE_KEY = "_feature_end_force";
 
 
@@ -120,8 +121,18 @@ public class ExpressionEnvContext {
      * @param value
      */
     public void addEnvContext(String key, Object value) {
-        this.sourceMap.put(key, value);
+        putSourceMap(key, value);
         this.businessEnvContext.put(key, value);
+    }
+
+    private void putSourceMap(String key, Object value) {
+        putMapValue(this.sourceMap, key, value);
+    }
+
+    private void putMapValue(Map<String, Object> map, String key, Object value) {
+        if (map != null && key != null && value != null) {
+            map.put(key, value);
+        }
     }
 
     public Map<String, Object> getBusinessEnvContext() {
@@ -134,7 +145,7 @@ public class ExpressionEnvContext {
      * @param obj
      */
     public void addEnvClassInfo(Object obj) {
-        this.sourceMap.put(obj.getClass().getName(), obj);
+        putSourceMap(obj.getClass().getName(), obj);
     }
 
 
@@ -230,11 +241,11 @@ public class ExpressionEnvContext {
      * 关闭追踪
      */
     public void disableTrace() {
-        this.sourceMap.put(ENABLE_TRACE_KEY, false);
+        putSourceMap(ENABLE_TRACE_KEY, false);
     }
 
     public void enableTrace() {
-        this.sourceMap.put(ENABLE_TRACE_KEY, true);
+        putSourceMap(ENABLE_TRACE_KEY, true);
     }
 
     /**
@@ -252,7 +263,7 @@ public class ExpressionEnvContext {
      * @param expressionIds 表达式配置编号
      */
     public void enableExpressionConfigIdContainFilter(Set<Long> expressionIds) {
-        this.sourceMap.put(FEATURE_EXPRESSION_CONFIG_ID_CONTAIN_KEY, expressionIds);
+        putSourceMap(FEATURE_EXPRESSION_CONFIG_ID_CONTAIN_KEY, expressionIds);
     }
 
     /**
@@ -272,7 +283,7 @@ public class ExpressionEnvContext {
      * @param skipExpressionConfigIds
      */
     public void enableExpressionConfigIdSkipFilter(Set<Long> skipExpressionConfigIds) {
-        this.sourceMap.put(FEATURE_EXPRESSION_CONFIG_ID_SKIP_KEY, skipExpressionConfigIds);
+        putSourceMap(FEATURE_EXPRESSION_CONFIG_ID_SKIP_KEY, skipExpressionConfigIds);
     }
 
     @SuppressWarnings("unchecked")
@@ -281,7 +292,7 @@ public class ExpressionEnvContext {
     }
 
     public void enableExpressionFunctionNameSkipFilter(Set<String> skipExpressionFunctionName) {
-        this.sourceMap.put(FEATURE_EXPRESSION_FUNCTION_NAME_SKIP_KEY, skipExpressionFunctionName);
+        putSourceMap(FEATURE_EXPRESSION_FUNCTION_NAME_SKIP_KEY, skipExpressionFunctionName);
     }
 
     @SuppressWarnings("unchecked")
@@ -293,21 +304,21 @@ public class ExpressionEnvContext {
      * 终止分支流程标记,执行完当前表达式的子分支之后,不在继续同级别分支
      */
     public void topEnd() {
-        this.sourceMap.put(END_TOP_KEY, true);
+        putSourceMap(END_TOP_KEY, true);
     }
 
     /**
      * 强制终止流程，不在执行任何表达式
      */
     public void forceEnd() {
-        this.sourceMap.put(END_FORCE_KEY, true);
+        putSourceMap(END_FORCE_KEY, true);
     }
 
     /**
      * 返回上一级标记，执行完当前表达式的子分支之后,不在继续同级别分支
      */
     public void returnEnd() {
-        this.sourceMap.put(END_RETURN_KEY, true);
+        putSourceMap(END_RETURN_KEY, true);
     }
 
     /**
@@ -329,12 +340,13 @@ public class ExpressionEnvContext {
     }
 
     public boolean restTopEnd() {
-        this.sourceMap.put(END_TOP_KEY, false);
+        putSourceMap(END_TOP_KEY, false);
         return true;
     }
 
     /**
      * 是否返回上一级标记
+     *
      * @return
      */
     public boolean isReturnEnd() {
@@ -345,9 +357,8 @@ public class ExpressionEnvContext {
      * 重置返回上一级标记
      */
     public void restReturnEnd() {
-        this.sourceMap.put(END_RETURN_KEY, false);
+        putSourceMap(END_RETURN_KEY, false);
     }
-
 
     /**
      * 清理表达式函数痕迹
@@ -355,9 +366,9 @@ public class ExpressionEnvContext {
     public void clearAllExpressionFunctionCache() {
         clearFunctionCache();
         clearResultContext();
-        this.sourceMap.put(END_TOP_KEY, false);
-        this.sourceMap.put(END_RETURN_KEY, false);
-        this.sourceMap.put(END_FORCE_KEY, false);
+        putSourceMap(END_TOP_KEY, false);
+        putSourceMap(END_RETURN_KEY, false);
+        putSourceMap(END_FORCE_KEY, false);
     }
 
     /**
@@ -376,7 +387,7 @@ public class ExpressionEnvContext {
      * @param key
      */
     private void clearNodeCache(String key) {
-        this.sourceMap.put(key, new HashMap<>());
+        putSourceMap(key, new HashMap<>());
     }
 
     /**

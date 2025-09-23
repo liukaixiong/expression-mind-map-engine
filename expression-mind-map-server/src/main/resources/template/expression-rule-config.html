@@ -24,7 +24,10 @@
         <button class="layui-btn" onclick="btnEventClick('collapse')" type="button">收缩</button>
         <button class="layui-btn" onclick="btnBoost()" type="button">放大</button>
         <button class="layui-btn" id="history-version-date" type="button">
-            <i class="layui-icon layui-icon-time"></i><span id="history-date-id">日期版本筛选</span>
+            <i class="layui-icon layui-icon-time"></i><span id="history-date-id">修改日期版本筛选</span>
+        </button>
+        <button class="layui-btn" id="miss-version-date" type="button">
+            <i class="layui-icon layui-icon-time"></i><span id="miss-date-id">未命中日期版本筛选</span>
         </button>
 
         <button class="layui-btn" id="find-request-body-context-btn" onclick="findRequestBodyContext()" type="button">
@@ -69,31 +72,47 @@
     let api_expression_del = final_const.api_path.expression_del;
     let api_expression_edit_parent = final_const.api_path.expression_edit_parent;
     let api_expression_copy_node = final_const.api_path.expression_copy_node;
+    // 获取样本值
+    let api_trace_sample_object = final_const.api_path.trace_sample_object;
     let global_copy_node_id = -1;
     let global_mind_config_mode = 'full';
     /**
      * 记录当前日期版本筛选
      */
     let global_full_history_start_date;
+    let global_full_miss_start_date;
 
     if (enableEditable) {
         $("#find-request-body-context-btn").remove();
     }
 
-    laydate.render({
-        elem: '#history-version-date',
-        shade: 0.5,
-        done: function (value, date, endDate) {
-            if (value) {
-                global_full_history_start_date = value;
-                $("#history-date-id").html(value);
-            } else {
-                $("#history-date-id").html("日期版本筛选");
-                global_full_history_start_date = undefined;
-            }
-            reloadMind();
-        }
+    renderDateComponents("history-version-date", function (value, date, endDate) {
+        global_full_history_start_date = value;
     });
+
+    renderDateComponents("miss-version-date", function (value, date, endDate) {
+        global_full_miss_start_date = value;
+    });
+
+    function renderDateComponents(htmlId, fun) {
+        let dateHtmlId = "#" + htmlId
+        laydate.render({
+            elem: dateHtmlId,
+            shade: 0.5,
+            max: 0,
+            done: function (value, date, endDate) {
+                if (value) {
+                    $(dateHtmlId).html(value);
+                } else {
+                    $(dateHtmlId).html("请选择日期");
+                }
+                fun(value, date, endDate);
+                reloadMind();
+            }
+        });
+    }
+
+
     // https://hizzgdev.github.io/jsmind/developer.html
     var options = {                    // options 将在下一章中详细介绍
         container: 'jsmind_container', // [必选] 容器的ID，或者为容器的对象
@@ -209,7 +228,6 @@
             }, {
                 target: 'showNode', text: '聚焦节点',
                 callback: function (node) {
-                    debugger;
                     // 打开一个 url
                     layer_util.openWin({
                         url: api_expression_rule_config + "?executorId=" + executorId + "&&expressionId=" + node.id + "&&executorCode=" + node.data.expressionCode + "&&executorDescription=" + node.data.expressionTitle,
@@ -247,6 +265,7 @@
         engineUtils.requestPost(api_expression_list, {
             "executorId": executorId,
             "traceLogId": traceLogId,
+            "missStartDate": global_full_miss_start_date,
             "id": expressionId
         }, function (response) {
             // 请求成功时的回调函数
@@ -497,6 +516,12 @@
                 item['foreground-color'] = '#ff5722';
                 topicText = topicText + "<br/>【" + dateTime + "】";
             }
+        } else if (global_full_miss_start_date) {
+            if (item.lastMissed === null || item.lastMissed) {
+                item['foreground-color'] = '#ff5722';
+                topicText = topicText + "<br/>【" + global_full_miss_start_date + "之后未命中】 ";
+            }
+
         } else {
             /**
              * 锁所表达式内容会触发的值
@@ -515,13 +540,10 @@
 
     function convertMindData(data) {
         var treeNode = [];
-        var varExecutorCode = executorCode;
-        var varExecutorDescription = executorDescription;
-        debugger;
         treeNode.push({
             "id": expressionId || '0',
             "isroot": true,
-            "topic": "【" + varExecutorCode + "】 " + varExecutorDescription,
+            "topic": "【" + executorCode + "】 " + executorDescription,
             "expanded": true,
             "background-color": "#4669EA",
             "executorId": executorId,
@@ -563,6 +585,15 @@
         div.height(div.height() + 100);
         div.width(div.width() + 100);
         reloadMind();
+    }
+
+    async function copyTextToClipboard(text) {
+        try {
+            await navigator.clipboard.writeText(text);
+            console.log('内容已复制到剪贴板');
+        } catch (err) {
+            console.error('复制失败: ', err);
+        }
     }
 
     function readerMind(data) {

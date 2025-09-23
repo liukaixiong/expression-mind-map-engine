@@ -99,4 +99,9 @@ public class ExpressionExecutorDetailConfigDTO implements Serializable {
     private LocalDateTime updateTime;
 
     private List<ExpressionTraceLogInfo> traceLogInfos;
+
+    /**
+     * 最近没有命中过
+     */
+    private Boolean lastMissed;
 }
