@@ -16,7 +16,7 @@ import java.util.List;
  * @date 2025/1/17 - 16:07
  */
 @Component
-public class ErrorMsgEndFunction extends AbstractSimpleFunction {
+public class FnErrorMsgEndFunction extends AbstractSimpleFunction {
 
 
     @Override
