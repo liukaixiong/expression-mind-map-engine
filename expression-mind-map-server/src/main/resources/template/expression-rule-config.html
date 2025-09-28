@@ -29,6 +29,9 @@
         <button class="layui-btn" id="miss-version-date" type="button">
             <i class="layui-icon layui-icon-time"></i><span id="miss-date-id">未命中日期版本筛选</span>
         </button>
+        <button class="layui-btn" id="help-document-list" type="button">
+            <i class="layui-icon"></i><span id="help-document" onclick="renderHelpDocument()">帮助文档列表</span>
+        </button>
 
         <button class="layui-btn" id="find-request-body-context-btn" onclick="findRequestBodyContext()" type="button">
             <i class="layui-icon layui-icon-search"></i><span>查看请求上下文</span>
@@ -45,16 +48,46 @@
         </div>
     </div>
 </div>
+<div id="table-help-document-page-div">
+    <form class="layui-form layui-row layui-col-space16">
+        <div class="layui-col-md4">
+            <div class="layui-input-wrap">
+                <label>
+                    <input class="layui-input" lay-affix="clear" name="groupName" placeholder="业务组" type="text">
+                </label>
+            </div>
+        </div>
+
+        <div class="layui-col-md4">
+            <div class="layui-input-wrap">
+                <label>
+                    <input class="layui-input" lay-affix="clear" name="name" placeholder="名称"
+                           type="text">
+                </label>
+            </div>
+        </div>
+
+        <div class="layui-btn-container layui-col-xs12">
+            <button class="layui-btn" lay-filter="executor-table-search" lay-submit>Search</button>
+            <button class="layui-btn layui-btn-primary" type="reset">Clear</button>
+        </div>
+    </form>
+    <table id="ID-table-help-document-page"></table>
+</div>
+
 
 <div id="jsmind_container" style="width: 100vw; height: 100vh;"></div>
 
 <div id="view"></div>
 
 <pre id="json-renderer"></pre>
+
 </body>
 
 <script type="text/javascript">
     var layer = layui.layer;
+    var table = layui.table;
+    var form = layui.form;
     var layer_util = layui.util;
     var laydate = layui.laydate;
     let requestParam = engineUtils.getRequestParams();
@@ -68,10 +101,15 @@
     let api_trace_object = final_const.api_path.trace_object;
     let api_expression_form = final_const.template_path.expression_form;
     let api_expression_rule_config = final_const.template_path.expression_rule_config;
-
     let api_expression_del = final_const.api_path.expression_del;
     let api_expression_edit_parent = final_const.api_path.expression_edit_parent;
     let api_expression_copy_node = final_const.api_path.expression_copy_node;
+    let api_executor_doc_search_list = final_const.api_path.executor_doc_search_list;
+
+    let div_id_table_search = "executor-table-search";
+    let div_id_table_page = "ID-table-help-document-page";
+    let div_id_table = "table-help-document-page-div";
+
     // 获取样本值
     let api_trace_sample_object = final_const.api_path.trace_sample_object;
     let global_copy_node_id = -1;
@@ -82,8 +120,12 @@
     let global_full_history_start_date;
     let global_full_miss_start_date;
 
+    $("#" + div_id_table).hide();
+
     if (enableEditable) {
         $("#find-request-body-context-btn").remove();
+    } else {
+        $("#help-document-list").remove();
     }
 
     renderDateComponents("history-version-date", function (value, date, endDate) {
@@ -110,6 +152,60 @@
                 reloadMind();
             }
         });
+    }
+
+    // 创建渲染实例
+    table.render({
+        elem: '#' + div_id_table_page,
+        url: api_executor_doc_search_list + "?executorId=" + executorId, // 此处为静态模拟数据，实际使用时需换成真实接口
+        page: { // 支持传入 laypage 组件的所有参数（某些参数除外，如：jump/elem） - 详见文档 : https://layui.dev/docs/2/laypage/#api
+            layout: ['limit'], //自定义分页布局
+            limits: [10, 30, 50, 100]
+        },
+        response: {
+            statusCode: 200 // 重新规定成功的状态码为 200，table 组件默认为 0
+        },
+        parseData: function (res) {
+            return {
+                "code": res.code, //解析接口状态
+                "msg": res.message, //解析提示文本
+                // "count": res.data, //解析数据长度
+                "data": res.data //解析数据列表
+            };
+        },
+        pagebar: '#ID-table-demo-page-pagebar', // 分页栏模板
+        cols: [[
+            {field: 'groupName', width: 100, title: '组', sort: true},
+            {field: 'serviceName', width: 150, title: '服务名'},
+            {field: 'name', width: 300, title: '名称', sort: true},
+            {field: 'type', width: 80, title: '类型'},
+            {field: 'params', title: '参数', minWidth: 450},
+            {field: 'describe', width: 350, title: '描述', sort: true},
+            {field: 'example', width: 350, title: '示例', sort: true}
+        ]]
+    });
+
+    // 搜索提交
+    form.on('submit(' + div_id_table_search + ')', function (data) {
+        var field = data.field; // 获得表单字段
+        // 执行搜索重载
+        table.reload(div_id_table_page, {
+            page: {
+                curr: 1 // 重新从第 1 页开始
+            },
+            where: field // 搜索的字段
+        });
+        //layer.msg('搜索成功<br>此处为静态模拟数据，实际使用时换成真实接口即可');
+        return false; // 阻止默认 form 跳转
+    });
+
+    function renderHelpDocument() {
+        $("#" + div_id_table).toggle();
+        // table.reload(div_id_table_page, {
+        //     where: {
+        //         executorId: executorId
+        //     }
+        // });
     }
 
 
@@ -282,7 +378,12 @@
     function findRequestBodyContext() {
         engineUtils.requestPost(api_trace_object + "?id=" + traceLogId, {}, function (response) {
             if (response.code === 200) {
-                showJson(response.data.envBody);
+                var formatJson = {};
+                formatJson["上下文变量"] = JSON.parse(response.data.envBody);
+                formatJson["追踪数据编号"] = response.data.traceId;
+                formatJson["用户编号"] = response.data.userId;
+                formatJson["唯一编号"] = response.data.unionId;
+                showJson(JSON.stringify(formatJson));
             } else {
                 layer.msg(response.message);
             }
