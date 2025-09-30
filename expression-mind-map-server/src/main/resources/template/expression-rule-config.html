@@ -102,6 +102,7 @@
     let api_expression_form = final_const.template_path.expression_form;
     let api_expression_rule_config = final_const.template_path.expression_rule_config;
     let api_expression_del = final_const.api_path.expression_del;
+    let api_expression_import_node = final_const.api_path.expression_import_node;
     let api_expression_edit_parent = final_const.api_path.expression_edit_parent;
     let api_expression_copy_node = final_const.api_path.expression_copy_node;
     let api_executor_doc_search_list = final_const.api_path.executor_doc_search_list;
@@ -316,20 +317,109 @@
                 callback: function (node) {
                     openAddHtml(node.parent);
                 }
-            }, {
-                target: 'delete', text: '删除规则节点',
-                callback: function (node) {
-                    //  mindRemoveNode(node.id);
+            }
+                , {
+                    target: 'delete', text: '删除规则节点',
+                    callback: function (node) {
+                        mindRemoveNode(node.id);
+                    }
                 }
-            }, {
-                target: 'showNode', text: '聚焦节点',
-                callback: function (node) {
-                    // 打开一个 url
-                    layer_util.openWin({
-                        url: api_expression_rule_config + "?executorId=" + executorId + "&&expressionId=" + node.id + "&&executorCode=" + node.data.expressionCode + "&&executorDescription=" + node.data.expressionTitle,
-                    });
+                , {
+                    target: 'showNode', text: '聚焦节点', isDepNode: true,
+                    callback: function (node) {
+                        // 打开一个 url
+                        layer_util.openWin({
+                            url: api_expression_rule_config + "?executorId=" + executorId + "&&expressionId=" + node.id + "&&executorCode=" + node.data.expressionCode + "&&executorDescription=" + node.data.expressionTitle,
+                        });
+                    }
+                }, {
+                    target: 'copyNode', text: '复制节点成json', isDepNode: true,
+                    callback: function (node) {
+                        // 递归构建扁平化的节点数据列表
+                        function buildNodeDataList(node, isIncludeChildren) {
+                            const nodeList = [];
+                            // 添加当前节点数据到列表
+                            let nodeData = node.data;
+                            nodeData.id = node.id;
+                            nodeData.parentId = node.parent.id;
+                            nodeList.push(nodeData || {});
+                            // 如果有子节点，则递归处理每个子节点
+                            if (isIncludeChildren && node.children && Array.isArray(node.children)) {
+                                node.children.forEach(childNode => {
+                                    // 递归获取子节点数据并合并到当前列表中
+                                    const childList = buildNodeDataList(childNode, isIncludeChildren);
+                                    nodeList.push(...childList);
+                                });
+                            }
+                            return nodeList;
+                        }
+
+                        function copyNode(isIncludeChildren) {
+                            let nodeInfo = {};
+                            nodeInfo['executorId'] = executorId;
+                            let nodeList = buildNodeDataList(node, isIncludeChildren);
+                            nodeInfo['nodeList'] = nodeList;
+                            const jsonStr = JSON.stringify(nodeInfo, null, 2);
+                            copyTextToClipboard(jsonStr);
+                            layer.msg("成功复制[" + node.data.expressionTitle + "] => [" + nodeList.length + "]个节点!", {icon: 1});
+                        }
+
+                        if (node.children && node.children.length > 0) {
+                            layer.confirm("检测到有多节点,请确认复制类型?", {
+                                btn: ['当前节点', '包含子节点', '取消'],
+                                btnAlign: 'c',
+                                skin: 'class-layer-demo-custom'
+                            }, function (index, layero, that) {
+                                copyNode(false)
+                                return false;
+                            }, function (index, layero, that) {
+                                copyNode(true)
+                                return false;
+                            });
+                        } else {
+                            copyNode(false);
+                        }
+                    }
                 }
-            }],  //这是完整的功能列表
+                , {
+                    target: 'pasteNode', text: '粘贴json成节点', isDepNode: true,
+                    callback: function (node) {
+                        // 调用函数获取内容
+                        readClipboardText().then(content => {
+                            // 使用 content 进行后续操作
+                            console.log('获取到的内容:', content);
+                            let requestBody = {};
+                            try {
+                                requestBody = JSON.parse(content);
+                                if (!requestBody.nodeList) {
+                                    layer.msg("复制内容不符合节点导入格式!", {icon: 0});
+                                    return;
+                                }
+                            } catch (e) {
+                                layer.msg('复制内容不符合节点导入格式', {icon: 0});
+                                return;
+                            }
+
+                            requestBody['executorId'] = executorId;
+                            requestBody['expressionId'] = node.id;
+                            layer.confirm('是否将复制内容转换成节点[共' + requestBody.nodeList.length + '个]并添加到[' + (node.isroot ? "根节点" : node.data.expressionTitle) + ']节点上？', {icon: 3}, function () {
+                                engineUtils.requestPost(api_expression_import_node, requestBody, function (response) {
+                                    // 请求成功时的回调函数
+                                    if (response.code === 200) {
+                                        layer.msg('导入成功', {icon: 1}, function () {
+                                            reloadMind();
+                                        })
+                                    } else {
+                                        layer.alert(response.message);
+                                    }
+                                })
+                            }, function () {
+                                reloadMind();
+                            });
+                        });
+                    }
+                }
+            ],  //这是完整的功能列表
         },
         view: {
             engine: 'canvas',   // 思维导图各节点之间线条的绘制引擎
@@ -445,7 +535,9 @@
             engineUtils.requestPost(api_expression_del, data, function (response) {
                 // 请求成功时的回调函数
                 if (response.code === 200) {
-                    layer.msg("删除成功!");
+                    layer.msg("删除成功!", {icon: 1}, function () {
+                        reloadMind();
+                    });
                 } else {
                     layer.alert(response.message);
                 }
@@ -688,12 +780,29 @@
         reloadMind();
     }
 
+    /**
+     * 复制文本到剪切板
+     * @param text  文本值
+     * @returns {Promise<void>}
+     */
     async function copyTextToClipboard(text) {
         try {
             await navigator.clipboard.writeText(text);
-            console.log('内容已复制到剪贴板');
         } catch (err) {
             console.error('复制失败: ', err);
+        }
+    }
+
+    /**
+     * 读取剪贴板
+     * @returns {Promise<null|string>}
+     */
+    async function readClipboardText() {
+        try {
+            return await navigator.clipboard.readText();
+        } catch (err) {
+            console.error('读取剪贴板失败: ', err);
+            return null;
         }
     }
 

@@ -65,6 +65,7 @@ let final_const = {
          */
         expression_edit: '/expression-engine/executor/expression/editOne',
         expression_del: '/expression-engine/executor/expression/batchDelete',
+        expression_import_node: '/expression-engine/executor/expression/importNode',
         expression_edit_parent: '/expression-engine/executor/expression/editParentId',
         expression_copy_node: '/expression-engine/executor/expression/copyNode',
     },

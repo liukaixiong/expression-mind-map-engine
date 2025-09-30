@@ -4,10 +4,7 @@ package com.liukx.expression.engine.server.controller;
 import cn.hutool.core.bean.BeanUtil;
 import com.liukx.expression.engine.server.constants.BaseConstants;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorInfoConfig;
-import com.liukx.expression.engine.server.model.dto.request.AddExpressionConfigRequest;
-import com.liukx.expression.engine.server.model.dto.request.DeleteByIdListRequest;
-import com.liukx.expression.engine.server.model.dto.request.EditExpressionConfigRequest;
-import com.liukx.expression.engine.server.model.dto.request.QueryExpressionConfigRequest;
+import com.liukx.expression.engine.server.model.dto.request.*;
 import com.liukx.expression.engine.server.model.dto.response.ExpressionExecutorDetailConfigDTO;
 import com.liukx.expression.engine.server.model.dto.response.RestResult;
 import com.liukx.expression.engine.server.service.ExpressionConfigService;
@@ -64,6 +61,12 @@ public class ExecutorExpressionController {
         config.setId(editRequest.getId());
         config.setParentId(editRequest.getParentId());
         return RestResult.ok(expressionConfigService.copyNode(config));
+    }
+
+    @ApiOperation("导入节点")
+    @PostMapping("/importNode")
+    public RestResult<Boolean> pasteNode(@RequestBody @Validated PasteExpressionConfigRequest pasteExpressionConfigRequest) {
+        return RestResult.ok(expressionConfigService.importExpressionNode(pasteExpressionConfigRequest));
     }
 
     @ApiOperation("查询表达式")

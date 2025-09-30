@@ -3,10 +3,7 @@ package com.liukx.expression.engine.server.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.liukx.expression.engine.core.enums.ExpressionTypeEnum;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorInfoConfig;
-import com.liukx.expression.engine.server.model.dto.request.AddExpressionConfigRequest;
-import com.liukx.expression.engine.server.model.dto.request.DeleteByIdListRequest;
-import com.liukx.expression.engine.server.model.dto.request.EditExpressionConfigRequest;
-import com.liukx.expression.engine.server.model.dto.request.QueryExpressionConfigRequest;
+import com.liukx.expression.engine.server.model.dto.request.*;
 import com.liukx.expression.engine.server.model.dto.response.ExpressionExecutorDetailConfigDTO;
 import com.liukx.expression.engine.server.model.dto.response.RestResult;
 
@@ -83,11 +80,23 @@ public interface ExpressionConfigService extends IService<ExpressionExecutorInfo
     public List<ExpressionExecutorInfoConfig> getExpressionListByBaseId(Long baseId);
 
     /**
+     * 获取节点信息
+     *
+     * @param executorId
+     * @param expressionCode
+     * @return
+     */
+    public ExpressionExecutorInfoConfig getExpressionInfoByCode(Long executorId, String expressionCode);
+
+    /**
      * 拷贝节点
+     *
      * @param config
      * @return
      */
     boolean copyNode(ExpressionExecutorInfoConfig config);
 
     List<ExpressionExecutorInfoConfig> queryExpressionContent(String expressionContent, Date changeDate);
+
+    Boolean importExpressionNode(PasteExpressionConfigRequest pasteExpressionConfigRequest);
 }

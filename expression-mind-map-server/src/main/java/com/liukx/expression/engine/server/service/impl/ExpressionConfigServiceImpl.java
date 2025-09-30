@@ -19,14 +19,12 @@ import com.liukx.expression.engine.server.exception.Throws;
 import com.liukx.expression.engine.server.mapper.ExpressionConfigMapper;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorInfoConfig;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionTraceLogInfo;
-import com.liukx.expression.engine.server.model.dto.request.AddExpressionConfigRequest;
-import com.liukx.expression.engine.server.model.dto.request.DeleteByIdListRequest;
-import com.liukx.expression.engine.server.model.dto.request.EditExpressionConfigRequest;
-import com.liukx.expression.engine.server.model.dto.request.QueryExpressionConfigRequest;
+import com.liukx.expression.engine.server.model.dto.request.*;
 import com.liukx.expression.engine.server.model.dto.response.ExpressionExecutorDetailConfigDTO;
 import com.liukx.expression.engine.server.model.dto.response.RestResult;
 import com.liukx.expression.engine.server.service.ExpressionConfigService;
 import com.liukx.expression.engine.server.service.ExpressionTraceLogInfoService;
+import com.liukx.expression.engine.server.service.impl.syncData.ExpressionConfigSyncDataServiceImpl;
 import com.liukx.expression.engine.server.util.ExpressionUtils;
 import com.liukx.expression.engine.server.util.ServiceCommonUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +32,8 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -59,6 +59,9 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
 
     @Autowired
     private ExpressionTraceLogInfoService traceLogInfoService;
+
+    @Autowired
+    private ExpressionConfigSyncDataServiceImpl expressionConfigSyncDataService;
 
     private static List<ExpressionExecutorDetailConfigDTO> convertExpressionExecutorDetailConfigDTO(List<ExpressionExecutorInfoConfig> expressionExecutorDetailConfigs) {
         return expressionExecutorDetailConfigs.stream().map(config -> Convert.convert(ExpressionExecutorDetailConfigDTO.class, config)).collect(Collectors.toList());
@@ -317,9 +320,8 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         final ExpressionExecutorInfoConfig executorDetailConfig = getById(id);
         // 清空主键
         executorDetailConfig.setId(null);
-        final String expressionCode = executorDetailConfig.getExpressionCode();
         executorDetailConfig.setParentId(parentId);
-        executorDetailConfig.setExpressionCode(expressionCode + "_copy_" + RandomUtil.randomString(5));
+        executorDetailConfig.setExpressionCode(RandomUtil.randomString(10));
         final boolean result = save(executorDetailConfig);
         LOG.info("【复制节点】 将 {} 对象 加入到 {} 中 -> {}", id, parentId, executorDetailConfig);
         return result;
@@ -331,5 +333,28 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         queryWrapper.like(StringUtils.isNotEmpty(expressionContent), ExpressionExecutorInfoConfig::getExpressionContent, expressionContent);
         queryWrapper.and(changeDate != null, var -> var.ge(ExpressionExecutorInfoConfig::getCreateTime, changeDate).or(v2 -> v2.ge(ExpressionExecutorInfoConfig::getUpdateTime, changeDate)));
         return list(queryWrapper);
+    }
+
+    @Override
+    public ExpressionExecutorInfoConfig getExpressionInfoByCode(Long executorId, String expressionCode) {
+        LambdaQueryWrapper<ExpressionExecutorInfoConfig> queryWrapper = Wrappers.lambdaQuery();
+        queryWrapper.eq(ExpressionExecutorInfoConfig::getExecutorId, executorId);
+        queryWrapper.eq(ExpressionExecutorInfoConfig::getExpressionCode, expressionCode);
+        return getOne(queryWrapper, false);
+    }
+
+    @Override
+    @Transactional
+    public Boolean importExpressionNode(PasteExpressionConfigRequest pasteExpressionConfigRequest) {
+        final List<ExpressionExecutorInfoConfig> nodeList = pasteExpressionConfigRequest.getNodeList();
+        final Long executorId = pasteExpressionConfigRequest.getExecutorId();
+        final Long expressionId = pasteExpressionConfigRequest.getExpressionId();
+
+        Throws.check(CollectionUtils.isEmpty(nodeList), "节点列表为空!");
+        Throws.check(executorId == null, "执行器编号为空!");
+
+        expressionConfigSyncDataService.refreshImportNode(executorId, expressionId, nodeList);
+        LOG.info("【导入节点】 成功, executorId: {}, nodeList: {}", executorId, nodeList.size());
+        return true;
     }
 }

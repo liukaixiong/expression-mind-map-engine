@@ -178,8 +178,9 @@
         },
         done: function (res) {
             if (res.code === 200) {
-                layer.msg('上传成功');
-                self.location.reload();
+                layer.msg('上传成功', {icon: 1}, function () {
+                    self.location.reload();
+                });
             } else {
                 layer.msg("上传失败!" + res.message);
             }
