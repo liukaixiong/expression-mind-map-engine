@@ -19,6 +19,11 @@ import java.util.Map;
 @Component
 public class FnEnvPutAllValueFunction extends AbstractSimpleFunction {
     @Override
+    protected boolean isAllowedCache() {
+        return false;
+    }
+
+    @Override
     public Enum<? extends ExpressFunctionDocumentLoader> documentRegister() {
         return BaseFunctionDescEnum.ENV_PUT_ALL_VALUE;
     }
