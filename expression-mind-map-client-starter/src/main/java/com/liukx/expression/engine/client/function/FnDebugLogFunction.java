@@ -5,6 +5,7 @@ import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
 import com.liukx.expression.engine.client.process.AbstractSimpleFunction;
 import com.liukx.expression.engine.core.api.model.ExpressionBaseRequest;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigTreeModel;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -22,7 +23,7 @@ public class FnDebugLogFunction extends AbstractSimpleFunction {
     public Object processor(ExpressionEnvContext env, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request, List<Object> funArgs) {
         StringBuilder sb = new StringBuilder();
         for (Object funArg : funArgs) {
-            sb.append("[").append(funArg).append("]");
+            sb.append("[").append(ObjectUtils.defaultIfNull(funArg, "null")).append("]");
         }
         env.recordTraceDebugContent(getName(), "debug_log", sb.toString());
         return true;
