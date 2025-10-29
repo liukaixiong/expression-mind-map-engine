@@ -4,8 +4,10 @@ import cn.hutool.core.date.DateUtil;
 import com.googlecode.aviator.*;
 import com.googlecode.aviator.runtime.function.ClassMethodFunction;
 import com.googlecode.aviator.runtime.type.AviatorFunction;
+import com.googlecode.aviator.utils.Reflector;
 import com.liukx.expression.engine.client.api.ExpressFunctionDocumentLoader;
 import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
+import com.liukx.expression.engine.client.feature.ClassMethodTraceFunction;
 import com.liukx.expression.engine.core.api.model.ExpressionBaseRequest;
 import com.liukx.expression.engine.core.api.model.TranslateResult;
 import com.liukx.expression.engine.core.api.model.ValidatorResult;
@@ -21,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.util.CollectionUtils;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -29,18 +32,26 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 public class AviatorEvaluatorServiceImpl extends AbstractExpressionService implements EnvProcessor, FunctionLoader, ExpressFunctionDocumentLoader {
-
     private final Logger logger = LoggerFactory.getLogger(getClass());
-
     private final AviatorEvaluatorInstance evaluator = AviatorEvaluator.newInstance();
-
-    private final ApplicationContext applicationContext;
-    private final ExpressionVariableManager variableDefinition;
+    private ApplicationContext applicationContext;
+    private ExpressionVariableManager variableDefinition;
 
     public AviatorEvaluatorServiceImpl(ApplicationContext applicationContext) {
         super("default");
         this.applicationContext = applicationContext;
         this.variableDefinition = this.applicationContext.getBean(ExpressionVariableManager.class);
+        // 初始化本地的函数到上下文中
+        initSpringContextFunction();
+        initAviatorContext();
+    }
+
+    public AviatorEvaluatorServiceImpl() {
+        super("default");
+        initAviatorContext();
+    }
+
+    private void initAviatorContext() {
         // 当变量找不到的时候，尝试从本地变量去解释
         evaluator.setEnvProcessor(this);
         // 当函数找不到的时候，可能需要去远端查找，这里注册一个相关的函数查找规则
@@ -49,14 +60,23 @@ public class AviatorEvaluatorServiceImpl extends AbstractExpressionService imple
         evaluator.setCachedExpressionByDefault(true);
 //        evaluator.useLRUExpressionCache(10000);
         try {
-            evaluator.addStaticFunctions("objectUtils", ObjectUtils.class);
-            evaluator.addStaticFunctions("stringUtils", StringUtils.class);
-            evaluator.addStaticFunctions("dateUtils", DateUtil.class);
+            addStaticFunctions("objectUtils", ObjectUtils.class);
+            addStaticFunctions("stringUtils", StringUtils.class);
+            addStaticFunctions("dateUtils", DateUtil.class);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        // 初始化本地的函数到上下文中
-        initContextFunction();
+    }
+
+    public void addStaticFunctions(String namespace, final Class<?> clazz) throws IllegalAccessException, NoSuchMethodException {
+        Map<String, List<Method>> methodMap = Reflector.findMethodsFromClass(DateUtil.class, true);
+
+        for (Map.Entry<String, List<Method>> entry : methodMap.entrySet()) {
+            String methodName = entry.getKey();
+            String name = namespace + "." + methodName;
+            evaluator.addFunction(
+                    new ClassMethodTraceFunction(clazz, true, name, methodName, entry.getValue()));
+        }
     }
 
     @Override
@@ -94,7 +114,7 @@ public class AviatorEvaluatorServiceImpl extends AbstractExpressionService imple
         return "";
     }
 
-    private void initContextFunction() {
+    private void initSpringContextFunction() {
         try {
             // 初始化上下文中所涵盖的所有函数
             final Map<String, AviatorFunction> aviatorFunctionMap = this.applicationContext.getBeansOfType(AviatorFunction.class);
@@ -122,7 +142,7 @@ public class AviatorEvaluatorServiceImpl extends AbstractExpressionService imple
         // 获取当前表达式中的所有变量
         List<String> variableFullNames = script.getVariableNames().stream().filter(name -> !name.startsWith(ExpressionConstants.PARAMS_REQUEST_KEY)).collect(Collectors.toList());
 
-        if (CollectionUtils.isEmpty(variableFullNames)) {
+        if (CollectionUtils.isEmpty(variableFullNames) || this.variableDefinition == null) {
             return;
         }
 
@@ -147,7 +167,7 @@ public class AviatorEvaluatorServiceImpl extends AbstractExpressionService imple
     }
 
     private ContextTemplateRequest getContextTemplateRequest(Map<String, Object> env) {
-        final ExpressionEnvContext expressionEnvContext = new ExpressionEnvContext(env);
+        final ExpressionEnvContext expressionEnvContext = ExpressionEnvContext.of(env);
         ContextTemplateRequest envRequest = new ContextTemplateRequest();
         envRequest.setEnvContext(env);
         envRequest.setRequest(expressionEnvContext.getObject(ExpressionBaseRequest.class));

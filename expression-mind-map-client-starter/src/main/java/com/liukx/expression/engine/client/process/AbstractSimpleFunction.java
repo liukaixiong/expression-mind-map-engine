@@ -44,7 +44,7 @@ public abstract class AbstractSimpleFunction extends AbstractVariadicFunction im
         // 将函数变量转换成对应的java对象
         List<Object> funcArgs = convertArgsList(env, args);
 
-        final ExpressionEnvContext expressionEnvContext = new ExpressionEnvContext(env);
+        final ExpressionEnvContext expressionEnvContext = ExpressionEnvContext.of(env);
         // 提取通用参数
         ExpressionBaseRequest request = expressionEnvContext.getEnvClassInfo(ExpressionBaseRequest.class);
         ExpressionConfigTreeModel configTreeModel = expressionEnvContext.getEnvClassInfo(ExpressionConfigTreeModel.class);

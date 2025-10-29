@@ -47,8 +47,12 @@ public class ExpressionEnvContext {
 
     private final Map<String, Object> businessEnvContext = new HashMap<>();
 
-    public ExpressionEnvContext(Map<String, Object> m) {
+    private ExpressionEnvContext(Map<String, Object> m) {
         this.sourceMap = m;
+    }
+
+    public static ExpressionEnvContext of(Map<String, Object> m) {
+        return new ExpressionEnvContext(m);
     }
 
     public ExpressionEnvContext() {

@@ -51,7 +51,7 @@ public class ClientServer {
         request.setRequest(requestMap);
         request.setUnionId(UUID.fastUUID().toString());
 
-        ExpressionEnvContext context = new ExpressionEnvContext(envContext);
+        ExpressionEnvContext context = ExpressionEnvContext.of(envContext);
 
         context.addEnvContext("test_env_id", 888L);
         context.addEnvContext("test_env_text", "nibudong");
@@ -85,7 +85,7 @@ public class ClientServer {
         request.setRequest(requestMap);
         request.setUnionId(UUID.fastUUID().toString());
 
-        ExpressionEnvContext context = new ExpressionEnvContext(envContext);
+        ExpressionEnvContext context = ExpressionEnvContext.of(envContext);
 
         context.addEnvContext("test_env_id", 888L);
         context.addEnvContext("test_env_text", "nibudong");

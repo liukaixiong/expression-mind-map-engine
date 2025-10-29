@@ -130,7 +130,7 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
 
     @Override
     public Object invoke(ClientExpressionSubmitRequest request, Map<String, Object> envContext) {
-        ExpressionEnvContext expressionEnvContext = new ExpressionEnvContext(envContext);
+        ExpressionEnvContext expressionEnvContext = ExpressionEnvContext.of(envContext);
         return invoke(request, expressionEnvContext);
     }
 
@@ -221,7 +221,8 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
 
             executionCallbackList.forEach(var -> var.after(treeModel, baseRequest, envContext, execute));
         } catch (Exception e) {
-            LogHelper.trace(envContext, baseRequest, LogEventEnum.CALL_ERROR, "[{}] error - [{}] [title:{}],[表达式:{}]", expressionType, expressionId, title, expression);
+            //LogHelper.trace(envContext, baseRequest, LogEventEnum.CALL_ERROR, "[{}] error - [{}] [title:{}],[表达式:{}]", expressionType, expressionId, title, expression);
+            LOG.warn("[{}] error - [{}] [title:{}],[表达式:{}] => {}", expressionType, expressionId, title, expression, e.getMessage());
             executionCallbackList.forEach(var -> var.error(treeModel, baseRequest, envContext, e));
             throw e;
         }
