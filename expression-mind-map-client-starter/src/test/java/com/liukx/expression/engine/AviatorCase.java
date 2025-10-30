@@ -21,7 +21,7 @@ import java.util.*;
 public class AviatorCase {
     final AviatorEvaluatorInstance instance = AviatorEvaluator.getInstance();
 
-    private AviatorEvaluatorServiceImpl aviatorEvaluatorService = new AviatorEvaluatorServiceImpl();
+    private final AviatorEvaluatorServiceImpl aviatorEvaluatorService = new AviatorEvaluatorServiceImpl();
 
     @Before
     public void init() {
@@ -66,7 +66,7 @@ public class AviatorCase {
         envContext.addEnvContext("startDate", DateUtil.parseDate("2025-02-27"));
         envContext.addEnvContext("endDate", DateUtil.parseDate("2025-03-27"));
         envContext.enableTrace();
-        final Object execute = aviatorEvaluatorService.execute("dateUtils.compare(startDate,endDate)", env);
+        final Object execute = aviatorEvaluatorService.execute("objectUtils.compare(startDate,endDate)", env);
         System.out.println(execute);
     }
 

@@ -47,7 +47,7 @@ public class ExpressionEnvContext {
 
     private final Map<String, Object> businessEnvContext = new HashMap<>();
 
-    private ExpressionEnvContext(Map<String, Object> m) {
+    public ExpressionEnvContext(Map<String, Object> m) {
         this.sourceMap = m;
     }
 

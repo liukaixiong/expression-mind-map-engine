@@ -69,13 +69,12 @@ public class AviatorEvaluatorServiceImpl extends AbstractExpressionService imple
     }
 
     public void addStaticFunctions(String namespace, final Class<?> clazz) throws IllegalAccessException, NoSuchMethodException {
-        Map<String, List<Method>> methodMap = Reflector.findMethodsFromClass(DateUtil.class, true);
+        Map<String, List<Method>> methodMap = Reflector.findMethodsFromClass(clazz, true);
 
         for (Map.Entry<String, List<Method>> entry : methodMap.entrySet()) {
             String methodName = entry.getKey();
             String name = namespace + "." + methodName;
-            evaluator.addFunction(
-                    new ClassMethodTraceFunction(clazz, true, name, methodName, entry.getValue()));
+            evaluator.addFunction(new ClassMethodTraceFunction(clazz, true, name, methodName, entry.getValue()));
         }
     }
 
