@@ -5,7 +5,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.task.TaskExecutorCustomizer;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.event.ApplicationEventMulticaster;
+import org.springframework.context.event.SimpleApplicationEventMulticaster;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -20,6 +23,14 @@ public class AsyncTaskExecutePoolConfig implements AsyncConfigurer, TaskExecutor
 
     @Autowired
     private Executor executor;
+
+    @Bean(name = "applicationEventMulticaster")
+    public ApplicationEventMulticaster simpleApplicationEventMulticaster() {
+        SimpleApplicationEventMulticaster eventMulticaster = new SimpleApplicationEventMulticaster();
+        eventMulticaster.setTaskExecutor(getAsyncExecutor());
+        eventMulticaster.setErrorHandler(e -> log.error("ENGIN 异步队列执行异常", e));
+        return eventMulticaster;
+    }
 
     @Override
     public void customize(ThreadPoolTaskExecutor executor) {

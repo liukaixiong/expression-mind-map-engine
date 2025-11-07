@@ -116,12 +116,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
 
     private void checkExpressionCodeUnion(Long executorId, Long id, String expressionCode) {
         //表达式编码必须唯一
-        LambdaQueryChainWrapper<ExpressionExecutorInfoConfig> lambdaQuery = lambdaQuery()
-                .eq(ExpressionExecutorInfoConfig::getExecutorId, executorId)
-                .eq(ExpressionExecutorInfoConfig::getExpressionCode, expressionCode)
-                .eq(ExpressionExecutorInfoConfig::getDeleted, false)
-                .orderByAsc(ExpressionExecutorInfoConfig::getId)
-                .last("limit 1");
+        LambdaQueryChainWrapper<ExpressionExecutorInfoConfig> lambdaQuery = lambdaQuery().eq(ExpressionExecutorInfoConfig::getExecutorId, executorId).eq(ExpressionExecutorInfoConfig::getExpressionCode, expressionCode).eq(ExpressionExecutorInfoConfig::getDeleted, false).orderByAsc(ExpressionExecutorInfoConfig::getId).last("limit 1");
         ExpressionExecutorInfoConfig existOne = lambdaQuery.one();
 
         Throws.check((id == null && existOne != null) || (existOne != null && !existOne.getId().equals(id)), ErrorEnum.REPEATED_EXPRESSION_ADD.message());
@@ -168,7 +163,14 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
     public boolean updateById(ExpressionExecutorInfoConfig importRootInfo, boolean refreshEvent) {
         final boolean result = super.updateById(importRootInfo);
         if (result && refreshEvent) {
-            refreshConfigPost(importRootInfo.getExecutorId());
+            Long executorId = importRootInfo.getExecutorId();
+            if (executorId == null) {
+                final ExpressionExecutorInfoConfig config = getById(importRootInfo.getId());
+                if (config.getExecutorId() != null) {
+                    executorId = config.getExecutorId();
+                }
+            }
+            refreshConfigPost(executorId);
         }
         return result;
     }
@@ -189,6 +191,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
 
 
     private void refreshConfigPost(Long executorId) {
+        Throws.nullError(executorId, "执行器编号不能为空,无法刷新缓存!");
         this.eventPublisher.publishEvent(new ExecutorConfigRefreshEvent(executorId));
     }
 
@@ -256,15 +259,11 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
 
         deepAllIdBuilder(idSet, delRequest.getIdList());
 
-        LambdaQueryWrapper<ExpressionExecutorInfoConfig> queryWrapper = new LambdaQueryWrapper<ExpressionExecutorInfoConfig>().in(ExpressionExecutorInfoConfig::getId, idSet)
-                .eq(ExpressionExecutorInfoConfig::getDeleted, false);
+        LambdaQueryWrapper<ExpressionExecutorInfoConfig> queryWrapper = new LambdaQueryWrapper<ExpressionExecutorInfoConfig>().in(ExpressionExecutorInfoConfig::getId, idSet).eq(ExpressionExecutorInfoConfig::getDeleted, false);
 
 
         LOG.info("批量删除id集合: {} ", idSet);
-        LambdaUpdateWrapper<ExpressionExecutorInfoConfig> updateWrapper = new LambdaUpdateWrapper<ExpressionExecutorInfoConfig>().set(ExpressionExecutorInfoConfig::getUpdateBy, delRequest.getUpdateBy())
-                .set(ExpressionExecutorInfoConfig::getDeleted, true)
-                .set(ExpressionExecutorInfoConfig::getUpdateTime, LocalDateTime.now())
-                .in(ExpressionExecutorInfoConfig::getId, idSet);
+        LambdaUpdateWrapper<ExpressionExecutorInfoConfig> updateWrapper = new LambdaUpdateWrapper<ExpressionExecutorInfoConfig>().set(ExpressionExecutorInfoConfig::getUpdateBy, delRequest.getUpdateBy()).set(ExpressionExecutorInfoConfig::getDeleted, true).set(ExpressionExecutorInfoConfig::getUpdateTime, LocalDateTime.now()).in(ExpressionExecutorInfoConfig::getId, idSet);
 
         final RestResult<?> restResult = ServiceCommonUtil.batchDelete(delRequest, "找不到相关记录，不用执行删除操作", getBaseMapper(), queryWrapper, updateWrapper);
 
