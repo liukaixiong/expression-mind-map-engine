@@ -90,10 +90,6 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         boolean addSuccess = this.save(expressionExecutorDetailConfig);
         LOG.debug("add config expression result : {} , {} , {}", addSuccess, expressionExecutorDetailConfig.getExpressionCode(), expressionExecutorDetailConfig.getId());
 
-        if (addSuccess) {
-            refreshConfigPost(expressionExecutorDetailConfig.getExecutorId());
-        }
-
         RestResult<ExpressionExecutorDetailConfigDTO> result = new RestResult<>();
         if (addSuccess) {
             ExpressionExecutorDetailConfigDTO nodeDTO = new ExpressionExecutorDetailConfigDTO();
@@ -158,14 +154,39 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         nodeConfig.setUpdateTime(LocalDateTime.now());
         boolean updateSuccess = this.updateById(nodeConfig);
 
-        if (updateSuccess) {
-            refreshConfigPost(existOne.getExecutorId());
-        }
-
         ExpressionExecutorDetailConfigDTO expressionExecutorDetailConfigDTO = new ExpressionExecutorDetailConfigDTO();
         BeanUtil.copyProperties(editRequest, expressionExecutorDetailConfigDTO);
         return updateSuccess ? RestResult.ok(expressionExecutorDetailConfigDTO) : RestResult.failed("数据更新到数据库失败");
     }
+
+    @Override
+    public boolean updateById(ExpressionExecutorInfoConfig entity) {
+        return updateById(entity, true);
+    }
+
+    @Override
+    public boolean updateById(ExpressionExecutorInfoConfig importRootInfo, boolean refreshEvent) {
+        final boolean result = super.updateById(importRootInfo);
+        if (result && refreshEvent) {
+            refreshConfigPost(importRootInfo.getExecutorId());
+        }
+        return result;
+    }
+
+    @Override
+    public boolean save(ExpressionExecutorInfoConfig entity) {
+        return save(entity, true);
+    }
+
+    @Override
+    public boolean save(ExpressionExecutorInfoConfig infoConfig, boolean refreshEvent) {
+        final boolean save = super.save(infoConfig);
+        if (refreshEvent) {
+            refreshConfigPost(infoConfig.getExecutorId());
+        }
+        return save;
+    }
+
 
     private void refreshConfigPost(Long executorId) {
         this.eventPublisher.publishEvent(new ExecutorConfigRefreshEvent(executorId));

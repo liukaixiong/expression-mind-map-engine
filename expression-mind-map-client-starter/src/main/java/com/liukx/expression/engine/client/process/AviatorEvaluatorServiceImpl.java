@@ -20,7 +20,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.Method;
@@ -34,15 +33,18 @@ import java.util.stream.Collectors;
 public class AviatorEvaluatorServiceImpl extends AbstractExpressionService implements EnvProcessor, FunctionLoader, ExpressFunctionDocumentLoader {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final AviatorEvaluatorInstance evaluator = AviatorEvaluator.newInstance();
-    private ApplicationContext applicationContext;
+    //    private ApplicationContext applicationContext;
     private ExpressionVariableManager variableDefinition;
+    private List<AbstractSimpleFunction> aviatorFunctionList;
 
-    public AviatorEvaluatorServiceImpl(ApplicationContext applicationContext) {
+    public AviatorEvaluatorServiceImpl(ExpressionVariableManager expressionVariableManager, List<AbstractSimpleFunction> aviatorFunctionList) {
         super("default");
-        this.applicationContext = applicationContext;
-        this.variableDefinition = this.applicationContext.getBean(ExpressionVariableManager.class);
+//        this.applicationContext = applicationContext;
+//        this.variableDefinition = this.applicationContext.getBean(ExpressionVariableManager.class);
+        this.variableDefinition = expressionVariableManager;
+        this.aviatorFunctionList = aviatorFunctionList;
         // 初始化本地的函数到上下文中
-        initSpringContextFunction();
+        initContextFunction();
         initAviatorContext();
     }
 
@@ -113,14 +115,15 @@ public class AviatorEvaluatorServiceImpl extends AbstractExpressionService imple
         return "";
     }
 
-    private void initSpringContextFunction() {
-        try {
-            // 初始化上下文中所涵盖的所有函数
-            final Map<String, AviatorFunction> aviatorFunctionMap = this.applicationContext.getBeansOfType(AviatorFunction.class);
-            aviatorFunctionMap.values().forEach(evaluator::addFunction);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    private void initContextFunction() {
+        this.aviatorFunctionList.forEach(evaluator::addFunction);
+//        try {
+//            // 初始化上下文中所涵盖的所有函数
+//            final Map<String, AviatorFunction> aviatorFunctionMap = this.applicationContext.getBeansOfType(AviatorFunction.class);
+//            aviatorFunctionMap.values().forEach(evaluator::addFunction);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 
     @Override

@@ -144,7 +144,7 @@ public class ExpressionConfigSyncDataServiceImpl implements SyncDataService<Expr
             if (isRootEquals) {
                 importRootInfo.setId(selectNodeId.getId());
                 importRootInfo.setParentId(selectNodeId.getParentId());
-                expressionConfigService.updateById(importRootInfo);
+                configUpdateById(importRootInfo);
                 LOG.info("导入并覆盖节点:{}", selectNodeId.getId());
             } else {
                 // 说明需要加入到子节点下
@@ -152,14 +152,15 @@ public class ExpressionConfigSyncDataServiceImpl implements SyncDataService<Expr
                 importRootInfo.setParentId(selectNodeId.getId());
                 if (expressionInfoByCode == null) {
                     importRootInfo.setId(null);
-                    expressionConfigService.save(importRootInfo);
+                    configSave(importRootInfo);
                     LOG.info("导入并新增节点:{}", importRootInfo.getId());
                 } else {
                     importRootInfo.setId(expressionInfoByCode.getId());
-                    expressionConfigService.updateById(importRootInfo);
+                    configUpdateById(importRootInfo);
                     LOG.info("导入并修改节点:{}", importRootInfo.getId());
                 }
             }
+            this.eventPublisher.publishEvent(new ExecutorConfigRefreshEvent(executorId));
         } else {
             Map<String, ExpressionExecutorInfoConfig> dbCodeMap = new HashMap<>();
 
@@ -194,6 +195,14 @@ public class ExpressionConfigSyncDataServiceImpl implements SyncDataService<Expr
 
             refreshImportNode(nodeInfo, executorId, treeList, dbCodeMap, idCache);
         }
+    }
+
+    private void configSave(ExpressionExecutorInfoConfig importRootInfo) {
+        expressionConfigService.save(importRootInfo, false);
+    }
+
+    private void configUpdateById(ExpressionExecutorInfoConfig importRootInfo) {
+        expressionConfigService.updateById(importRootInfo, false);
     }
 
     private ExpressionExecutorInfoConfig getRootInfoConfig(Long executorId) {
@@ -261,7 +270,7 @@ public class ExpressionConfigSyncDataServiceImpl implements SyncDataService<Expr
                     importInfoConfig.setParentId(newParentId);
                     // 提前获取老的关联编号,目的是为了将导出的数据和导入的环境数据进行关联层级关系
                     importInfoConfig.setId(dbInfoConfig.getId());
-                    expressionConfigService.updateById(importInfoConfig);
+                    configUpdateById(importInfoConfig);
                     idCache.put(oldId, importInfoConfig.getId());
                 } else {
                     LOG.debug("trigger insert , executorId : {} , expression code : {} - {}", executorId, importInfoConfig.getExpressionType(), expressionCode);
@@ -318,7 +327,7 @@ public class ExpressionConfigSyncDataServiceImpl implements SyncDataService<Expr
         Long newParentId = idCache.get(infoConfig.getParentId());
         infoConfig.setParentId(newParentId);
         infoConfig.setId(null);
-        expressionConfigService.save(infoConfig);
+        configSave(infoConfig);
 
         Long newInfoId = infoConfig.getId();
         // 当前编号进行关联

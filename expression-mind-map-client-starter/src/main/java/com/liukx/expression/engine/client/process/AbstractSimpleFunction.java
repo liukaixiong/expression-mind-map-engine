@@ -208,6 +208,7 @@ public abstract class AbstractSimpleFunction extends AbstractVariadicFunction im
 
     /**
      * 将参数构建成map
+     *
      * @param funcArgs
      * @return
      */
@@ -233,9 +234,10 @@ public abstract class AbstractSimpleFunction extends AbstractVariadicFunction im
     /**
      * 获取变量中的时间类型，统一转换成Date。
      * 包含：Date,Long,String-> [年月日:2025-01-01,年月日时分秒:2025-01-01 00:11:22]
-     * @param objectList    参数类型
-     * @param index         参数下标
-     * @param defaultValue  找不到的默认值
+     *
+     * @param objectList   参数类型
+     * @param index        参数下标
+     * @param defaultValue 找不到的默认值
      * @return Date
      */
     protected Date getArgsIndexDate(List<Object> objectList, int index, Date defaultValue) {
@@ -272,6 +274,7 @@ public abstract class AbstractSimpleFunction extends AbstractVariadicFunction im
 
     /**
      * 获取集合信息,参数如果是,号分割的字符串对象
+     *
      * @param objectList
      * @param index
      * @return
@@ -282,17 +285,18 @@ public abstract class AbstractSimpleFunction extends AbstractVariadicFunction im
 
     /**
      * 获取集合信息,参数如果是,号分割的字符串对象
-     * @param objectList        参数对象
-     * @param index             下标
-     * @param convertClazz      转换类型
-     * @return
+     *
+     * @param objectList   参数对象
+     * @param index        下标
+     * @param convertClazz 转换类型
      * @param <T>
+     * @return
      */
     @SuppressWarnings({"unchecked"})
     protected <T> List<T> getArgsIndexList(List<Object> objectList, int index, Class<T> convertClazz) {
-        final String argsString = getArgsIndexValue(objectList, index);
+        final String argsString = getArgsIndexValue(objectList, index, "");
         List<T> list = new ArrayList<>();
-        final List<String> argList = Splitter.on(",").trimResults().splitToList(argsString);
+        final List<String> argList = Splitter.on(",").omitEmptyStrings().trimResults().splitToList(argsString);
         if (convertClazz.isAssignableFrom(String.class)) {
             return (List<T>) argList;
         } else {

@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <title>表达式规则配置页面</title>
-    <link href="https://unpkg.com/jsmind@0.8.5/style/jsmind.css" rel="stylesheet" type="text/css"/>
-    <script src="https://unpkg.com/jsmind@0.8.5/es6/jsmind.js" type="text/javascript"></script>
-    <script src="https://unpkg.com/jsmind@0.8.5/es6/jsmind.draggable-node.js" type="text/javascript"></script>
-    <link href="//unpkg.com/layui@2.9.14/dist/css/layui.css" rel="stylesheet">
-    <script src="//unpkg.com/layui@2.9.14/dist/layui.js"></script>
+    <link href="/js/cdn/jsmind/jsmind.css" rel="stylesheet" type="text/css"/>
+    <script src="/js/cdn/jsmind/jsmind.js" type="text/javascript"></script>
+    <script src="/js/cdn/jsmind/jsmind.draggable-node.js" type="text/javascript"></script>
+    <link href="/js/cdn/layui/css/layui.css" rel="stylesheet">
+    <script src="/js/cdn/layui/layui.js"></script>
     <script src="/js/cdn/jsmind/jsmind.menu.js"></script>
-
+    <script src="/js/cdn/clipboard.min.js"></script>
     <script src="/js/cdn/jquery-3.3.1.min.js"></script>
     <script src="/js/cdn/json-viewer/jquery.json-viewer.js"></script>
     <link href="/js/cdn/json-viewer/jquery.json-viewer.css" type="text/css" rel="stylesheet">
@@ -787,7 +787,38 @@
      */
     async function copyTextToClipboard(text) {
         try {
-            await navigator.clipboard.writeText(text);
+            // 创建临时按钮元素
+            const tempButton = document.createElement('button');
+            tempButton.style.position = 'fixed';
+            tempButton.style.left = '-9999px';
+            tempButton.style.zIndex = '-1000';
+            document.body.appendChild(tempButton);
+
+            // 初始化 ClipboardJS 实例
+            const clipboard = new ClipboardJS(tempButton, {
+                text: function (trigger) {
+                    return text;
+                }
+            });
+
+            // 设置成功和错误回调
+            clipboard.on('success', function (e) {
+                console.log('JSON 复制成功');
+                // 清理资源
+                document.body.removeChild(tempButton);
+                clipboard.destroy();
+            });
+
+            clipboard.on('error', function (e) {
+                console.error('JSON 复制失败:', e);
+                // 清理资源
+                document.body.removeChild(tempButton);
+                clipboard.destroy();
+            });
+
+            // 触发复制操作
+            tempButton.click();
+            // await navigator.clipboard.writeText(text);
         } catch (err) {
             console.error('复制失败: ', err);
         }
@@ -799,7 +830,34 @@
      */
     async function readClipboardText() {
         try {
-            return await navigator.clipboard.readText();
+            // 使用 Promise 包装 layer.prompt
+            return new Promise((resolve, reject) => {
+                layer.prompt({
+                    title: '请输入复制的分支json格式',
+                    formType: 2,
+                    maxlength: 50000,
+                    area: ['520px', '320px'], // 设置弹窗大小
+                    success: function (layero, index) {
+                        // 精确控制文本框尺寸
+                        layero.find('textarea').css({
+                            'width': '480px',
+                            'height': '520px',
+                            'resize': 'both'
+                        });
+                    }
+                }, function (value, index, elem) {
+                    if (value === '') {
+                        elem.focus();
+                        // 可以选择拒绝 Promise 或解析为 null
+                        resolve(null);
+                        return;
+                    }
+                    // 关闭 prompt
+                    layer.close(index);
+                    // 解析 Promise，返回用户输入的值
+                    resolve(value);
+                });
+            });
         } catch (err) {
             console.error('读取剪贴板失败: ', err);
             return null;

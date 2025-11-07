@@ -99,4 +99,8 @@ public interface ExpressionConfigService extends IService<ExpressionExecutorInfo
     List<ExpressionExecutorInfoConfig> queryExpressionContent(String expressionContent, Date changeDate);
 
     Boolean importExpressionNode(PasteExpressionConfigRequest pasteExpressionConfigRequest);
+
+    boolean save(ExpressionExecutorInfoConfig infoConfig, boolean refreshEvent);
+
+    boolean updateById(ExpressionExecutorInfoConfig importRootInfo, boolean refreshEvent);
 }
