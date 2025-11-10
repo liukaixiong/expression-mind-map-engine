@@ -8,9 +8,11 @@ import com.liukx.expression.engine.client.api.ExpressionExecutorPostProcessor;
 import com.liukx.expression.engine.client.api.ExpressionFunctionPostProcessor;
 import com.liukx.expression.engine.client.api.RemoteHttpService;
 import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
+import com.liukx.expression.engine.client.factory.ExpressionExecutorFactory;
 import com.liukx.expression.engine.core.api.model.ExpressionBaseRequest;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigInfo;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigTreeModel;
+import com.liukx.expression.engine.core.api.model.ExpressionContextResult;
 import com.liukx.expression.engine.core.api.model.api.ExpressionExecutorResultDTO;
 import com.liukx.expression.engine.core.api.model.api.ExpressionResultLogCollect;
 import com.liukx.expression.engine.core.api.model.api.ExpressionResultLogDTO;
@@ -19,6 +21,7 @@ import com.liukx.expression.engine.core.consts.ExpressionConstants;
 import com.liukx.expression.engine.core.enums.ExpressionLogTypeEnum;
 import com.liukx.expression.engine.core.utils.Jsons;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 /**
  * 执行器数据收集
@@ -48,6 +52,8 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
     private RemoteHttpService remoteHttpService;
     @Value("${spring.application.name:unknown}")
     private String serviceName;
+    @Autowired
+    private ExpressionExecutorFactory executorFactory;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -128,7 +134,7 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
     }
 
     @Override
-    public void after(ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest baseRequest, ExpressionEnvContext envContext, Object execute) {
+    public void after(ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest baseRequest, ExpressionEnvContext envContext, ExpressionContextResult execute) {
         triggerResultLogCollect(envContext, ExpressionLogTypeEnum.expression, configTreeModel, baseRequest, null, null, execute);
     }
 
@@ -148,7 +154,7 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
 
     }
 
-    private void triggerResultLogCollect(ExpressionEnvContext envContext, ExpressionLogTypeEnum resultType, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request, FunctionApiModel functionInfo, List<Object> funcArgs, Object result) {
+    private void triggerResultLogCollect(ExpressionEnvContext envContext, ExpressionLogTypeEnum resultType, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request, FunctionApiModel functionInfo, List<Object> funcArgs, Object execute) {
         try {
             if (!envContext.isEnableTrace()) {
                 return;
@@ -159,6 +165,11 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
             if (stack.isEmpty()) {
                 log.warn(">>> 执行器结果栈为空，无法记录日志! <<<");
                 return;
+            }
+            Object result = execute;
+            if (execute instanceof ExpressionContextResult) {
+                ExpressionContextResult contextResult = ((ExpressionContextResult) execute);
+                result = contextResult.getResult();
             }
 
             ExpressionResultLogDTO dto = new ExpressionResultLogDTO();
@@ -171,14 +182,17 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
 
             if (resultType == ExpressionLogTypeEnum.expression) {
                 final String expression = configTreeModel.getExpression();
-                // 有性能问题
-//                final List<String> variableFullNames = AviatorEvaluator.compile(expression, true).getVariableNames();
-//                if (CollectionUtil.isNotEmpty(variableFullNames)) {
-//                    final Map<String, Object> variableMap = variableFullNames.stream().collect(Collectors.toMap(var -> var, var -> envContext.getValue(var) == null ? "null" : envContext.getValue(var)));
-//                    dto.setExpression(Jsons.toJsonString(variableMap));
-//                } else {
-                dto.setExpression(expression);
-//                }
+                // 获取变量值
+                if (execute instanceof ExpressionContextResult) {
+                    ExpressionContextResult contextResult = ((ExpressionContextResult) execute);
+                    final List<String> variableFullNames = contextResult.getVariableNameList();
+                    if (CollectionUtil.isNotEmpty(variableFullNames)) {
+                        final Map<String, Object> variableMap = variableFullNames.stream().collect(Collectors.toMap(var -> var, var -> getContextValue(envContext, var)));
+                        dto.setExpression(Jsons.toJsonString(variableMap));
+                    } else {
+                        dto.setExpression(expression);
+                    }
+                }
                 dto.setDescription(configTreeModel.getTitle());
             } else {
                 final String functionInfoName = functionInfo.getName();
@@ -187,8 +201,8 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
                 dto.setDebugTraceContent(debugTraceInfo);
             }
 
-            if (result instanceof Exception) {
-                Exception e = (Exception) result;
+            if (execute instanceof Exception) {
+                Exception e = (Exception) execute;
                 dto.setResult(-1);
                 Map<String, Object> debugTraceContent = dto.getDebugTraceContent();
                 if (debugTraceContent == null) {
@@ -203,5 +217,15 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
         } catch (Exception e) {
             log.warn("追踪结果日志构建失败! -> {}", e.getMessage());
         }
+    }
+
+    private String getContextValue(ExpressionEnvContext envContext, String var) {
+        try {
+            final Object property = PropertyUtils.getProperty(envContext, var);
+            return property == null ? "null" : property.toString();
+        } catch (Exception e) {
+            log.warn("获取变量值异常:{}", e.getMessage());
+        }
+        return "null";
     }
 }

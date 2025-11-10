@@ -260,15 +260,13 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         deepAllIdBuilder(idSet, delRequest.getIdList());
 
         LambdaQueryWrapper<ExpressionExecutorInfoConfig> queryWrapper = new LambdaQueryWrapper<ExpressionExecutorInfoConfig>().in(ExpressionExecutorInfoConfig::getId, idSet).eq(ExpressionExecutorInfoConfig::getDeleted, false);
-
-
+        final ExpressionExecutorInfoConfig detailConfig = getOne(queryWrapper, false);
         LOG.info("批量删除id集合: {} ", idSet);
-        LambdaUpdateWrapper<ExpressionExecutorInfoConfig> updateWrapper = new LambdaUpdateWrapper<ExpressionExecutorInfoConfig>().set(ExpressionExecutorInfoConfig::getUpdateBy, delRequest.getUpdateBy()).set(ExpressionExecutorInfoConfig::getDeleted, true).set(ExpressionExecutorInfoConfig::getUpdateTime, LocalDateTime.now()).in(ExpressionExecutorInfoConfig::getId, idSet);
 
+        LambdaUpdateWrapper<ExpressionExecutorInfoConfig> updateWrapper = new LambdaUpdateWrapper<ExpressionExecutorInfoConfig>().set(ExpressionExecutorInfoConfig::getUpdateBy, delRequest.getUpdateBy()).set(ExpressionExecutorInfoConfig::getDeleted, true).set(ExpressionExecutorInfoConfig::getUpdateTime, LocalDateTime.now()).in(ExpressionExecutorInfoConfig::getId, idSet);
         final RestResult<?> restResult = ServiceCommonUtil.batchDelete(delRequest, "找不到相关记录，不用执行删除操作", getBaseMapper(), queryWrapper, updateWrapper);
 
         if (restResult.isOk()) {
-            final ExpressionExecutorInfoConfig detailConfig = getOne(queryWrapper);
             if (detailConfig != null) {
                 refreshConfigPost(detailConfig.getExecutorId());
             }

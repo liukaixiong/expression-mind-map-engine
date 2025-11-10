@@ -27,7 +27,7 @@
     <!--	</parent>-->
 
     <properties>
-        <revision>2.0.2-SNAPSHOT</revision>
+        <revision>2.0.3-SNAPSHOT</revision>
         <maven.test.skip>true</maven.test.skip>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -58,6 +58,7 @@
 
         <lombok.version>1.18.30</lombok.version>
         <commons-lang3.version>3.5</commons-lang3.version>
+        <commons-beanUtils.version>1.11.0</commons-beanUtils.version>
         <disruptor.version>3.4.4</disruptor.version>
 
         <therapi-runtime-javadoc.version>0.15.0</therapi-runtime-javadoc.version>
@@ -128,6 +129,13 @@
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils</artifactId>
+                <version>${commons-beanUtils.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>com.alibaba.cloud</groupId>
                 <artifactId>spring-cloud-alibaba-dependencies</artifactId>

@@ -5,12 +5,15 @@ import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.googlecode.aviator.AviatorEvaluator;
 import com.googlecode.aviator.AviatorEvaluatorInstance;
+import com.googlecode.aviator.Expression;
+import com.googlecode.aviator.Options;
 import com.googlecode.aviator.runtime.type.AviatorFunction;
 import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
 import com.liukx.expression.engine.client.function.BaseFunctionDescEnum;
 import com.liukx.expression.engine.client.process.AviatorEvaluatorServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
 
 import java.util.*;
 
@@ -25,6 +28,8 @@ public class AviatorCase {
 
     @Before
     public void init() {
+        instance.setOption(Options.TRACE_EVAL, true);
+        instance.setTraceOutputStream(System.out);
         instance.enableSandboxMode();
         final Set<Class<?>> classes = ClassUtil.scanPackageBySuper(BaseFunctionDescEnum.class.getPackageName(), AviatorFunction.class);
         classes.forEach(var -> {
@@ -40,9 +45,32 @@ public class AviatorCase {
     public void testExpressionVariable() {
         Map<String, Object> envContext = new HashMap<>();
         envContext.put("test_env_id", 888L);
+        envContext.put("a", "1111");
         final Object execute = instance.execute("fn_object_is_not_null(test_env_id,a)", envContext);
         System.out.println(execute);
     }
+
+    @Test
+    public void testExpressionVariableInfo() {
+        Map<String, Object> envContext = new HashMap<>();
+
+
+        SecurityProperties.User user = new SecurityProperties.User();
+        user.setName("lkx");
+        Map<String, Object> nodeEnv = new HashMap<>();
+        nodeEnv.put("node_A", 1);
+        nodeEnv.put("node_B", "2");
+        nodeEnv.put("node_C", true);
+        nodeEnv.put("nodeInfo", user);
+
+        envContext.put("test_env_id", 888L);
+        envContext.put("a", "1111");
+        envContext.put("node", nodeEnv);
+        final String exp = "node.node_C && fn_object_is_not_null(test_env_id,a) && fn_object_is_not_null(node.nodeInfo.name,a)";
+        final Expression compile = instance.compile(exp,true);
+        System.out.println(compile);
+    }
+
 
     @Test
     public void testExpressionValid() {

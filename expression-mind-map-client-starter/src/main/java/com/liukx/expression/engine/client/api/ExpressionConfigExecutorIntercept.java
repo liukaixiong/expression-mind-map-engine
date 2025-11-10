@@ -3,6 +3,7 @@ package com.liukx.expression.engine.client.api;
 import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
 import com.liukx.expression.engine.core.api.model.ExpressionBaseRequest;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigTreeModel;
+import com.liukx.expression.engine.core.api.model.ExpressionContextResult;
 
 /**
  * 表达式类型回调
@@ -24,7 +25,7 @@ public interface ExpressionConfigExecutorIntercept {
      * @param envContext     上下文参数
      * @param execute        执行结果
      */
-    default void after(ExpressionConfigTreeModel expressionType, ExpressionBaseRequest baseRequest, ExpressionEnvContext envContext, Object execute) {
+    default void after(ExpressionConfigTreeModel expressionType, ExpressionBaseRequest baseRequest, ExpressionEnvContext envContext, ExpressionContextResult execute) {
 
     }
 

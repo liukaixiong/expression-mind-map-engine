@@ -9,6 +9,7 @@ import com.liukx.expression.engine.client.process.ExpressionFilterChain;
 import com.liukx.expression.engine.core.api.model.ExpressionBaseRequest;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigInfo;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigTreeModel;
+import com.liukx.expression.engine.core.api.model.ExpressionContextResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 
@@ -26,7 +27,7 @@ public class CacheExpressionConfigurabilityProcessor extends AbstractExpressionC
     private RedisTemplate<String, Object> redisTemplate;
 
     @Override
-    public Object configurabilityExecutor(ExpressionEnvContext envContext, ExpressionBaseRequest baseRequest, ExpressionConfigInfo configInfo, ExpressionConfigTreeModel configTreeModel, ExpressionFilterChain chain) {
+    public ExpressionContextResult configurabilityExecutor(ExpressionEnvContext envContext, ExpressionBaseRequest baseRequest, ExpressionConfigInfo configInfo, ExpressionConfigTreeModel configTreeModel, ExpressionFilterChain chain) {
         final Long userId = baseRequest.getUserId();
 
         if (userId == null) {
@@ -41,12 +42,13 @@ public class CacheExpressionConfigurabilityProcessor extends AbstractExpressionC
 
         if (cacheValue != null) {
             LogHelper.trace(baseRequest, LogEventEnum.EXPRESSION_CALL, "命中远程缓存信息:{} -> {}", cacheKey, cacheValue);
-            return cacheValue;
+            return (ExpressionContextResult) cacheValue;
         }
 
-        final Object result = chain.doFilter(envContext, configInfo, configTreeModel, baseRequest);
+        final ExpressionContextResult result = chain.doFilter(envContext, configInfo, configTreeModel, baseRequest);
 
-        if (result instanceof Boolean resultBoolean) {
+        if (result.getResult() instanceof Boolean) {
+            final Boolean resultBoolean = (Boolean) result.getResult();
             LogHelper.trace(baseRequest, LogEventEnum.EXPRESSION_CALL, "缓存表达式结果:{}", resultBoolean);
             redisTemplate.opsForValue().set(cacheKey, resultBoolean, getCacheTimeOut(envContext, baseRequest, configInfo, configTreeModel, cacheKeyEnums));
         }

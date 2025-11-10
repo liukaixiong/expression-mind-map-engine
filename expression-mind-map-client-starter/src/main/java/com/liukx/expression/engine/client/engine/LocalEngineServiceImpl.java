@@ -202,13 +202,13 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
     }
 
     private FlowControlEnum expressionProcessor(ExpressionBaseRequest baseRequest, ExpressionEnvContext envContext, ExpressionConfigInfo configInfo, ExpressionConfigTreeModel treeModel, ExpressionService expressionService) {
-        Object execute;
+        ExpressionContextResult executeResult;
         final Long expressionId = treeModel.getExpressionId();
         String expressionType = treeModel.getExpressionType();
         String expressionCode = treeModel.getExpressionCode();
         String expression = treeModel.getExpression();
         String title = treeModel.getTitle();
-
+        Object execute = null;
         try {
             // 将表达式配置对象注入到上下文中
             envContext.addEnvClassInfo(treeModel);
@@ -217,10 +217,15 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
 
             // 如果表达式是空的,那么默认认为是可执行的
             ExpressionFilterChain filterChain = new ExpressionFilterChain(expressionExecutorFilters, () -> expressionService.execute(expression, envContext.getSourceMap()));
-            execute = StringUtils.isNotEmpty(expression) ? filterChain.doFilter(envContext, configInfo, treeModel, baseRequest) : true;
-
-            executionCallbackList.forEach(var -> var.after(treeModel, baseRequest, envContext, execute));
-        } catch (Exception e) {
+            if (StringUtils.isNotEmpty(expression)) {
+                final ExpressionContextResult expressionContextResult = filterChain.doFilter(envContext, configInfo, treeModel, baseRequest);
+                execute = expressionContextResult.getResult();
+                executionCallbackList.forEach(var -> var.after(treeModel, baseRequest, envContext, expressionContextResult));
+            } else {
+                execute = true;
+            }
+        } catch (
+                Exception e) {
             //LogHelper.trace(envContext, baseRequest, LogEventEnum.CALL_ERROR, "[{}] error - [{}] [title:{}],[表达式:{}]", expressionType, expressionId, title, expression);
             LOG.warn("[{}] error - [{}] [title:{}],[表达式:{}] => {}", expressionType, expressionId, title, expression, e.getMessage());
             executionCallbackList.forEach(var -> var.error(treeModel, baseRequest, envContext, e));

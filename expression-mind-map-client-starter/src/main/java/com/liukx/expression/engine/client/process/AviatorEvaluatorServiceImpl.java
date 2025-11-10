@@ -9,6 +9,7 @@ import com.liukx.expression.engine.client.api.ExpressFunctionDocumentLoader;
 import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
 import com.liukx.expression.engine.client.feature.ClassMethodTraceFunction;
 import com.liukx.expression.engine.core.api.model.ExpressionBaseRequest;
+import com.liukx.expression.engine.core.api.model.ExpressionContextResult;
 import com.liukx.expression.engine.core.api.model.TranslateResult;
 import com.liukx.expression.engine.core.api.model.ValidatorResult;
 import com.liukx.expression.engine.core.api.model.api.FunctionApiModel;
@@ -229,8 +230,10 @@ public class AviatorEvaluatorServiceImpl extends AbstractExpressionService imple
     }
 
     @Override
-    public Object execute(String expression, Map<String, Object> env) {
-        return evaluator.execute(expression, env, true);
+    public ExpressionContextResult execute(String expression, Map<String, Object> env) {
+        final Expression compile = evaluator.compile(expression, true);
+        final Object execute = compile.execute(env);
+        return new ExpressionContextResult(expression, compile.getFunctionNames(), compile.getVariableFullNames(), execute);
     }
 
 }
