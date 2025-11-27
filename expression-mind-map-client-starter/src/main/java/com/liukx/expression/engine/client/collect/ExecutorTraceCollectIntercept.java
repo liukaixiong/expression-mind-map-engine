@@ -3,6 +3,7 @@ package com.liukx.expression.engine.client.collect;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.thread.ThreadUtil;
 import com.alibaba.ttl.TransmittableThreadLocal;
+import com.googlecode.aviator.utils.Reflector;
 import com.liukx.expression.engine.client.api.ExpressionConfigExecutorIntercept;
 import com.liukx.expression.engine.client.api.ExpressionExecutorPostProcessor;
 import com.liukx.expression.engine.client.api.ExpressionFunctionPostProcessor;
@@ -21,7 +22,6 @@ import com.liukx.expression.engine.core.consts.ExpressionConstants;
 import com.liukx.expression.engine.core.enums.ExpressionLogTypeEnum;
 import com.liukx.expression.engine.core.utils.Jsons;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.beanutils.PropertyUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -221,7 +221,7 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
 
     private String getContextValue(ExpressionEnvContext envContext, String var) {
         try {
-            final Object property = PropertyUtils.getProperty(envContext, var);
+            final Object property = Reflector.getProperty(envContext, var);
             return property == null ? "null" : property.toString();
         } catch (Exception e) {
             log.warn("获取变量值异常:{}", e.getMessage());

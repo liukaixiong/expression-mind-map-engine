@@ -687,6 +687,13 @@
             if (expressionTraceLogInfo && expressionTraceLogInfo.expressionResult === -1) {
                 bgColor = '#f74871'
             }
+            // else if (expressionTraceLogInfo && expressionTraceLogInfo.expressionResult === 0) {
+            //     item['expanded'] = false;
+            // }
+        } else {
+            if (!enableEditable) {
+                item['expanded'] = false;
+            }
         }
 
         // 如果是删除了的节点,那么样式需要突出显示

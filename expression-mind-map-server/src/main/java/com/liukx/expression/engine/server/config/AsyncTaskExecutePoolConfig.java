@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.task.TaskExecutorCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,6 +23,7 @@ public class AsyncTaskExecutePoolConfig implements AsyncConfigurer, TaskExecutor
     private static final Logger log = LoggerFactory.getLogger(AsyncTaskExecutePoolConfig.class);
 
     @Autowired
+    @Qualifier("applicationTaskExecutor")
     private Executor executor;
 
     @Bean(name = "applicationEventMulticaster")

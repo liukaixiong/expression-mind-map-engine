@@ -11,7 +11,7 @@ import java.util.List;
 
 /**
  * <p>
- *  服务类
+ * 服务类
  * </p>
  *
  * @author liukx
@@ -32,4 +32,5 @@ public interface ExpressionTraceLogIndexService extends IService<ExpressionTrace
      * @return
      */
     ExpressionTraceLogIndex getExpressionSampleBody(Long expressionId);
+
 }

@@ -11,6 +11,7 @@ import com.liukx.expression.engine.core.api.model.api.ExpressionResultLogDTO;
 import com.liukx.expression.engine.core.api.model.api.FunctionApiModel;
 import com.liukx.expression.engine.core.enums.ExpressionLogTypeEnum;
 import com.liukx.expression.engine.core.utils.Jsons;
+import com.liukx.expression.engine.server.manager.MysqlTableManager;
 import com.liukx.expression.engine.server.mapper.ExpressionTraceLogIndexMapper;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionTraceLogIndex;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionTraceLogInfo;
@@ -44,6 +45,9 @@ public class ExpressionTraceLogIndexServiceImpl extends ServiceImpl<ExpressionTr
     @Autowired
     private ExpressionTraceLogInfoService traceLogInfoService;
 
+    @Autowired
+    private MysqlTableManager tableManager;
+
     @Override
     public void afterPropertiesSet() {
         ThreadUtil.newSingleExecutor().execute(() -> {
@@ -66,6 +70,7 @@ public class ExpressionTraceLogIndexServiceImpl extends ServiceImpl<ExpressionTr
         });
     }
 
+
     @Override
     public Page<ExpressionTraceLogIndex> queryExpressionTraceLogList(QueryExpressionTraceRequest queryRequest) {
         Page<ExpressionTraceLogIndex> page = new Page<>(queryRequest.getPageNum(), queryRequest.getPageSize());
@@ -78,11 +83,31 @@ public class ExpressionTraceLogIndexServiceImpl extends ServiceImpl<ExpressionTr
                 .eq(StringUtils.isNotEmpty(queryRequest.getExecutorCode()), ExpressionTraceLogIndex::getExecutorCode, queryRequest.getExecutorCode())
                 .eq(StringUtils.isNotEmpty(queryRequest.getTraceId()), ExpressionTraceLogIndex::getTraceId, queryRequest.getTraceId())
                 .eq(queryRequest.getUserId() != null, ExpressionTraceLogIndex::getUserId, queryRequest.getUserId())
-                .eq(queryRequest.getExecutorId() != null, ExpressionTraceLogIndex::getExecutorId, queryRequest.getExecutorId()).orderByDesc(ExpressionTraceLogIndex::getId);
+                .eq(queryRequest.getExecutorId() != null, ExpressionTraceLogIndex::getExecutorId, queryRequest.getExecutorId())
+                .orderByDesc(ExpressionTraceLogIndex::getId);
 
         final Page<ExpressionTraceLogIndex> expressionTraceLogIndexPage = getBaseMapper().selectPage(page, wrapper);
+
         final int currentPageSize = expressionTraceLogIndexPage.getRecords().size();
         expressionTraceLogIndexPage.setTotal(currentPageSize >= queryRequest.getPageSize() ? 100 : currentPageSize);
+
+        // 尝试拿两部分数据出来处理
+        if (currentPageSize < queryRequest.getPageSize()) {
+            final String pastTableName = tableManager.getLastTableNameList(ExpressionTraceLogIndex.class, -1);
+            if (StringUtils.isNotEmpty(pastTableName)) {
+                Page<ExpressionTraceLogIndex> pageV2 = new Page<>(1, queryRequest.getPageSize());
+                pageV2.setSearchCount(false);
+                final Page<ExpressionTraceLogIndex> expressionTraceLogIndex = getBaseMapper().selectPageByTable(pageV2, pastTableName, wrapper);
+                final List<ExpressionTraceLogIndex> recordV2s = expressionTraceLogIndex.getRecords();
+                if (!recordV2s.isEmpty()) {
+                    expressionTraceLogIndexPage.getRecords().addAll(recordV2s);
+                    if (currentPageSize == 0) {
+                        expressionTraceLogIndexPage.setTotal(currentPageSize >= queryRequest.getPageSize() ? 100 : recordV2s.size());
+                    }
+                }
+            }
+        }
+
         return expressionTraceLogIndexPage;
     }
 

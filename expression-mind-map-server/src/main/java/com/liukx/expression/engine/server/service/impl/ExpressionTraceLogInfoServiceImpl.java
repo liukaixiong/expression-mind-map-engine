@@ -4,9 +4,11 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.liukx.expression.engine.core.enums.ExpressionLogTypeEnum;
+import com.liukx.expression.engine.server.manager.MysqlTableManager;
 import com.liukx.expression.engine.server.mapper.ExpressionTraceLogInfoMapper;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionTraceLogInfo;
 import com.liukx.expression.engine.server.service.ExpressionTraceLogInfoService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -22,13 +24,21 @@ import java.util.List;
  */
 @Service
 public class ExpressionTraceLogInfoServiceImpl extends ServiceImpl<ExpressionTraceLogInfoMapper, ExpressionTraceLogInfo> implements IService<ExpressionTraceLogInfo>, ExpressionTraceLogInfoService {
-
+    @Autowired
+    private MysqlTableManager tableManager;
 
     @Override
     public List<ExpressionTraceLogInfo> getInfoListByTraceLogId(Long traceLogId) {
         LambdaQueryWrapper<ExpressionTraceLogInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ExpressionTraceLogInfo::getTraceLogId, traceLogId);
-        return list(wrapper);
+        final List<ExpressionTraceLogInfo> list = list(wrapper);
+
+        if (list.isEmpty()) {
+            final String pastTableName = tableManager.getLastTableNameList(ExpressionTraceLogInfo.class, -1);
+            return getBaseMapper().selectPageByTable(pastTableName, wrapper);
+        }
+
+        return list;
     }
 
     @Override
