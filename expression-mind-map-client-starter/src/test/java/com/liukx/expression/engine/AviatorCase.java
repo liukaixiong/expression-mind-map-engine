@@ -10,6 +10,7 @@ import com.googlecode.aviator.Options;
 import com.googlecode.aviator.runtime.type.AviatorFunction;
 import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
 import com.liukx.expression.engine.client.function.BaseFunctionDescEnum;
+import com.liukx.expression.engine.client.log.AviatorLoggerTraceOutputStream;
 import com.liukx.expression.engine.client.process.AviatorEvaluatorServiceImpl;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,8 +29,10 @@ public class AviatorCase {
 
     @Before
     public void init() {
+        // 这里线上环境不能轻易打开，因为他会默认执行所有表达是里面的内容，仅调试使用,请谨慎使用。
+        // 比如 false && save(xxx) , 理论上第一个为false,后面就不会执行save方法了,但调试阶段的话就会执行
         instance.setOption(Options.TRACE_EVAL, true);
-        instance.setTraceOutputStream(System.out);
+        instance.setTraceOutputStream(new AviatorLoggerTraceOutputStream());
         instance.enableSandboxMode();
         final Set<Class<?>> classes = ClassUtil.scanPackageBySuper(BaseFunctionDescEnum.class.getPackageName(), AviatorFunction.class);
         classes.forEach(var -> {
@@ -66,9 +69,10 @@ public class AviatorCase {
         envContext.put("test_env_id", 888L);
         envContext.put("a", "1111");
         envContext.put("node", nodeEnv);
-        final String exp = "node.node_C && fn_object_is_not_null(test_env_id,a) && fn_object_is_not_null(node.nodeInfo.name,a)";
-        final Expression compile = instance.compile(exp,true);
-        System.out.println(compile);
+        final String exp = "test_env_id < node.node_A && !node.node_C && fn_object_is_not_null(test_env_id,a) && fn_object_is_not_null(node.nodeInfo.name,a)";
+        final Expression compile = instance.compile(exp, true);
+        final Object execute = compile.execute(envContext);
+        System.out.println(execute);
     }
 
 

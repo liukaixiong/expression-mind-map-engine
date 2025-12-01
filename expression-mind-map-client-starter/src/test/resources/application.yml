@@ -11,5 +11,15 @@ spring:
     name: expression-mind-map-client
   main:
     allow-bean-definition-overriding: true
+    allow-circular-references: true
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      # 密码(如没有密码请注释掉)
+      database: 0
+      timeout: 10s
+
 server:
   port: 9898
+debug: true

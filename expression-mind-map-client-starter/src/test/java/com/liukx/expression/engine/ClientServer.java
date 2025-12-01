@@ -1,13 +1,14 @@
 package com.liukx.expression.engine;
 
 import cn.hutool.core.lang.UUID;
-import com.liukx.expression.engine.client.config.ExpClientEnginAutoConfiguration;
 import com.liukx.expression.engine.client.config.ExpressionConfiguration;
 import com.liukx.expression.engine.client.engine.ClientEngineFactory;
 import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
 import com.liukx.expression.engine.core.api.model.ClientExpressionSubmitRequest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.redisson.api.RedissonClient;
+import org.redisson.spring.starter.RedissonAutoConfigurationV2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,22 +22,22 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
- *
- *
  * @author liukaixiong
  * @date 2025/1/15 - 17:50
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {ExpClientEnginAutoConfiguration.class, ExpressionConfiguration.class, RestTemplateAutoConfiguration.class})
+@SpringBootTest(classes = {RedissonAutoConfigurationV2.class, ExpressionConfiguration.class, RestTemplateAutoConfiguration.class})
 public class ClientServer {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     @Autowired
     private ClientEngineFactory clientEngine;
 
+    @Autowired
+    private RedissonClient redissonClient;
+
     @Test
     public void executorRemoter() throws Exception {
         Map<String, Object> envContext = new HashMap<>();
-
 
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("username", "xxxx");
@@ -49,6 +50,7 @@ public class ClientServer {
         request.setBusinessCode("shop");
         request.setUserId(1L);
         request.setRequest(requestMap);
+        request.setEventName("redirect");
         request.setUnionId(UUID.fastUUID().toString());
 
         ExpressionEnvContext context = ExpressionEnvContext.of(envContext);
@@ -70,7 +72,6 @@ public class ClientServer {
     @Test
     public void executorLockRemoter() throws Exception {
         Map<String, Object> envContext = new HashMap<>();
-
 
         Map<String, Object> requestMap = new HashMap<>();
         requestMap.put("username", "xxxx");
