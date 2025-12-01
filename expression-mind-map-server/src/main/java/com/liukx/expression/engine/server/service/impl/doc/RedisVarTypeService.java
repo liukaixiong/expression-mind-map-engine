@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class RedisVarTypeService implements ExpressionVarTypeService {
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private RedisTemplate<Object, Object> redisTemplate;
 
     private static String getVarTypeCacheKey(String serviceName) {
         return EnginCacheKeyEnums.EXPRESSION_VAR_TYPE_KEY.generateKey(serviceName);

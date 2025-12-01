@@ -769,7 +769,7 @@
     function btnEventClick(type) {
         let currentNode = jm.get_selected_node();
         if (type === 'collapse') {
-            jm.collapse_node(currentNode)
+            jm.collapse_node(currentNode);
         } else if ('expand') {
             if (currentNode) {
                 jm.expand_node(currentNode);

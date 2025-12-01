@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class RedisFunctionService implements ExpressionDocService {
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private RedisTemplate<Object, Object> redisTemplate;
 
     private static String getDocCacheKey(String serviceName) {
         return EnginCacheKeyEnums.EXPRESSION_DOC_KEY.generateKey(serviceName);
