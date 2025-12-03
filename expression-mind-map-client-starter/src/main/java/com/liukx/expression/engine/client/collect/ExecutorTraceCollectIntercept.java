@@ -221,7 +221,7 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
 
     private String getContextValue(ExpressionEnvContext envContext, String var) {
         try {
-            final Object property = Reflector.getProperty(envContext, var);
+            final Object property = Reflector.getProperty(envContext.getSourceMap(), var);
             return property == null ? "null" : property.toString();
         } catch (Exception e) {
             log.warn("获取变量值异常:{}", e.getMessage());
