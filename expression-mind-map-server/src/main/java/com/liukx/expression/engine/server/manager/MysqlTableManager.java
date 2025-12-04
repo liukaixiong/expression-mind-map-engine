@@ -85,7 +85,7 @@ public class MysqlTableManager implements InitializingBean {
             final ExpressionServerProperties.TableRule tableConfigInfo = getTableConfigInfo(tableName);
             final Integer maxSaveNumber = tableConfigInfo.getMaxSaveNumber();
             if (maxSaveNumber != null) {
-                final String fullTableName = tableSplitRule.getFullTableName(tableName, -maxSaveNumber);
+                final String fullTableName = tableSplitRule.getFullTableName(tableName, -maxSaveNumber - 1);
 
                 if (checkTableExist(fullTableName)) {
                     tableArchiveMapper.dropTable(fullTableName);

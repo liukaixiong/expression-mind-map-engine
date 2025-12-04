@@ -23,6 +23,6 @@ public interface TableArchiveMapper {
     @Select("SHOW TABLES LIKE #{tableName}")
     List<String> showTables(@Param("tableName") String tableName);
 
-    @Delete("drop table IF EXISTS #{tableName}")
+    @Delete("drop table IF EXISTS ${tableName}")
     void dropTable(@Param("tableName") String tableName);
 }
