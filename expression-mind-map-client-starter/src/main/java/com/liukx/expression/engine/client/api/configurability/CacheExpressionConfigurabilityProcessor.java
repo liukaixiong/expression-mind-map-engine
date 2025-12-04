@@ -24,7 +24,7 @@ import java.time.Duration;
 public class CacheExpressionConfigurabilityProcessor extends AbstractExpressionConfigurabilityProcessor {
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private RedisTemplate<Object, Object> redisTemplate;
 
     @Override
     public ExpressionContextResult configurabilityExecutor(ExpressionEnvContext envContext, ExpressionBaseRequest baseRequest, ExpressionConfigInfo configInfo, ExpressionConfigTreeModel configTreeModel, ExpressionFilterChain chain) {

@@ -85,7 +85,7 @@ public class ExpClientEnginAutoConfiguration {
     }
 
     @Bean
-//    @ConditionalOnBean(RedissonClient.class)
+    @ConditionalOnBean(RedissonClient.class)
     public RedissonLockExpressionConfigurabilityProcessor redissonLockExpressionConfig(RedissonClient redissonClient) {
         return new RedissonLockExpressionConfigurabilityProcessor(redissonClient);
     }

@@ -24,7 +24,7 @@ public class RedisExpressionConfigService implements RemoteExpressionConfigServi
     private final Logger log = LoggerFactory.getLogger(RedisExpressionConfigService.class);
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private RedisTemplate<Object, Object> redisTemplate;
 
     @Override
     public String configKey() {
