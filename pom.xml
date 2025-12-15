@@ -51,7 +51,6 @@
         <spring-cloud-alibaba.version>2022.0.0.0</spring-cloud-alibaba.version>
         <redisson.version>3.24.2</redisson.version>
         <expression-jdk-artifact>expression-mind-map-jdk17</expression-jdk-artifact>
-        <transformer.skip>true</transformer.skip>
 
         <!-- jdk 8 > mvn clean install -Pjdk8 -Djava.version=8 -->
         <!--        <java.version>8</java.version>-->
@@ -96,7 +95,6 @@
                 <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
                 <redisson.version>3.17.7</redisson.version>
                 <expression-jdk-artifact>expression-mind-map-jdk8</expression-jdk-artifact>
-                <transformer.skip>false</transformer.skip>
             </properties>
         </profile>
     </profiles>
@@ -234,20 +232,6 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
-
-    <distributionManagement>
-        <repository>
-            <id>nexus</id>
-            <name>Nexus Release Repository</name>
-            <url>http://dev2.zhiyueshufang.com:8081/repository/maven-releases/</url>
-        </repository>
-        <snapshotRepository>
-            <id>nexus</id>
-            <name>internal nexus repository</name>
-            <url>http://dev2.zhiyueshufang.com:8081/repository/maven-snapshots/</url>
-        </snapshotRepository>
-    </distributionManagement>
 
     <build>
         <plugins>
