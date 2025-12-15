@@ -1,22 +1,18 @@
 package com.liukx.expression.engine.server.handler;
 
+import com.liukx.expression.engine.jdk.handler.AbstractLoginHandler;
+import com.liukx.expression.engine.jdk.utils.ServletUtil;
 import com.liukx.expression.engine.server.config.props.ExpressionServerProperties;
 import com.liukx.expression.engine.server.constants.BaseConstants;
 import com.liukx.expression.engine.server.service.IExpressionTokenService;
-import com.liukx.expression.engine.server.util.CookiesUtil;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import org.springframework.web.servlet.HandlerInterceptor;
-
 
 @Component
-public class LoginHandler implements HandlerInterceptor {
+public class LoginHandler extends AbstractLoginHandler {
 
     private final Logger logger = LoggerFactory.getLogger(LoginHandler.class);
 
@@ -27,24 +23,26 @@ public class LoginHandler implements HandlerInterceptor {
     private IExpressionTokenService tokenService;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
-            throws Exception {
-        logger.debug(request.getRequestURI());
+    public boolean preHandle0(Object request, Object response, Object handler) throws Exception {
+        logger.debug(ServletUtil.getRequestURI());
 
         if (!serverProperties.isEnableLogin()) {
             return true;
         }
 
-        Cookie cookieByName = CookiesUtil.getCookieByName(request, BaseConstants.TOKEN_NAME);
+        String cookieValue = ServletUtil.getCookieByName(BaseConstants.TOKEN_NAME);
 
-        if (cookieByName != null && StringUtils.hasText(cookieByName.getValue())) {
-            if (tokenService.checkToken(cookieByName.getValue())) {
+        if (StringUtils.hasText(cookieValue)) {
+            if (tokenService.checkToken(cookieValue)) {
                 return true;
             }
         }
 
         logger.debug("token 校验失败, 返回登录页!");
-        response.sendRedirect(BaseConstants.HTML_LOGIN_PATH);
+
+        sendRedirect(response, BaseConstants.HTML_LOGIN_PATH);
         return false;
     }
+
+
 }

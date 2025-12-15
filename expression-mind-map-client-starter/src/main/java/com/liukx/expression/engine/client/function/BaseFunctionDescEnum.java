@@ -9,6 +9,7 @@ import java.util.Arrays;
 /**
  * 基础函数定义
  * 基础的函数就以默认的fn开头作为规范
+ * <a href="https://www.yuque.com/boyan-avfmj/aviatorscript/ashevw">关于aviator的系统函数</a>
  *
  * @author liukaixiong
  * @date 2023/12/7
@@ -21,11 +22,13 @@ public enum BaseFunctionDescEnum implements ExpressFunctionDocumentLoader {
     END_IN_RETURN("base_flow_control", "fn_in_return", "执行当前分支的内部子分支流程后,返回到上层分支，同级别分支不在继续", new String[]{}, "true || false", "fn_return()"),
     END_FORCE("base_flow_control", "fn_force_end", "强制终止流程,不在继续执行任何流程", new String[]{}, "true || false", "fn_force_end()"),
     END_ERROR_MESSAGE("base_flow_control", "fn_error_message", "强制终止流程,不在继续执行任何流程,并返回异常结果", new String[]{"错误信息"}, "true || false", "fn_error_message('信息描述')"),
+    END_REDIRECT("base_flow_control", "fn_redirect", "重定向到指定分支", new String[]{"表达式编码"}, "true || false", "fn_redirect('表达式编码')"),
     DEBUG_BODY("base_debug", "debug_body", "打印请求参数", new String[]{"上下文key"}, "true || false", "debug_body('request')"),
     DEBUG_OBJECT("base_debug", "debug_object", "打印请求参数", new String[]{"上下文对象"}, "true || false", "debug_object(request)"),
     DEBUG_LOG("base_debug", "debug_log", "打印请求参数", new String[]{"打印对象"}, "true || false", "debug_log(param)"),
     ENV_ADD_LIST("base_env", "fn_env_add_list", "添加上下文环境变量", new String[]{"环境变量key", "环境变量值"}, "true || false", "fn_add_env_list('key','value')"),
     ENV_PUT_VALUE("base_env", "fn_env_put_value", "设置上下文环境变量", new String[]{"环境变量key", "环境变量值"}, "true || false", "fn_put_value('key','value')"),
+    ENV_PUT_BRANCH_VALUE("base_env", "fn_env_put_branch_value", "设置当前分支的变量，该变量仅存在与该分支内部用作一些关键功能的参数回调", new String[]{"环境变量组或者key", "环境变量值"}, "true || false", "fn_env_put_branch_value('key','value')"),
     ENV_PUT_ALL_VALUE("base_env", "fn_env_put_all_value", "设置上下文环境变量", new String[]{"环境变量key", "环境变量值"}, "true || false", "fn_put_value('key','value')"),
     ENV_GET_VALUE("base_env", "fn_env_get_value", "获取上下文环境变量", new String[]{"环境变量key"}, "true || false", "fn_get_value('key')"),
     ENV_GET_RESULT_MAP_VALUE("base_env", "fn_env_get_result_map", "获取结果缓存中的Map结构的值", new String[]{"组key","键"}, "object", "fn_env_get_result_map('group','key')"),

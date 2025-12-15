@@ -1,5 +1,6 @@
 package com.liukx.expression.engine.client.engine;
 
+import com.liukx.expression.engine.client.enums.FlowControlEnum;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigTreeModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +38,7 @@ public class ExpressionEnvContext {
      */
     public static final String FEATURE_EXPRESSION_FUNCTION_NAME_SKIP_KEY = "_feature_expression_function_name_skip";
     public static final String RESULT_KEY = "resultContext";
+    public static final String BRANCH_RESULT_KEY = "branchCache";
     /**
      * 追踪数据埋点
      */
@@ -83,7 +85,7 @@ public class ExpressionEnvContext {
     }
 
     public ExpressionConfigTreeModel getConfigTreeModel() {
-        return getEnvClassInfo(ExpressionConfigTreeModel.class);
+        return getEnvThreadClassInfo(ExpressionConfigTreeModel.class);
     }
 
     /**
@@ -152,6 +154,15 @@ public class ExpressionEnvContext {
         putSourceMap(obj.getClass().getName(), obj);
     }
 
+    /**
+     * 添加绑定和线程相关的对象
+     *
+     * @param obj 对象
+     */
+    public void addEnvThreadClassInfo(Object obj) {
+        putSourceMap(getThreadKey(obj.getClass().getName()), obj);
+    }
+
 
     /**
      * 记录结果到上下文中
@@ -174,6 +185,57 @@ public class ExpressionEnvContext {
         return getNodeCache(RESULT_KEY);
     }
 
+    /**
+     * 获取当前分支节点的结果
+     * 函数设置:{@link com.liukx.expression.engine.client.function.BaseFunctionDescEnum#ENV_PUT_BRANCH_VALUE}
+     *
+     * @return 当前分支节点的上下文结果
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> getBranchResult(Long expressionId) {
+        return getNodeCache(BRANCH_RESULT_KEY + "_" + expressionId);
+    }
+
+    /**
+     * 记录结果到上下文中
+     * 函数设置:{@link com.liukx.expression.engine.client.function.BaseFunctionDescEnum#ENV_PUT_BRANCH_VALUE}
+     *
+     * @param expressionId 表达式编号
+     * @param key          key
+     * @param value        value
+     */
+    public void recordBranchResult(Long expressionId, String key, Object value) {
+        putNodeCache(BRANCH_RESULT_KEY + "_" + expressionId, key, value);
+    }
+
+    /**
+     * 设置流程标记到上下文中
+     *
+     * @param expressionId  表达式编号
+     * @param flowMarkValue 流程标记
+     */
+    public void recordBranchFlowResult(Long expressionId, FlowControlEnum flowMarkValue) {
+        putNodeCache(BRANCH_RESULT_KEY + "_" + expressionId, "_flowMark", flowMarkValue);
+    }
+
+    /**
+     * 获取当前分支的流程标记
+     *
+     * @param expressionId 表达式编号
+     * @return 流程控制
+     */
+    public FlowControlEnum getBranchFlowResult(Long expressionId) {
+        return (FlowControlEnum) getNodeCache(BRANCH_RESULT_KEY + "_" + expressionId).getOrDefault("_flowMark", FlowControlEnum.GO_ON);
+    }
+
+    /**
+     * 清空分支结果
+     *
+     * @param expressionId 表达式编号
+     */
+    public void clearBranchResult(Long expressionId) {
+        clearNodeCache(BRANCH_RESULT_KEY + "_" + expressionId);
+    }
 
     /**
      * 清理结果上下文
@@ -190,7 +252,7 @@ public class ExpressionEnvContext {
      * @return
      */
     public <T> T getObject(Class<T> clazz) {
-        final Object val = this.sourceMap.get(clazz.getName());
+        final Object val = getObjectValue(clazz.getName());
         if (val != null) {
             return clazz.cast(val);
         }
@@ -234,7 +296,28 @@ public class ExpressionEnvContext {
      * @return
      */
     public <T> T getEnvClassInfo(Class<T> clazz) {
-        return (T) this.sourceMap.get(clazz.getName());
+        return (T) getObjectValue(clazz.getName());
+    }
+
+    /**
+     * 获取当前线程的Class对象
+     *
+     * @param clazz Class对象
+     * @param <T>   类名称
+     * @return 对象
+     */
+    public <T> T getEnvThreadClassInfo(Class<T> clazz) {
+        return (T) getObjectValue(getThreadKey(clazz.getName()));
+    }
+
+    /**
+     * 涵盖线程名称的key
+     *
+     * @param key 原始key
+     * @return 涵盖线程名的key
+     */
+    private String getThreadKey(String key) {
+        return Thread.currentThread().getName() + "_" + key;
     }
 
     public Map<String, Object> getSourceMap() {
@@ -304,25 +387,12 @@ public class ExpressionEnvContext {
         return this.getObjectValue(FEATURE_EXPRESSION_FUNCTION_NAME_SKIP_KEY) == null ? null : (Set<String>) this.getObjectValue(FEATURE_EXPRESSION_FUNCTION_NAME_SKIP_KEY);
     }
 
-    /**
-     * 终止分支流程标记,执行完当前表达式的子分支之后,不在继续同级别分支
-     */
-    public void topEnd() {
-        putSourceMap(END_TOP_KEY, true);
-    }
 
     /**
      * 强制终止流程，不在执行任何表达式
      */
     public void forceEnd() {
         putSourceMap(END_FORCE_KEY, true);
-    }
-
-    /**
-     * 返回上一级标记，执行完当前表达式的子分支之后,不在继续同级别分支
-     */
-    public void returnEnd() {
-        putSourceMap(END_RETURN_KEY, true);
     }
 
     /**
@@ -335,14 +405,32 @@ public class ExpressionEnvContext {
     }
 
     /**
+     * 终止分支流程标记,执行完当前表达式的子分支之后,不在继续同级别分支
+     */
+    @Deprecated
+    public void topEnd() {
+        putSourceMap(END_TOP_KEY, true);
+    }
+
+    /**
+     * 返回上一级标记，执行完当前表达式的子分支之后,不在继续同级别分支
+     */
+    @Deprecated
+    public void returnEnd() {
+        putSourceMap(END_RETURN_KEY, true);
+    }
+
+    /**
      * 是否分支终止流程
      *
      * @return
      */
+    @Deprecated
     public boolean isTopEnd() {
         return (boolean) this.sourceMap.getOrDefault(END_TOP_KEY, false);
     }
 
+    @Deprecated
     public boolean restTopEnd() {
         putSourceMap(END_TOP_KEY, false);
         return true;
@@ -353,6 +441,7 @@ public class ExpressionEnvContext {
      *
      * @return
      */
+    @Deprecated
     public boolean isReturnEnd() {
         return (boolean) this.sourceMap.getOrDefault(END_RETURN_KEY, false);
     }
@@ -360,6 +449,7 @@ public class ExpressionEnvContext {
     /**
      * 重置返回上一级标记
      */
+    @Deprecated
     public void restReturnEnd() {
         putSourceMap(END_RETURN_KEY, false);
     }

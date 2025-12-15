@@ -11,6 +11,7 @@ import com.liukx.expression.engine.client.factory.ExpressionExecutorFactory;
 import com.liukx.expression.engine.client.feature.ExpressionConfigIdFilterSupport;
 import com.liukx.expression.engine.client.feature.ExpressionFunctionNameFilterSupport;
 import com.liukx.expression.engine.client.feature.ExpressionVarConfigRegisterSupport;
+import com.liukx.expression.engine.client.feature.FunctionContextManager;
 import com.liukx.expression.engine.client.log.LogHelper;
 import com.liukx.expression.engine.client.log.LogTraceService;
 import com.liukx.expression.engine.client.log.Sl4jLogServiceImpl;
@@ -47,6 +48,7 @@ public class ExpressionConfiguration {
 
     /**
      * 配置异步线程池
+     *
      * @return
      */
     @Bean
@@ -108,5 +110,10 @@ public class ExpressionConfiguration {
     @Bean
     public ExpressionVariableManager expressionVariableManager() {
         return new ExpressionVariableManager();
+    }
+
+    @Bean
+    public FunctionContextManager functionContextManager() {
+        return new FunctionContextManager();
     }
 }

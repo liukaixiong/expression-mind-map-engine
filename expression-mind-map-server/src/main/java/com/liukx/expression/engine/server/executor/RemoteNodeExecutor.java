@@ -79,7 +79,7 @@ public class RemoteNodeExecutor {
 
         String domain = expressionRemoteInvoker.parseDomain(nodeInfo);
 
-        Throws.check(StringUtils.isEmpty(domain), "找不到对应的节点入口!");
+        Throws.check(!StringUtils.hasText(domain), "找不到对应的节点入口!");
 
         String url = domain + ExpressionConstants.PATH_EXPRESSION_EXECUTOR;
 

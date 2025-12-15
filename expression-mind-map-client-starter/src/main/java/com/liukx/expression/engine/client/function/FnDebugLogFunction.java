@@ -20,6 +20,11 @@ import java.util.List;
 public class FnDebugLogFunction extends AbstractSimpleFunction {
 
     @Override
+    protected boolean isAllowedCache() {
+        return false;
+    }
+
+    @Override
     public Object processor(ExpressionEnvContext env, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request, List<Object> funArgs) {
         StringBuilder sb = new StringBuilder();
         for (Object funArg : funArgs) {

@@ -6,7 +6,15 @@
 
 1. 编译项目
 
-`maven install `
+- jdk8
+
+> mvn clean install -Pjdk8 -Djava.version=8
+>
+> 或者去主pom文件里面将jdk8相关的注释解开，把jdk17的注释掉
+
+- jdk 17(默认)
+
+> mvn clean install
 
 2. 初始化表结构SQL : `script/expression_mysql.sql`
 3. 配置文件
@@ -53,7 +61,11 @@ spring:
 | ComponentsController         | 执行器导入导出入口           |                               |                                                              |
 |                              |                              |                               |                                                              |
 
-> 服务端的职责：1、维护执行器、规则等配置数据，2、收集客户端的函数和变量定义以及表达式执行日志数据。
+> 服务端的职责：
+>
+> 1、维护执行器、规则等配置数据，
+>
+> 2、收集客户端的函数和变量定义以及表达式执行日志数据。
 >
 > 后半部分如果不太需要，可以直接让客户端直接连Redis即可，都不需要服务端，前提就是服务端要把数据更新到Redis中。具体参考客户端接入
 

@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
 public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIntercept, ExpressionFunctionPostProcessor, ExpressionExecutorPostProcessor, InitializingBean {
 
     // 将 ThreadLocal 改造为 Stack 结构，支持嵌套调用
-    private final ThreadLocal<Stack<ExpressionExecutorResultDTO>> resultLogThreadLocal = new TransmittableThreadLocal<>() {
+    private final ThreadLocal<Stack<ExpressionExecutorResultDTO>> resultLogThreadLocal = new TransmittableThreadLocal<Stack<ExpressionExecutorResultDTO>>() {
         @Override
         protected Stack<ExpressionExecutorResultDTO> initialValue() {
             return new Stack<>();
@@ -184,13 +184,12 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
                 final String expression = configTreeModel.getExpression();
                 // 获取变量值
                 if (execute instanceof ExpressionContextResult) {
+                    dto.setExpression(expression);
                     ExpressionContextResult contextResult = ((ExpressionContextResult) execute);
                     final List<String> variableFullNames = contextResult.getVariableNameList();
                     if (CollectionUtil.isNotEmpty(variableFullNames)) {
                         final Map<String, Object> variableMap = variableFullNames.stream().collect(Collectors.toMap(var -> var, var -> getContextValue(envContext, var)));
-                        dto.setExpression(Jsons.toJsonString(variableMap));
-                    } else {
-                        dto.setExpression(expression);
+                        dto.setDebugTraceContent(variableMap);
                     }
                 }
                 dto.setDescription(configTreeModel.getTitle());

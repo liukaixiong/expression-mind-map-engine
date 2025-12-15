@@ -33,6 +33,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -140,7 +141,7 @@ public class ExpressionExecutorConfigServiceImpl extends ServiceImpl<ExpressionE
         if (StringUtils.isNotBlank(queryRequest.getExpressionContent()) || queryRequest.getChangeDate() != null) {
             final List<ExpressionExecutorInfoConfig> expressionExecutorInfoConfigs = configService.queryExpressionContent(queryRequest.getExpressionContent(), queryRequest.getChangeDate());
             if (!CollectionUtils.isEmpty(expressionExecutorInfoConfigs)) {
-                final List<Long> idList = expressionExecutorInfoConfigs.stream().map(ExpressionExecutorInfoConfig::getExecutorId).distinct().toList();
+                final List<Long> idList = expressionExecutorInfoConfigs.stream().map(ExpressionExecutorInfoConfig::getExecutorId).distinct().collect(Collectors.toList());
                 lambdaQuery.in(!idList.isEmpty(), ExpressionExecutorBaseInfo::getId, idList);
             }
         }

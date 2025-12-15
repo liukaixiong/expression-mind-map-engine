@@ -17,6 +17,9 @@ public class ExpressionContextResult {
 
     private Object result;
 
+    public ExpressionContextResult() {
+    }
+
     public ExpressionContextResult(String expression, List<String> functionNameList, List<String> variableNameList, Object result) {
         this.expression = expression;
         this.functionNameList = functionNameList;

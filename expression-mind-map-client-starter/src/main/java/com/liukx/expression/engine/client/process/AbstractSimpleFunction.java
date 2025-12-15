@@ -7,15 +7,16 @@ import com.googlecode.aviator.runtime.function.AbstractVariadicFunction;
 import com.googlecode.aviator.runtime.function.FunctionUtils;
 import com.googlecode.aviator.runtime.type.AviatorObject;
 import com.liukx.expression.engine.client.api.ExpressFunctionDocumentLoader;
-import com.liukx.expression.engine.client.api.ExpressionFunctionFilter;
-import com.liukx.expression.engine.client.api.ExpressionFunctionPostProcessor;
 import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
 import com.liukx.expression.engine.client.example.DemoFunDescDefinitionService;
+import com.liukx.expression.engine.client.feature.FunctionContextManager;
+import com.liukx.expression.engine.client.helper.FunHelper;
 import com.liukx.expression.engine.client.log.LogEventEnum;
 import com.liukx.expression.engine.client.log.LogHelper;
 import com.liukx.expression.engine.core.api.model.ExpressionBaseRequest;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigTreeModel;
 import com.liukx.expression.engine.core.api.model.api.FunctionApiModel;
+import com.liukx.expression.engine.core.utils.AssertUtils;
 import com.liukx.expression.engine.core.utils.Jsons;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,38 +35,45 @@ import java.util.*;
  */
 public abstract class AbstractSimpleFunction extends AbstractVariadicFunction implements ExpressFunctionDocumentLoader {
 
-    @Autowired(required = false)
-    private List<ExpressionFunctionPostProcessor> functionPostProcessorList = new ArrayList<>();
-    @Autowired(required = false)
-    private List<ExpressionFunctionFilter> functionFilters = new ArrayList<>();
+    @Autowired
+    private FunctionContextManager functionContextManager;
 
     @Override
     public AviatorObject variadicCall(Map<String, Object> env, AviatorObject... args) {
         // 将函数变量转换成对应的java对象
-        List<Object> funcArgs = convertArgsList(env, args);
-
+        List<Object> funcArgs = FunHelper.convertArgsList(env, args);
+        final FunctionApiModel functionApiModel = loadFunctionInfo();
         final ExpressionEnvContext expressionEnvContext = ExpressionEnvContext.of(env);
         // 提取通用参数
         ExpressionBaseRequest request = expressionEnvContext.getEnvClassInfo(ExpressionBaseRequest.class);
-        ExpressionConfigTreeModel configTreeModel = expressionEnvContext.getEnvClassInfo(ExpressionConfigTreeModel.class);
-        final FunctionApiModel functionApiModel = loadFunctionInfo();
-        try {
-            // 将函数结果进行本地缓存,方便同一个线程的执行结果公用
-            String cacheKey = generateCacheKey(expressionEnvContext, funcArgs, request);
-            functionPostProcessorList.forEach(var -> var.functionBefore(expressionEnvContext, configTreeModel, request, functionApiModel, funcArgs));
+        ExpressionConfigTreeModel configTreeModel = expressionEnvContext.getConfigTreeModel();
+        String cacheKey = generateCacheKey(expressionEnvContext, funcArgs, request);
+        final Object processor = functionContextManager.executor(functionApiModel, env, funcArgs, () -> functionCall(expressionEnvContext, cacheKey, configTreeModel, request, funcArgs));
+        // 包装结果
+        return FunctionUtils.wrapReturn(processor);
 
-            FunctionFilterChain functionFilterChain = new FunctionFilterChain(functionFilters, () -> functionCall(expressionEnvContext, cacheKey, configTreeModel, request, funcArgs));
-
-            final Object processor = functionFilterChain.doFilter(expressionEnvContext, configTreeModel, request, functionApiModel, funcArgs);
-
-            functionPostProcessorList.forEach(var -> var.afterFunction(expressionEnvContext, configTreeModel, request, functionApiModel, funcArgs, processor));
-
-            // 包装结果
-            return FunctionUtils.wrapReturn(processor);
-        } catch (Exception e) {
-            functionPostProcessorList.forEach(var -> var.functionError(expressionEnvContext, configTreeModel, request, functionApiModel, funcArgs, e));
-            throw e;
-        }
+//        final ExpressionEnvContext expressionEnvContext = ExpressionEnvContext.of(env);
+//        // 提取通用参数
+//        ExpressionBaseRequest request = expressionEnvContext.getEnvClassInfo(ExpressionBaseRequest.class);
+//        ExpressionConfigTreeModel configTreeModel = expressionEnvContext.getEnvClassInfo(ExpressionConfigTreeModel.class);
+//        final FunctionApiModel functionApiModel = loadFunctionInfo();
+//        try {
+//            // 将函数结果进行本地缓存,方便同一个线程的执行结果公用
+//            String cacheKey = generateCacheKey(expressionEnvContext, funcArgs, request);
+//            functionPostProcessorList.forEach(var -> var.functionBefore(expressionEnvContext, configTreeModel, request, functionApiModel, funcArgs));
+//
+//            FunctionFilterChain functionFilterChain = new FunctionFilterChain(functionFilters, () -> functionCall(expressionEnvContext, cacheKey, configTreeModel, request, funcArgs));
+//
+//            final Object processor = functionFilterChain.doFilter(expressionEnvContext, configTreeModel, request, functionApiModel, funcArgs);
+//
+//            functionPostProcessorList.forEach(var -> var.afterFunction(expressionEnvContext, configTreeModel, request, functionApiModel, funcArgs, processor));
+//
+//            // 包装结果
+//            return FunctionUtils.wrapReturn(processor);
+//        } catch (Exception e) {
+//            functionPostProcessorList.forEach(var -> var.functionError(expressionEnvContext, configTreeModel, request, functionApiModel, funcArgs, e));
+//            throw e;
+//        }
     }
 
     private Object functionCall(ExpressionEnvContext expressionEnvContext, String cacheKey, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request, List<Object> funcArgs) {
@@ -175,7 +183,7 @@ public abstract class AbstractSimpleFunction extends AbstractVariadicFunction im
             return (T) objectList.get(index);
         }
 
-        Assert.isTrue(defaultValue != null, "函数[" + getName() + "] 第[" + index + "]个参数为空!");
+        AssertUtils.Function.isTrue(defaultValue != null, "函数[" + getName() + "] 第[" + index + "]个参数为空!");
 
         return defaultValue;
     }
@@ -188,7 +196,7 @@ public abstract class AbstractSimpleFunction extends AbstractVariadicFunction im
         if (objectList != null && objectList.size() > index) {
             return (T) Convert.convert(classType, objectList.get(index));
         }
-        Assert.isTrue(defaultValue != null, "函数[" + getName() + "] 第[" + index + "]个参数为空!");
+        AssertUtils.Function.isTrue(defaultValue != null, "函数[" + getName() + "] 第[" + index + "]个参数为空!");
         return defaultValue;
     }
 
@@ -196,14 +204,16 @@ public abstract class AbstractSimpleFunction extends AbstractVariadicFunction im
         return getArgsIndexValue(objectList, index, null);
     }
 
-    private List<Object> convertArgsList(Map<String, Object> env, AviatorObject[] args) {
-        List<Object> argList = new ArrayList<>();
+    protected Map<Object, Object> convertMap(List<Object> funcArgs) {
+        return convertMap(funcArgs, Object.class, Object.class);
+    }
 
-        for (AviatorObject arg : args) {
-            argList.add(arg.getValue(env));
+    protected <K, V> Map<K, V> convertMap(List<Object> funcArgs, Integer startIndex, Class<K> k, Class<V> v) {
+        if (funcArgs.size() > startIndex) {
+            final List<Object> objectMap = funcArgs.subList(startIndex, funcArgs.size());
+            return convertMap(objectMap, k, v);
         }
-
-        return argList;
+        return new HashMap<>();
     }
 
     /**
@@ -212,12 +222,12 @@ public abstract class AbstractSimpleFunction extends AbstractVariadicFunction im
      * @param funcArgs
      * @return
      */
-    protected Map<Object, Object> convertMap(List<Object> funcArgs) {
+    protected <K, V> Map<K, V> convertMap(List<Object> funcArgs, Class<K> k, Class<V> v) {
         if (funcArgs != null && funcArgs.size() % 2 != 0) {
             Assert.isTrue(true, "函数参数的长度必须为2的倍数,否则无法构建K,V结构!");
         }
 
-        Map<Object, Object> map = new HashMap<>(funcArgs != null ? funcArgs.size() / 2 : 10);
+        Map<K, V> map = new HashMap<>(funcArgs != null ? funcArgs.size() / 2 : 10);
         if (funcArgs != null) {
             for (int i = 0; i < funcArgs.size(); ) {
                 map.put(getArgsIndexValue(funcArgs, i), getArgsIndexValue(funcArgs, i + 1));
@@ -252,8 +262,8 @@ public abstract class AbstractSimpleFunction extends AbstractVariadicFunction im
      * @return
      */
     protected Date getDate(Object envDate) {
-        if (envDate instanceof Long envLongDate) {
-            return new Date(envLongDate);
+        if (envDate instanceof Long) {
+            return new Date((Long) envDate);
         } else if (envDate instanceof Date) {
             return (Date) envDate;
         } else if (envDate instanceof LocalDateTime) {
@@ -262,7 +272,8 @@ public abstract class AbstractSimpleFunction extends AbstractVariadicFunction im
         } else if (envDate instanceof LocalDate) {
             LocalDate localDate = (LocalDate) envDate;
             return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
-        } else if (envDate instanceof String dateStr) {
+        } else if (envDate instanceof String) {
+            String dateStr = (String) envDate;
             if (dateStr.length() == 10) {
                 return DateUtil.beginOfDay(DateUtil.parseDate(dateStr));
             } else {

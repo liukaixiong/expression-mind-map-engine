@@ -10,7 +10,7 @@ public class VariableInfoDto {
     /**
      * 注册类型
      */
-    private String registerType = "local";
+    private String registerType;
 
     /**
      * 项目名称

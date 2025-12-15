@@ -1,8 +1,16 @@
 # expression-mind-map-client-starter
 
-该工具是基于模版引擎抽象出来的通用定义，默认是基于Aviator实现，集成Spring拓展而来。该工具可以针对复杂业务进行分层、将业务模型抽象定义成变量、函数，然后通过表达式进行组装执行。
+该框架是基于模版引擎抽象出来的通用定义，默认是基于Aviator实现，集成SpringBoot拓展而来。
 
-> 本质上所有表达式都存储在服务端进行管理，客户端负责从服务端进行获取规则表达式，所有逻辑都在客户端本地执行，所以不用担心性能，本质上还是业务表达式的逻辑会成为瓶颈。
+该工具可以针对复杂业务进行分层、将业务模型抽象定义成变量、函数，然后通过表达式进行组装执行。
+
+> 所有表达式都存储在服务端进行管理，客户端负责从服务端或者Redis获取规则表达式。
+>
+> **所有逻辑都在客户端本地执行，所以不用担心性能，本质上还是业务表达式的逻辑会成为瓶颈。**
+
+
+
+**在使用该框架之前希望你对表达式有一定的了解，该框架只负责将【表达式、函数、变量、流程、逻辑分支】进行标准化，每个分支内部的表达式结果为boolean类型，为true才会继续向子分支执行，可以通过流程函数来决定是否继续或者停止，其本质和写Java中的if、else类似，尽可能不要以写脚本的思维去写逻辑，将逻辑粒度细化然后拆解成分支拓展性会更佳。**
 
 ## 如何使用?
 
@@ -30,10 +38,36 @@ spring:
       inject-type-package: com.xxx.service.control # 注入类型包路径，该属性作用是在搜索表达式的时候，指定entity会检索到对应的属性
 ```
 
+## 案例使用
+
+⚙️[服务端启动](../expression-mind-map-server/README.md)
+
+1、下载代码
+
+2、找到: `com.liukx.expression.engine.ClientServer#executorDemoExample` 
+
+```java
+/**
+     * 演示示例:
+     * 1、启动服务端【注意redis要连接上喔~具体配置=> src/test/resources/application.yml】
+     * 2、<a href="http://localhost:20888/template/trace-list.html">进入页面</a>
+     * 3、导入规则：demo_example.json
+     * 4、执行该用例
+     * 5、<a href="http://localhost:20888/template/trace-list.html">查看追踪结果</a>
+     *
+     * @throws Exception
+     */
+@Test
+public void executorDemoExample() throws Exception {
+    // 直接去代码中看吧...
+}
+```
+
 ## 通用的函数
 
-
 ## 1、调用引擎
+
+详细参考案例: `com.liukx.expression.engine.ClientServer#executorDemoExample`
 
 ```java
 // 注入依赖
@@ -126,7 +160,7 @@ public class DemoSendPointFunction extends AbstractSimpleFunction {
 
 #### 函数的参数描述
 
-1. 建立函数枚举列表
+1. 建立函数枚举列表，详细可参考`com.liukx.expression.engine.client.function.BaseFunctionDescEnum` 
 
 ```java
 /**
@@ -160,13 +194,14 @@ public enum DemoFunDescDefinitionService implements ExpressFunctionDocumentLoade
 
 ```
 
-## 通用函数列表【BaseFunctionDescEnum】
+## 通用函数列表【详细函数定义: BaseFunctionDescEnum】
 
-| 函数类型      | 函数名称                                                 | 函数作用                                                     |
-| ------------- |------------------------------------------------------| ------------------------------------------------------------ |
+| 函数类型      | 函数名称                                             | 函数作用                                                     |
+| ------------- | ---------------------------------------------------- | ------------------------------------------------------------ |
 | 流程分支控制  | fn_in_end()                                          | 执行当前分支的内部子分支流程之后结束                         |
 | 流程分支控制  | fn_force_end()                                       | 满足当前节点，则直接结束流程，不在往下执行                   |
 | 流程分支控制  | fn_return()                                          | 返回到上层分支，同级别分支不在继续                           |
+|               | fn_redirect('分支编码')                              | 跳转到指定的分支执行                                         |
 | 调试函数      | debug_body()                                         | 追踪链路中打印请求参数体                                     |
 | 调试函数      | debug_object()                                       | 追踪链路页面中：打印指定的参数对象                           |
 | 条件-时间类型 | fn_sys_date_hour_range(9,20)                         | 是否在小时时间范围处理(基于系统时间)                         |
@@ -176,7 +211,7 @@ public enum DemoFunDescDefinitionService implements ExpressFunctionDocumentLoade
 | 上下文设置    | fn_get_value('key')                                  | 获取当前上下文中的变量的值                                   |
 | 上下文设置    | fn_add_env_list('key','value')                       | 将变量添加一个集合到上下文中，有则追加，没有则初始化并加入   |
 | 对象操作      | fn_object_is_not_null(xxx1,xxx2)                     | 判断值是否为空,允许传递多个值,请传递变量                     |
-| 对象操作      | fn_str_to_json(jsonStr)                              | 字符串转json对象                     |
+| 对象操作      | fn_str_to_json(jsonStr)                              | 字符串转json对象                                             |
 | 变量操作      | fn_env_invoke_method(obj,'xxMethod',seq.list(1,2,3)) | 执行变量中对应的方法，比如变量是一个对象，需要调用它的方法。 |
 
 > 你可以根据自己的想法制定想要的能力，在表达式中注入即可。通用实现类在: `com.liukx.expression.engine.client.function`中
@@ -185,7 +220,7 @@ public enum DemoFunDescDefinitionService implements ExpressFunctionDocumentLoade
 
 变量可以分为静态和动态两种方式:
 
-- 静态变量是直接在调用引擎的时候，将值设置到上下文中，比如： `ExpressionEnvContext`
+- 静态变量是直接在调用引擎处的时候，将值设置到上下文中，比如： `ExpressionEnvContext`
     - `expressionEnvContext.addEnvContext("eventCode", eventCode)`
     - 还有一种方式就是在创建执行器的时候，可通过页面方式直接配置变量
 - 动态变量：在表达式中指定，表达式解析完成之后会调用`ExpressionVariableRegister` 进行查找匹配，找到之后会放入上下文中。
@@ -337,3 +372,32 @@ public class DemoEnvRegister implements ExpressionVariableRegister {
 | 函数执行前后    | `ExpressionFunctionPostProcessor`   | 每个函数调用时   | 记录日志、异常处理               | ExecutorTraceCollectIntercept - 收集表达式日志               |
 | 函数责任链      | `ExpressionFunctionFilter`          | 函数执行前后     | 强制修改参数或结果（如兜底逻辑） | ExpressionFunctionNameFilterSupport : 过滤函数名称，替换函数结果 |
 | 远端调用        | RemoteExpressionConfigService       | 获取规则         | 获取执行器和表达式配置信息       | HttpExpressionConfigService、RedisExpressionConfigService、HttpCacheExpressionConfigService |
+
+## 5. 分支特殊能力
+
+### - 全局锁
+
+执行该分支时会将该分支子分支加入全局锁，防止并发执行
+
+`fn_env_put_branch_value('_lockKey',request.id)`  
+
+可通过函数设置锁的key
+
+### - 开启子分支异步
+
+异步能力: 子分支可并行执行，需要注意的是你如果希望开启这个能力，那么请在引擎入口将上下文的Map设置成`ConcurrentHashMap` ！
+
+### - 远端缓存
+
+当前分支的结果会被缓存起来，缓存的key是按照传递的参数设置的，如果你有特殊需求可通过重写`CacheExpressionConfigurabilityProcessor` 它的 getCacheKey 方法来重写这个key的构建。
+
+默认的key 生成规则:
+
+`cacheKeyEnums.generateKey(baseRequest.getBusinessCode(), baseRequest.getExecutorCode(), configTreeModel.getExpressionId() + "", baseRequest.getUserId() + "", baseRequest.getEventName(), baseRequest.getUnionId())` 
+
+### - 分支跳转
+
+该功能是应用在一些公共分支被多处调用时所被需要的场景，比如C分支有一堆通用的子分支逻辑，此时A分支需要执行C，B分支也需要执行C一样的逻辑，此时就可以使用分支跳转的能力。
+
+使用方式：`fn_redirect('hjN38DRW0h')` 参数就是分支的表达式编码。
+

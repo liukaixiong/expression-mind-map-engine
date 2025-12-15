@@ -37,7 +37,8 @@ public class CacheExpressionConfigurabilityProcessor extends AbstractExpressionC
 
         final EnginCacheKeyEnums cacheKeyEnums = EnginCacheKeyEnums.EXPRESSION_ID_EXECUTE;
 
-        final String cacheKey = getCacheKey(envContext, baseRequest, configInfo, configTreeModel, cacheKeyEnums);
+        String cacheKey = getCacheKey(envContext, baseRequest, configInfo, configTreeModel, cacheKeyEnums);
+
         final Object cacheValue = redisTemplate.opsForValue().get(cacheKey);
 
         if (cacheValue != null) {
@@ -49,8 +50,9 @@ public class CacheExpressionConfigurabilityProcessor extends AbstractExpressionC
 
         if (result.getResult() instanceof Boolean) {
             final Boolean resultBoolean = (Boolean) result.getResult();
-            LogHelper.trace(baseRequest, LogEventEnum.EXPRESSION_CALL, "缓存表达式结果:{}", resultBoolean);
-            redisTemplate.opsForValue().set(cacheKey, resultBoolean, getCacheTimeOut(envContext, baseRequest, configInfo, configTreeModel, cacheKeyEnums));
+            Duration cacheTimeOut = getCacheTimeOut(envContext, baseRequest, configInfo, configTreeModel, cacheKeyEnums);
+            LogHelper.trace(baseRequest, LogEventEnum.EXPRESSION_CALL, "缓存表达式结果:{} => 存储时长:{}", resultBoolean, cacheTimeOut);
+            redisTemplate.opsForValue().set(cacheKey, result, cacheTimeOut);
         }
 
         return result;

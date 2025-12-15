@@ -1,10 +1,8 @@
 package com.liukx.expression.engine.client.factory;
 
 import com.liukx.expression.engine.client.api.ExpressFunctionDocumentLoader;
-import com.liukx.expression.engine.client.process.AbstractExpressionService;
-import com.liukx.expression.engine.client.process.AbstractSimpleFunction;
-import com.liukx.expression.engine.client.process.AviatorEvaluatorServiceImpl;
-import com.liukx.expression.engine.client.process.ExpressionVariableManager;
+import com.liukx.expression.engine.client.feature.FunctionContextManager;
+import com.liukx.expression.engine.client.process.*;
 import com.liukx.expression.engine.core.api.model.ExpressionService;
 import com.liukx.expression.engine.core.api.model.api.FunctionApiModel;
 import com.liukx.expression.engine.core.enums.ExpressionVariableTypeEnums;
@@ -30,6 +28,12 @@ public class ExpressionExecutorFactory implements InitializingBean, ExpressFunct
     @Autowired
     private List<AbstractSimpleFunction> aviatorFunctionList;
 
+    @Autowired
+    private FunctionContextManager functionContextManager;
+
+    @Autowired(required = false)
+    private ExpressionConfigureCustomizer configureCustomizer;
+
     public ExpressionService getExpressionService(String groupName) {
         return expressionProcessCache.get(groupName);
     }
@@ -46,7 +50,11 @@ public class ExpressionExecutorFactory implements InitializingBean, ExpressFunct
 
     protected AbstractExpressionService newExpressionService() {
         // todo 待优化,希望从全局找寻一个可配置的实现类
-        return new AviatorEvaluatorServiceImpl(this.expressionVariableManager, aviatorFunctionList);
+        final AviatorEvaluatorServiceImpl aviatorEvaluatorService = new AviatorEvaluatorServiceImpl(this.expressionVariableManager, aviatorFunctionList, functionContextManager);
+        if (configureCustomizer != null) {
+            configureCustomizer.customize(aviatorEvaluatorService);
+        }
+        return aviatorEvaluatorService;
     }
 
     @Override

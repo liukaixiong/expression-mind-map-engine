@@ -12,6 +12,8 @@
     <module>expression-mind-map-server</module>
     <module>expression-mind-map-core</module>
     <module>expression-mind-map-client-starter</module>
+    <module>expression-mind-map-jdk8</module>
+    <module>expression-mind-map-jdk17</module>
   </modules>
   <distributionManagement>
     <repository>
@@ -45,19 +47,24 @@
     <jodd.version>5.1.0</jodd.version>
     <maven.test.skip>true</maven.test.skip>
     <java.version>17</java.version>
-    <maven.compiler.source>1.8</maven.compiler.source>
     <mybatis-plus.version>3.5.5</mybatis-plus.version>
+    <transformer.skip>true</transformer.skip>
     <knife4j.version>4.4.0</knife4j.version>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <revision>2.0.3-SNAPSHOT</revision>
     <lombok.version>1.18.30</lombok.version>
-    <maven.compiler.target>1.8</maven.compiler.target>
     <therapi-runtime-javadoc.version>0.15.0</therapi-runtime-javadoc.version>
     <testable.version>0.5.0</testable.version>
+    <expression-jdk-artifact>expression-mind-map-jdk17</expression-jdk-artifact>
     <redisson.version>3.24.2</redisson.version>
   </properties>
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>com.liukx.expression.engine</groupId>
+        <artifactId>${expression-jdk-artifact}</artifactId>
+        <version>${project.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.redisson</groupId>
         <artifactId>redisson-spring-boot-starter</artifactId>
@@ -252,4 +259,22 @@
       </plugin>
     </plugins>
   </build>
+  <profiles>
+    <profile>
+      <id>jdk8</id>
+      <activation>
+        <jdk>1.8</jdk>
+      </activation>
+      <properties>
+        <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
+        <java.version>8</java.version>
+        <expression-jdk-artifact>expression-mind-map-jdk8</expression-jdk-artifact>
+        <transformer.skip>false</transformer.skip>
+        <redisson.version>3.17.7</redisson.version>
+        <spring-boot.version>2.7.18</spring-boot.version>
+        <spring-cloud-alibaba.version>2021.0.6.2</spring-cloud-alibaba.version>
+        <spring-cloud.version>2021.0.9</spring-cloud.version>
+      </properties>
+    </profile>
+  </profiles>
 </project>

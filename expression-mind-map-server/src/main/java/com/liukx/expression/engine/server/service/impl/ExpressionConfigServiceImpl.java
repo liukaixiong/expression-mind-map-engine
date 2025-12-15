@@ -207,7 +207,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         lambdaQuery.eq(queryRequest.getExpressionStatus() != null, ExpressionExecutorInfoConfig::getExpressionStatus, queryRequest.getExpressionStatus());
         lambdaQuery.like(StringUtils.isNotBlank(queryRequest.getExpressionContent()), ExpressionExecutorInfoConfig::getExpressionContent, queryRequest.getExpressionContent());
         lambdaQuery.like(StringUtils.isNotBlank(queryRequest.getExpressionDescription()), ExpressionExecutorInfoConfig::getExpressionDescription, queryRequest.getExpressionDescription());
-        lambdaQuery.orderByDesc(List.of(ExpressionExecutorInfoConfig::getExpressionStatus, ExpressionExecutorInfoConfig::getPriorityOrder)).orderByAsc(ExpressionExecutorInfoConfig::getId);
+        lambdaQuery.orderByDesc(Arrays.asList(ExpressionExecutorInfoConfig::getExpressionStatus, ExpressionExecutorInfoConfig::getPriorityOrder)).orderByAsc(ExpressionExecutorInfoConfig::getId);
         List<ExpressionExecutorInfoConfig> expressionExecutorDetailConfigList = lambdaQuery.list();
 
         if (CollectionUtil.isNotEmpty(expressionExecutorDetailConfigList)) {

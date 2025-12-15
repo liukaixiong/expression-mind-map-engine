@@ -21,6 +21,7 @@ import java.util.Map;
 
 /**
  * json解析工具类
+ *
  * @author liukaixiong
  * @date : 2022/6/14 - 10:05
  */
@@ -101,12 +102,16 @@ public class Jsons {
         return parseObject(json, Map.class);
     }
 
+    @SuppressWarnings("unchecked")
     public static Map<String, Object> objToMap(Object obj) {
+        if (obj instanceof Map) {
+            return (Map<String, Object>) obj;
+        }
         return objectMapper.convertValue(obj, Map.class);
     }
 
     public static <K, V> Map<K, V> objToMap2(Object obj, Class<K> keyType, Class<V> valueType) {
-        return objectMapper.convertValue(obj, new TypeReference<>() {
+        return objectMapper.convertValue(obj, new TypeReference<Map<K, V>>() {
         });
     }
 

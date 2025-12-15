@@ -35,8 +35,19 @@ public class ExpressionConfigInfo {
      */
     private Map<String, Object> configurabilityMap;
 
+    /**
+     * 表达式的数结构
+     */
     private List<ExpressionConfigTreeModel> configTreeModelList;
 
+    /**
+     * 表达式编码映射
+     */
+    private Map<String, ExpressionConfigTreeModel> configExpressionCodeMap;
+
+    /**
+     * 时间戳,后续可以考虑做版本号使用
+     */
     private Long timestamp;
 
 }

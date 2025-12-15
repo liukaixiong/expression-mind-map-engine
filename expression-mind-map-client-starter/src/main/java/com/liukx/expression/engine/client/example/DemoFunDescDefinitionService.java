@@ -14,7 +14,9 @@ import java.util.Arrays;
  */
 public enum DemoFunDescDefinitionService implements ExpressFunctionDocumentLoader {
 
-    SEND_POINT("activity", "send_point", "赠送积分", new String[]{"积分编码", "积分值"}, "true || false", "send_point('aa','50')");
+    SEND_POINT("activity", "send_point", "赠送积分", new String[]{"积分编码", "积分值"}, "true || false", "send_point('aa','50')"),
+    DEMO_EXAMPLE("demo", "example_args", "函数案例", new String[]{"参数1", "参数2"}, "true || false", "send_point('aa','50')"),
+    DEMO_MAP_EXAMPLE("demo", "example_map", "map函数案例:注意map函数必须是K,V成双成对类似Map.of()", new String[]{"k1", "v1", "k2", "v2"}, "true || false", "send_point('aa','50')");
 
     private FunctionApiModel functionApiModel;
 

@@ -6,6 +6,7 @@ import com.liukx.expression.engine.client.process.AbstractSimpleFunction;
 import com.liukx.expression.engine.core.api.model.ExpressionBaseRequest;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigTreeModel;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -34,9 +35,15 @@ public class FnEnvGetResultMapFunction extends AbstractSimpleFunction {
     @Override
     public Object processor(ExpressionEnvContext env, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request, List<Object> funArgs) {
         String group = getConvertValue(funArgs, 0, String.class);
-        String key = getConvertValue(funArgs, 1, String.class);
-        Map<String, Object> groupContext = (Map<String, Object>) env.getResultContext().computeIfAbsent(group, k -> new HashMap<>());
-        final Object object = groupContext.get(key);
+        // 兼容单查询
+        String key = getConvertValue(funArgs, 1, String.class, "");
+        Object object;
+        if (StringUtils.hasText(key)) {
+            Map<String, Object> groupContext = (Map<String, Object>) env.getResultContext().computeIfAbsent(group, k -> new HashMap<>());
+            object = groupContext.get(key);
+        } else {
+            object = env.getResultContext().get(group);
+        }
         env.recordTraceDebugContent(getName(), "debug", String.format("查询属性: [%s] - %s = %s", group, key, object));
         return object;
     }

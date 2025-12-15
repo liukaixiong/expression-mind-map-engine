@@ -1,9 +1,12 @@
 package com.liukx.expression.engine.client.feature;
 
 import com.googlecode.aviator.runtime.function.ClassMethodFunction;
+import com.googlecode.aviator.runtime.function.FunctionUtils;
 import com.googlecode.aviator.runtime.type.AviatorJavaType;
 import com.googlecode.aviator.runtime.type.AviatorObject;
 import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
+import com.liukx.expression.engine.client.helper.FunHelper;
+import com.liukx.expression.engine.core.api.model.api.FunctionApiModel;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -20,23 +23,48 @@ import java.util.stream.Collectors;
  */
 public class ClassMethodTraceFunction extends ClassMethodFunction {
 
+    private FunctionContextManager contextManager;
+
+    private FunctionApiModel functionApiModel;
+
     public ClassMethodTraceFunction(Class<?> clazz, boolean isStatic, String name, String methodName, List<Method> methods) throws IllegalAccessException, NoSuchMethodException {
         super(clazz, isStatic, name, methodName, methods);
     }
 
+    public ClassMethodTraceFunction(FunctionContextManager contextManager, Class<?> clazz, boolean isStatic, String name, String methodName, List<Method> methods) throws IllegalAccessException, NoSuchMethodException {
+        super(clazz, isStatic, name, methodName, methods);
+        this.contextManager = contextManager;
+        this.functionApiModel = new FunctionApiModel();
+        this.functionApiModel.setName(getName());
+        this.functionApiModel.setDescribe(clazz.getName() + "." + methodName);
+        this.functionApiModel.setRegisterType("static");
+        this.functionApiModel.setGroupName("static");
+    }
+
+
     @Override
     public AviatorObject variadicCall(Map<String, Object> env, AviatorObject... args) {
+        Object executor;
+        if (this.contextManager != null) {
+            executor = this.contextManager.executor(this.functionApiModel, env, FunHelper.convertArgsList(env, args), () -> processor(env, args));
+        } else {
+            executor = processor(env, args);
+        }
+        return FunctionUtils.wrapReturn(executor);
+    }
+
+    private Object processor(Map<String, Object> env, AviatorObject[] args) {
         final ExpressionEnvContext envContext = ExpressionEnvContext.of(env);
         final AviatorObject aviatorObject = super.variadicCall(env, args);
         if (envContext.isEnableTrace()) {
             try {
                 envContext.recordTraceDebugContent(getName(), "req", Arrays.stream(args).map(var -> formatString(env, var)).collect(Collectors.joining(",")));
-                envContext.recordTraceDebugContent(getName(), "res", aviatorObject == null ? "null" : aviatorObject.desc(env));
+                envContext.recordTraceDebugContent(getName(), "res", aviatorObject == null ? "null" : aviatorObject.getValue(env));
             } catch (Exception e) {
                 envContext.recordTraceDebugContent(getName(), "err", e.getMessage());
             }
         }
-        return aviatorObject;
+        return aviatorObject != null ? aviatorObject.getValue(env) : null;
     }
 
 
@@ -46,7 +74,7 @@ public class ClassMethodTraceFunction extends ClassMethodFunction {
             String name = ((AviatorJavaType) aviatorObject).getName();
             sb.append(name).append("=").append(aviatorObject.getValue(env));
         } else {
-            sb.append(aviatorObject.desc(env));
+            sb.append(aviatorObject.getValue(env));
         }
         return sb.toString();
     }

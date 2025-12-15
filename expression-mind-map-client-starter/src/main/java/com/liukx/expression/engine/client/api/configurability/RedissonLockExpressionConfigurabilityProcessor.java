@@ -14,6 +14,8 @@ import com.liukx.expression.engine.core.api.model.ExpressionConfigTreeModel;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 
+import java.util.Map;
+
 /**
  * redisson 全局锁
  *
@@ -30,7 +32,10 @@ public class RedissonLockExpressionConfigurabilityProcessor implements Expressio
     @Override
     public void doExpressionNodeFilter(ExpressionBaseRequest baseRequest, ExpressionEnvContext envContext, ExpressionConfigInfo configInfo, ExpressionConfigTreeModel treeModel, Object execute, ExpressionNodeFilterChain chain) {
         if (ConfigurabilityHelper.isEnableExpressionConfigurability(treeModel.getConfigurabilityMap(), ExpressionCoxnfigurabilitySwitchEnum.enableGlobalLock)) {
-            final String lockKey = EnginCacheKeyEnums.EXPRESSION_LOCK.generateKey(treeModel.getExpressionId() + "", execute.toString());
+            final Map<String, Object> branchResult = envContext.getBranchResult(treeModel.getExpressionId());
+            // 设置锁的key
+            final String customerLockKey = branchResult.getOrDefault("_lockKey", "").toString();
+            final String lockKey = EnginCacheKeyEnums.EXPRESSION_LOCK.generateKey(treeModel.getExpressionId() + "", customerLockKey, execute.toString());
             LogHelper.trace(baseRequest, LogEventEnum.EXPRESSION_CALL, "表达式编号:{} , 启用全局锁:{}", treeModel.getExpressionId(), lockKey);
             final RLock lock = redissonClient.getLock(lockKey);
             lock.lock();

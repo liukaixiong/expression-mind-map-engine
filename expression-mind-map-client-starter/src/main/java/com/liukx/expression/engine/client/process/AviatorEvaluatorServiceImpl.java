@@ -8,6 +8,7 @@ import com.googlecode.aviator.utils.Reflector;
 import com.liukx.expression.engine.client.api.ExpressFunctionDocumentLoader;
 import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
 import com.liukx.expression.engine.client.feature.ClassMethodTraceFunction;
+import com.liukx.expression.engine.client.feature.FunctionContextManager;
 import com.liukx.expression.engine.core.api.model.ExpressionBaseRequest;
 import com.liukx.expression.engine.core.api.model.ExpressionContextResult;
 import com.liukx.expression.engine.core.api.model.TranslateResult;
@@ -33,17 +34,20 @@ import java.util.stream.Collectors;
 
 public class AviatorEvaluatorServiceImpl extends AbstractExpressionService implements EnvProcessor, FunctionLoader, ExpressFunctionDocumentLoader {
     private final Logger logger = LoggerFactory.getLogger(getClass());
+
     private final AviatorEvaluatorInstance evaluator = AviatorEvaluator.newInstance();
     //    private ApplicationContext applicationContext;
     private ExpressionVariableManager variableDefinition;
     private List<AbstractSimpleFunction> aviatorFunctionList;
+    private FunctionContextManager functionContextManager;
 
-    public AviatorEvaluatorServiceImpl(ExpressionVariableManager expressionVariableManager, List<AbstractSimpleFunction> aviatorFunctionList) {
+    public AviatorEvaluatorServiceImpl(ExpressionVariableManager expressionVariableManager, List<AbstractSimpleFunction> aviatorFunctionList, FunctionContextManager functionContextManager) {
         super("default");
 //        this.applicationContext = applicationContext;
 //        this.variableDefinition = this.applicationContext.getBean(ExpressionVariableManager.class);
         this.variableDefinition = expressionVariableManager;
         this.aviatorFunctionList = aviatorFunctionList;
+        this.functionContextManager = functionContextManager;
         // 初始化本地的函数到上下文中
         initContextFunction();
         initAviatorContext();
@@ -71,13 +75,18 @@ public class AviatorEvaluatorServiceImpl extends AbstractExpressionService imple
         }
     }
 
-    public void addStaticFunctions(String namespace, final Class<?> clazz) throws IllegalAccessException, NoSuchMethodException {
-        Map<String, List<Method>> methodMap = Reflector.findMethodsFromClass(clazz, true);
 
+    @Override
+    public void addStaticFunctions(String namespace, final Class<?> clazz) {
+        Map<String, List<Method>> methodMap = Reflector.findMethodsFromClass(clazz, true);
         for (Map.Entry<String, List<Method>> entry : methodMap.entrySet()) {
             String methodName = entry.getKey();
             String name = namespace + "." + methodName;
-            evaluator.addFunction(new ClassMethodTraceFunction(clazz, true, name, methodName, entry.getValue()));
+            try {
+                evaluator.addFunction(new ClassMethodTraceFunction(this.functionContextManager, clazz, true, name, methodName, entry.getValue()));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -114,6 +123,15 @@ public class AviatorEvaluatorServiceImpl extends AbstractExpressionService imple
 
         }
         return "";
+    }
+
+    /**
+     * 你可以重新调整aviator的内部配置
+     *
+     * @return aviator实例
+     */
+    public AviatorEvaluatorInstance getEvaluator() {
+        return evaluator;
     }
 
     private void initContextFunction() {
