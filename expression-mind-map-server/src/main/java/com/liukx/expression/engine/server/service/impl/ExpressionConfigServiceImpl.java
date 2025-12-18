@@ -367,11 +367,11 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         final List<ExpressionExecutorInfoConfig> nodeList = pasteExpressionConfigRequest.getNodeList();
         final Long executorId = pasteExpressionConfigRequest.getExecutorId();
         final Long expressionId = pasteExpressionConfigRequest.getExpressionId();
-
+        //
         Throws.check(CollectionUtils.isEmpty(nodeList), "节点列表为空!");
         Throws.check(executorId == null, "执行器编号为空!");
 
-        expressionConfigSyncDataService.refreshImportNode(executorId, expressionId, nodeList);
+        expressionConfigSyncDataService.refreshImportNode(executorId, expressionId, nodeList, pasteExpressionConfigRequest.isOverride());
         LOG.info("【导入节点】 成功, executorId: {}, nodeList: {}", executorId, nodeList.size());
         return true;
     }

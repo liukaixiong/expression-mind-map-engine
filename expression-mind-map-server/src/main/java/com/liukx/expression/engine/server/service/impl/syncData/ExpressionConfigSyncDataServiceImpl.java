@@ -92,7 +92,7 @@ public class ExpressionConfigSyncDataServiceImpl implements SyncDataService<Expr
                 return existing;
             }));
 
-            refreshImportNode(nodeInfo, executorId, treeList, dbCodeMap, idCache);
+            refreshImportNode(nodeInfo, executorId, treeList, dbCodeMap, idCache, true);
             return true;
         }
 
@@ -100,14 +100,16 @@ public class ExpressionConfigSyncDataServiceImpl implements SyncDataService<Expr
     }
 
     @Override
-    public void refreshImportNode(List<ExpressionExecutorInfoConfig> nodeInfo, Long executorId, List<Tree<Long>> treeList, Map<String, ExpressionExecutorInfoConfig> dbCodeMap, Map<Long, Long> idCache) {
+    public void refreshImportNode(List<ExpressionExecutorInfoConfig> nodeInfo, Long executorId, List<Tree<Long>> treeList, Map<String, ExpressionExecutorInfoConfig> dbCodeMap, Map<Long, Long> idCache, boolean isExcessData) {
         if (CollectionUtils.isNotEmpty(nodeInfo)) {
             Set<String> hitCode = new HashSet<>();
             final Map<Long, ExpressionExecutorInfoConfig> importIdCache = nodeInfo.stream().collect(Collectors.toMap(ExpressionExecutorInfoConfig::getId, Function.identity()));
             // 与导入数据进行对比
             deepUpdateConfigInfo(importIdCache, treeList, executorId, dbCodeMap, hitCode, idCache);
-            // 多余的数据处理
-            excessDataProcessor(dbCodeMap, hitCode);
+            if (isExcessData) {
+                // 多余的数据处理
+                excessDataProcessor(dbCodeMap, hitCode);
+            }
             // 刷新缓存
             this.eventPublisher.publishEvent(new ExecutorConfigRefreshEvent(executorId));
         }
@@ -117,12 +119,14 @@ public class ExpressionConfigSyncDataServiceImpl implements SyncDataService<Expr
      * 刷新导入的节点信息
      *
      * @param executorId   执行器编号
-     * @param expressionId
+     * @param expressionId 表达式编号
      * @param nodeInfo     节点列表
+     * @param isOverride   导入类型:  insert 、override
      */
-    public void refreshImportNode(Long executorId, Long expressionId, List<ExpressionExecutorInfoConfig> nodeInfo) {
+    public void refreshImportNode(Long executorId, Long expressionId, List<ExpressionExecutorInfoConfig> nodeInfo, boolean isOverride) {
+        final Long importParentId = nodeInfo.get(0).getParentId();
         // 构建树形结构
-        final List<Tree<Long>> treeList = buildTreeByList(nodeInfo, nodeInfo.get(0).getParentId());
+        final List<Tree<Long>> treeList = buildTreeByList(nodeInfo, importParentId);
 
         Map<Long, Long> idCache = new HashMap<>(nodeInfo.size() * 2);
 
@@ -137,6 +141,8 @@ public class ExpressionConfigSyncDataServiceImpl implements SyncDataService<Expr
         // 导入的根节点数据和数据库的根节点数据是否一致
         final boolean isRootEquals = selectNodeId.getExpressionCode().equals(importRootInfo.getExpressionCode());
         idCache.put(0L, isRootEquals ? selectNodeId.getParentId() : selectNodeId.getId());
+        // 导入节点列表的父级与粘贴节点编号进行绑定
+        idCache.put(importParentId, idCache.get(0L));
 
         if (nodeInfo.size() == 1) {
             // 如果只有一个节点并且编码一致，说明需要覆盖
@@ -173,7 +179,9 @@ public class ExpressionConfigSyncDataServiceImpl implements SyncDataService<Expr
                 tree.setName(treeNode.getExpressionTitle());
                 tree.putExtra("obj", treeNode);
             });
+
             // 查找到数据库中的节点树信息,过滤掉无关紧要的其他节点信息
+            // 定位到需要导入的节点链路
             Tree<Long> currentMatchDbInfoTree = TreeUtil.getNode(dbTreeInfo, expressionId);
 
             if (isRootNode) {
@@ -193,7 +201,7 @@ public class ExpressionConfigSyncDataServiceImpl implements SyncDataService<Expr
                 dbCodeMap.remove(selectNodeId.getExpressionCode());
             }
 
-            refreshImportNode(nodeInfo, executorId, treeList, dbCodeMap, idCache);
+            refreshImportNode(nodeInfo, executorId, treeList, dbCodeMap, idCache, isOverride);
         }
     }
 

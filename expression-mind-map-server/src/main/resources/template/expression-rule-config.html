@@ -40,12 +40,14 @@
 
     </div>
     <div class="layui-col-md3">
-        <div class="layui-input-group" style="width: 500px">
-            <input class="layui-input" id="expression-search-context-id" placeholder="搜索表达式内容" type="text">
-            <div class="layui-input-split layui-input-suffix" onclick="searchContext()" style="cursor: pointer;">
-                <i class="layui-icon layui-icon-search"></i>
+        <form class="layui-form" onsubmit="searchContext(); return false;">
+            <div class="layui-input-group" style="width: 500px">
+                <input class="layui-input" id="expression-search-context-id" placeholder="搜索表达式内容" type="text">
+                <div class="layui-input-split layui-input-suffix" onclick="searchContext()" style="cursor: pointer;">
+                    <i class="layui-icon layui-icon-search"></i>
+                </div>
             </div>
-        </div>
+        </form>
     </div>
 </div>
 <div id="table-help-document-page-div">
@@ -402,18 +404,33 @@
 
                             requestBody['executorId'] = executorId;
                             requestBody['expressionId'] = node.id;
-                            layer.confirm('是否将复制内容转换成节点[共' + requestBody.nodeList.length + '个]并添加到[' + (node.isroot ? "根节点" : node.data.expressionTitle) + ']节点上？', {icon: 3}, function () {
+
+                            function importHttpProcessor(requestBody) {
                                 engineUtils.requestPost(api_expression_import_node, requestBody, function (response) {
                                     // 请求成功时的回调函数
                                     if (response.code === 200) {
-                                        layer.msg('导入成功', {icon: 1}, function () {
+                                        layer.msg('导入成功', {icon: 1, time: 2000}, function () {
                                             reloadMind();
                                         })
                                     } else {
                                         layer.alert(response.message);
                                     }
                                 })
+                            }
+
+                            layer.confirm('是否将复制内容转换成节点[共' + requestBody.nodeList.length + '个]并添加到[' + (node.isroot ? "根节点" : node.data.expressionTitle) + ']节点上？', {
+                                icon: 3,
+                                btn: ['新增', '覆盖', '关闭']
                             }, function () {
+                                // 新增处理
+                                requestBody["override"] = false;
+                                importHttpProcessor(requestBody);
+                            }, function () {
+                                // 覆盖处理
+                                requestBody["override"] = true;
+                                importHttpProcessor(requestBody);
+                            }, function () {
+                                // 关闭处理
                                 reloadMind();
                             });
                         });
@@ -728,9 +745,14 @@
              */
             let searchContext = $("#expression-search-context-id").val();
             if (searchContext !== '') {
-                if (item.expressionContent.includes(searchContext)) {
-                    item['foreground-color'] = '#f3004b';
-                    topicText = topicText + "<br/>【" + item.expressionContent + "】";
+                let searchFieldList = [item.expressionContent, item.expressionCode, item.expressionTitle, item.expressionDescription];
+                for (let i = 0; i < searchFieldList.length; i++) {
+                    const value = searchFieldList[i];
+                    if (value && value.includes(searchContext)) {
+                        item['foreground-color'] = '#f3004b';
+                        topicText = topicText + "<br/>【" + value + "】";
+                        break;
+                    }
                 }
             }
         }
