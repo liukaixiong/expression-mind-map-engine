@@ -230,7 +230,7 @@ public abstract class AbstractSimpleFunction extends AbstractVariadicFunction im
         Map<K, V> map = new HashMap<>(funcArgs != null ? funcArgs.size() / 2 : 10);
         if (funcArgs != null) {
             for (int i = 0; i < funcArgs.size(); ) {
-                map.put(getArgsIndexValue(funcArgs, i), getArgsIndexValue(funcArgs, i + 1));
+                map.put(getConvertValue(funcArgs, i, k), getConvertValue(funcArgs, i + 1, v));
                 i += 2;
             }
         }
