@@ -78,7 +78,7 @@
                 <onMismatch>DENY</onMismatch>
             </filter>
         </appender>
-        <logger name="com.liukx.expression" level="WARN"/>
+
         <root level="INFO">
             <appender-ref ref="async_info"/>
             <appender-ref ref="async_error"/>
@@ -86,8 +86,10 @@
         </root>
     </springProfile>
 
+    <!-- 本地调试debug日志: -Dlogging.level.com.liukx.expression=debug -->
+    <logger name="com.liukx.expression" level="WARN"/>
+
     <springProfile name="!prod">
-        <logger name="com.liukx.expression" level="debug"/>
         <root level="INFO">
             <appender-ref ref="console"/>
             <appender-ref ref="file_error"/>

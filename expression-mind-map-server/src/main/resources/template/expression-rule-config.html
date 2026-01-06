@@ -78,8 +78,7 @@
 </div>
 
 
-<div id="jsmind_container" style="width: 100vw; height: 100vh;"></div>
-
+<div id="jsmind_container" style="width: 2000px; height: 3000px"></div>
 <div id="view"></div>
 
 <pre id="json-renderer"></pre>
@@ -139,6 +138,11 @@
         global_full_miss_start_date = value;
     });
 
+    // 检测是否为移动设备
+    function isMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+    debugger;
     function renderDateComponents(htmlId, fun) {
         let dateHtmlId = "#" + htmlId
         laydate.render({
