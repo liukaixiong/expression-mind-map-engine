@@ -142,7 +142,24 @@
     function isMobile() {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     }
+
+    // 移动端调整容器尺寸，预留工具栏空间
+    if (!isMobile()) {
+        $("#jsmind_container").css({
+            'height': 'calc(100vh - 10px)',  // 预留工具栏高度
+            'width': '100%',
+            'position': 'relative',
+            'overflow': 'hidden'
+        });
+    } else {
+        $("#jsmind_container").css({
+            'height': '5000px',
+            'width': '3000px'
+        });
+    }
+
     debugger;
+
     function renderDateComponents(htmlId, fun) {
         let dateHtmlId = "#" + htmlId
         laydate.render({
