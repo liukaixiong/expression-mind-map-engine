@@ -7,8 +7,13 @@
     <script src="/js/cdn/layui/layui.js"></script>
     <script src="/js/Utils.js"></script>
     <script src="/js/engine-const.js"></script>
+    <script src="/js/bubble-animation.js"></script>
+    <link href="/css/bubble-animation.css" rel="stylesheet">
 </head>
-<body>
+<body class="bubble-bg">
+<!-- 五彩气泡容器 -->
+<div id="bubbleContainer"></div>
+
 <form class="layui-form layui-row layui-col-space16">
     <div class="layui-col-md4">
         <div class="layui-input-wrap">
@@ -53,9 +58,9 @@
         </div>
     </div>
 
-    <div class="layui-btn-container layui-col-xs12">
+    <div class="layui-col-xs12" style="text-align: center;">
         <button class="layui-btn" lay-filter="executor-table-search" lay-submit>Search</button>
-        <button class="layui-btn layui-btn-primary" type="reset">Clear</button>
+        <button class="layui-btn layui-btn-primary" type="reset" style="margin-left: 10px;">Clear</button>
     </div>
 </form>
 <table class="layui-hide" id="ID-table-executor-search"></table>
