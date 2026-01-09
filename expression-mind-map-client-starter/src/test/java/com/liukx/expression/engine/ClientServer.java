@@ -89,9 +89,9 @@ public class ClientServer {
 
 
         // 指定分支流程
-        context.addEnvContext("enableExampleDemo", Arrays.asList("base_expression_demo"));
+//        context.addEnvContext("enableExampleDemo", Arrays.asList("branch_fun_demo"));
         // 跑通全流程
-//        context.addEnvContext("enableExampleDemo", Arrays.asList("base_expression_demo", "base_fun_demo", "branch_fun_demo", "flow_demo"));
+        context.addEnvContext("enableExampleDemo", Arrays.asList("base_expression_demo", "base_fun_demo", "branch_fun_demo", "flow_demo"));
 
 
         /**

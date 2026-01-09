@@ -29,6 +29,7 @@ public enum BaseFunctionDescEnum implements ExpressFunctionDocumentLoader {
     ENV_ADD_LIST("base_env", "fn_env_add_list", "添加上下文环境变量", new String[]{"环境变量key", "环境变量值"}, "true || false", "fn_add_env_list('key','value')"),
     ENV_PUT_VALUE("base_env", "fn_env_put_value", "设置上下文环境变量", new String[]{"环境变量key", "环境变量值"}, "true || false", "fn_put_value('key','value')"),
     ENV_PUT_BRANCH_VALUE("base_env", "fn_env_put_branch_value", "设置当前分支的变量，该变量仅存在与该分支内部用作一些关键功能的参数回调", new String[]{"环境变量组或者key", "环境变量值"}, "true || false", "fn_env_put_branch_value('key','value')"),
+    ENV_GET_BRANCH_VALUE("base_env", "fn_env_get_branch_value", "获取当前分支的变量", new String[]{"环境变量组或者key"}, "true || false", "fn_env_get_branch_value('key')"),
     ENV_PUT_ALL_VALUE("base_env", "fn_env_put_all_value", "设置上下文环境变量", new String[]{"环境变量key", "环境变量值"}, "true || false", "fn_put_value('key','value')"),
     ENV_GET_VALUE("base_env", "fn_env_get_value", "获取上下文环境变量", new String[]{"环境变量key"}, "true || false", "fn_get_value('key')"),
     ENV_GET_RESULT_MAP_VALUE("base_env", "fn_env_get_result_map", "获取结果缓存中的Map结构的值", new String[]{"组key","键"}, "object", "fn_env_get_result_map('group','key')"),

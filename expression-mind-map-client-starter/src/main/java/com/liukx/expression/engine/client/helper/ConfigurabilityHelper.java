@@ -2,6 +2,7 @@ package com.liukx.expression.engine.client.helper;
 
 import com.liukx.expression.engine.client.enums.ExecutorCoxnfigurabilitySwitchEnum;
 import com.liukx.expression.engine.client.enums.ExpressionCoxnfigurabilitySwitchEnum;
+import com.liukx.expression.engine.core.api.model.ExpressionConfigTreeModel;
 
 import java.util.Collections;
 import java.util.List;
@@ -17,6 +18,7 @@ public class ConfigurabilityHelper {
 
     /**
      * 是否开启执行器配置能力
+     *
      * @param configurabilityMap
      * @param key
      * @return
@@ -27,6 +29,7 @@ public class ConfigurabilityHelper {
 
     /**
      * 是否开启表达式配置能力
+     *
      * @param configurabilityMap
      * @param key
      * @return
@@ -35,11 +38,16 @@ public class ConfigurabilityHelper {
         return isEnableConfigurability(configurabilityMap, key.name());
     }
 
+    public static boolean isEnableConfigurability(ExpressionConfigTreeModel configInfo, ExpressionCoxnfigurabilitySwitchEnum key) {
+        final Map<String, Object> configurabilityMap = configInfo.getConfigurabilityMap();
+        return isEnableExpressionConfigurability(configurabilityMap, key);
+    }
+
     /**
      * 是否开启配置能力
      *
-     * @param configurabilityMap    能力配置信息
-     * @param key                   配置key
+     * @param configurabilityMap 能力配置信息
+     * @param key                配置key
      * @return
      */
     public static boolean isEnableConfigurability(Map<String, Object> configurabilityMap, String key) {

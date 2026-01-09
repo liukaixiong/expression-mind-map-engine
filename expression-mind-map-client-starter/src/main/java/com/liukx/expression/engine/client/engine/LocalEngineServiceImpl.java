@@ -240,7 +240,7 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
             envContext.addEnvThreadClassInfo(treeModel);
 
             // 清理当前分支存储结果
-            envContext.clearBranchResult(expressionId);
+//            envContext.clearBranchResult(expressionId);
 
             executionCallbackList.forEach(var -> var.before(treeModel, baseRequest, envContext));
 

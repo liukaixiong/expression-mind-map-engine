@@ -24,6 +24,10 @@ public enum ExpressionCoxnfigurabilitySwitchEnum {
      * 启用缓存能力
      */
     enableCache,
+    /**
+     * 异常跳过能力
+     */
+    enableExceptionSkip,
 
 
 }

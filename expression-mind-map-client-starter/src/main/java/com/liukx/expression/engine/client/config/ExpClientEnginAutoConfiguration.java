@@ -1,6 +1,7 @@
 package com.liukx.expression.engine.client.config;
 
 import com.liukx.expression.engine.client.api.ClientEngineInvokeService;
+import com.liukx.expression.engine.client.api.ExpressionConfigExecutorIntercept;
 import com.liukx.expression.engine.client.api.RemoteExpressionConfigService;
 import com.liukx.expression.engine.client.api.config.ExpressionConfigCallManager;
 import com.liukx.expression.engine.client.api.config.HttpCacheExpressionConfigService;
@@ -11,6 +12,8 @@ import com.liukx.expression.engine.client.api.configurability.RedissonLockExpres
 import com.liukx.expression.engine.client.api.configurability.TraceSwitchConfigurabilityProcessor;
 import com.liukx.expression.engine.client.engine.ClientEngineFactory;
 import com.liukx.expression.engine.client.engine.LocalEngineServiceImpl;
+import com.liukx.expression.engine.client.filter.expression.BranchContextExpressionExecutorFilter;
+import com.liukx.expression.engine.client.filter.expression.ExceptionSkipExpressionExecutorFilter;
 import com.liukx.expression.engine.client.http.RestRemoteHttpService;
 import org.redisson.api.RedissonClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -21,6 +24,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
 
 /**
  * 客户端引擎执行层
@@ -76,6 +81,15 @@ public class ExpClientEnginAutoConfiguration {
     @Bean
     public TraceSwitchConfigurabilityProcessor tracingProcessor() {
         return new TraceSwitchConfigurabilityProcessor();
+    }
+
+    @Bean
+    public BranchContextExpressionExecutorFilter branchContextExpressionExecutorFilter() {
+        return new BranchContextExpressionExecutorFilter();
+    }
+    @Bean
+    public ExceptionSkipExpressionExecutorFilter exceptionSkipExpressionExecutorFilter(List<ExpressionConfigExecutorIntercept> executionCallbackList) {
+        return new ExceptionSkipExpressionExecutorFilter(executionCallbackList);
     }
 
     @Bean
