@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>表达式规则配置页面</title>
     <link href="/js/cdn/jsmind/jsmind.css" rel="stylesheet" type="text/css"/>
+    <link href="/css/jsmind-3d.css" rel="stylesheet" type="text/css"/>
     <script src="/js/cdn/jsmind/jsmind.js" type="text/javascript"></script>
     <script src="/js/cdn/jsmind/jsmind.draggable-node.js" type="text/javascript"></script>
     <link href="/js/cdn/layui/css/layui.css" rel="stylesheet">
@@ -158,8 +159,6 @@
         });
     }
 
-    debugger;
-
     function renderDateComponents(htmlId, fun) {
         let dateHtmlId = "#" + htmlId
         laydate.render({
@@ -183,7 +182,7 @@
         elem: '#' + div_id_table_page,
         url: api_executor_doc_search_list + "?executorId=" + executorId, // 此处为静态模拟数据，实际使用时需换成真实接口
         page: { // 支持传入 laypage 组件的所有参数（某些参数除外，如：jump/elem） - 详见文档 : https://layui.dev/docs/2/laypage/#api
-            layout: ['limit'], //自定义分页布局
+            layout: ['limit'], // 自定义分页布局：总数、上一页、页码、下一页、每页条数、跳转
             limits: [10, 30, 50, 100]
         },
         response: {
@@ -193,19 +192,18 @@
             return {
                 "code": res.code, //解析接口状态
                 "msg": res.message, //解析提示文本
-                // "count": res.data, //解析数据长度
+                "count": Array.isArray(res.data) ? res.data.length : 0, //解析数据长度
                 "data": res.data //解析数据列表
             };
         },
-        pagebar: '#ID-table-demo-page-pagebar', // 分页栏模板
         cols: [[
-            {field: 'groupName', width: 100, title: '组', sort: true},
-            {field: 'serviceName', width: 150, title: '服务名'},
+            {field: 'groupName', width: 150, title: '组', sort: true},
+            {field: 'serviceName', width: 200, title: '服务名'},
             {field: 'name', width: 300, title: '名称', sort: true},
             {field: 'type', width: 80, title: '类型'},
-            {field: 'params', title: '参数', minWidth: 450},
-            {field: 'describe', width: 350, title: '描述', sort: true},
-            {field: 'example', width: 350, title: '示例', sort: true}
+            {field: 'params', width: 500, title: '参数'},
+            {field: 'describe', width: 400, title: '描述', sort: true},
+            {field: 'example', width: 300, title: '示例', sort: true}
         ]]
     });
 
@@ -224,12 +222,30 @@
     });
 
     function renderHelpDocument() {
-        $("#" + div_id_table).toggle();
-        // table.reload(div_id_table_page, {
-        //     where: {
-        //         executorId: executorId
-        //     }
-        // });
+        const $container = $("#" + div_id_table);
+        // 优化：直接读取 display 属性，避免 :visible 触发同步布局
+        const isVisible = $container.css('display') !== 'none';
+
+        if (isVisible) {
+            // 如果当前可见，则隐藏并移除事件监听
+            $container.hide();
+            $(document).off('click.helpDocument');
+        } else {
+            // 如果当前隐藏，则显示并添加点击外部自动隐藏的事件监听
+            $container.show();
+
+            // 延迟添加事件监听，避免当前点击触发隐藏
+            setTimeout(function() {
+                $(document).on('click.helpDocument', function(e) {
+                    // 检查点击是否在容器外部
+                    if (!$(e.target).closest('#' + div_id_table).length &&
+                        !$(e.target).closest('#help-document-list').length) {
+                        $container.hide();
+                        $(document).off('click.helpDocument');
+                    }
+                });
+            }, 100);
+        }
     }
 
 
@@ -782,10 +798,21 @@
 
     function convertMindData(data) {
         var treeNode = [];
+        // 统计节点数量
+        var totalCount = data.length;
+        // 创建根节点 topic，包含数量徽章
+        var rootTopic = "<div style='display: flex; align-items: center; gap: 8px;'>" +
+            "<span>【" + executorCode + "】 " + executorDescription + "</span>" +
+            "<span style='background: rgba(255, 255, 255, 0.3); color: #fff; padding: 2px 10px; " +
+            "border-radius: 12px; font-size: 14px; font-weight: bold; " +
+            "box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3);'>" +
+            totalCount + "</span>" +
+            "</div>";
+
         treeNode.push({
             "id": expressionId || '0',
             "isroot": true,
-            "topic": "【" + executorCode + "】 " + executorDescription,
+            "topic": rootTopic,
             "expanded": true,
             "background-color": "#4669EA",
             "executorId": executorId,
@@ -812,7 +839,18 @@
     function btnEventClick(type) {
         let currentNode = jm.get_selected_node();
         if (type === 'collapse') {
-            jm.collapse_node(currentNode);
+            if (currentNode) {
+                // 有选中节点，收缩该节点
+                jm.collapse_node(currentNode);
+            } else {
+                // 没有选中节点，收缩所有一级分支（根节点的直接子节点）
+                let rootNode = jm.get_node(expressionId || '0');
+                if (rootNode && rootNode.children) {
+                    rootNode.children.forEach(function(child) {
+                        jm.collapse_node(child);
+                    });
+                }
+            }
         } else if ('expand') {
             if (currentNode) {
                 jm.expand_node(currentNode);
