@@ -488,9 +488,9 @@
                     return false;
                 }
 
-                // 重置状态
+                // 重置状态 - 重新初始化意味着要启用气泡，所以强制设为 true
                 isDestroyed = false;
-                isAnimationRunning = getStoredVisibility();
+                isAnimationRunning = true;
 
                 // 重新生成气泡
                 const gridPositions = generateGridPositions(BUBBLE_CONFIG.count);
