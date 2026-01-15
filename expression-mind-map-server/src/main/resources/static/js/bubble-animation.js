@@ -130,16 +130,16 @@
                 this.element.style.height = this.size + 'px';
 
                 // 随机颜色（淡紫色系概率更高）
-                const colorIndex = Math.floor(Math.random() * BUBBLE_CONFIG.colors.length);
+                var colorIndex = Math.floor(Math.random() * BUBBLE_CONFIG.colors.length);
                 this.color = BUBBLE_CONFIG.colors[colorIndex];
-                this.element.style.background = `radial-gradient(circle at 30% 30%, ${this.color.inner}, ${this.color.outer})`;
+                // Edge 兼容性：使用字符串拼接而不是模板字符串
+                this.element.style.background = 'radial-gradient(circle at 30% 30%, ' + this.color.inner + ', ' + this.color.outer + ')';
                 // 简化阴影层数，提升性能
-                this.element.style.boxShadow = `
-                    inset 0 0 20px rgba(255, 255, 255, 0.6),
-                    inset -5px -5px 15px rgba(0, 0, 0, 0.1),
-                    0 8px 20px rgba(0, 0, 0, 0.15),
-                    0 0 25px ${this.color.glow}
-                `;
+                this.element.style.boxShadow =
+                    'inset 0 0 20px rgba(255, 255, 255, 0.6), ' +
+                    'inset -5px -5px 15px rgba(0, 0, 0, 0.1), ' +
+                    '0 8px 20px rgba(0, 0, 0, 0.15), ' +
+                    '0 0 25px ' + this.color.glow;
 
                 // 使用预设的网格位置，确保分布均匀
                 if (gridPositions && gridPositions[index]) {
@@ -164,26 +164,30 @@
             }
 
             updatePosition() {
-                this.element.style.transform = `translate(${this.x}px, ${this.y}px)`;
+                // Edge 兼容性：使用字符串拼接而不是模板字符串
+                this.element.style.transform = 'translate(' + this.x + 'px, ' + this.y + 'px)';
+                // 添加浏览器前缀
+                this.element.style.webkitTransform = this.element.style.transform;
+                this.element.style.msTransform = this.element.style.transform;
             }
 
             move() {
                 // 计算到鼠标的距离和方向
-                const centerX = this.x + this.size / 2;
-                const centerY = this.y + this.size / 2;
-                const dx = mouseX - centerX;
-                const dy = mouseY - centerY;
-                const distance = Math.sqrt(dx * dx + dy * dy);
+                var centerX = this.x + this.size / 2;
+                var centerY = this.y + this.size / 2;
+                var dx = mouseX - centerX;
+                var dy = mouseY - centerY;
+                var distance = Math.sqrt(dx * dx + dy * dy);
 
                 // 如果在鼠标影响范围内，向鼠标方向加速
                 if (distance < BUBBLE_CONFIG.mouseInfluenceRadius && distance > 0) {
-                    const force = (1 - distance / BUBBLE_CONFIG.mouseInfluenceRadius) * BUBBLE_CONFIG.mouseAttractionForce;
+                    var force = (1 - distance / BUBBLE_CONFIG.mouseInfluenceRadius) * BUBBLE_CONFIG.mouseAttractionForce;
                     this.vx += (dx / distance) * force;
                     this.vy += (dy / distance) * force;
                 }
 
                 // 限制最大速度
-                const speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+                var speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
                 if (speed > BUBBLE_CONFIG.maxSpeed) {
                     this.vx = (this.vx / speed) * BUBBLE_CONFIG.maxSpeed;
                     this.vy = (this.vy / speed) * BUBBLE_CONFIG.maxSpeed;
@@ -208,34 +212,34 @@
 
         // 检测气泡间碰撞（优化版 - 避免不必要的 Math.sqrt）
         function checkCollisions() {
-            for (let i = 0; i < bubbles.length; i++) {
-                for (let j = i + 1; j < bubbles.length; j++) {
-                    const b1 = bubbles[i];
-                    const b2 = bubbles[j];
+            for (var i = 0; i < bubbles.length; i++) {
+                for (var j = i + 1; j < bubbles.length; j++) {
+                    var b1 = bubbles[i];
+                    var b2 = bubbles[j];
 
-                    const dx = (b1.x + b1.size / 2) - (b2.x + b2.size / 2);
-                    const dy = (b1.y + b1.size / 2) - (b2.y + b2.size / 2);
-                    const distanceSq = dx * dx + dy * dy; // 距离平方
-                    const minDistance = (b1.size + b2.size) / 2;
-                    const minDistanceSq = minDistance * minDistance; // 最小距离平方
+                    var dx = (b1.x + b1.size / 2) - (b2.x + b2.size / 2);
+                    var dy = (b1.y + b1.size / 2) - (b2.y + b2.size / 2);
+                    var distanceSq = dx * dx + dy * dy; // 距离平方
+                    var minDistance = (b1.size + b2.size) / 2;
+                    var minDistanceSq = minDistance * minDistance; // 最小距离平方
 
                     // 先用距离平方判断，避免 Math.sqrt
                     if (distanceSq < minDistanceSq) {
                         // 只有确认碰撞时才计算实际距离
-                        const distance = Math.sqrt(distanceSq);
+                        var distance = Math.sqrt(distanceSq);
 
                         // 碰撞响应 - 交换速度
-                        const tempVx = b1.vx;
-                        const tempVy = b1.vy;
+                        var tempVx = b1.vx;
+                        var tempVy = b1.vy;
                         b1.vx = b2.vx;
                         b1.vy = b2.vy;
                         b2.vx = tempVx;
                         b2.vy = tempVy;
 
                         // 分离重叠的气泡
-                        const overlap = minDistance - distance;
-                        const nx = dx / distance;
-                        const ny = dy / distance;
+                        var overlap = minDistance - distance;
+                        var nx = dx / distance;
+                        var ny = dy / distance;
                         b1.x += nx * overlap / 2;
                         b1.y += ny * overlap / 2;
                         b2.x -= nx * overlap / 2;
@@ -247,19 +251,19 @@
 
         // 生成网格分布位置，避免气泡重叠
         function generateGridPositions(count) {
-            const positions = [];
-            const cols = Math.ceil(Math.sqrt(count * (window.innerWidth / window.innerHeight)));
-            const rows = Math.ceil(count / cols);
-            const cellWidth = window.innerWidth / cols;
-            const cellHeight = window.innerHeight / rows;
+            var positions = [];
+            var cols = Math.ceil(Math.sqrt(count * (window.innerWidth / window.innerHeight)));
+            var rows = Math.ceil(count / cols);
+            var cellWidth = window.innerWidth / cols;
+            var cellHeight = window.innerHeight / rows;
 
-            for (let i = 0; i < count; i++) {
-                const col = i % cols;
-                const row = Math.floor(i / cols);
+            for (var i = 0; i < count; i++) {
+                var col = i % cols;
+                var row = Math.floor(i / cols);
 
                 // 在单元格内随机偏移，保持一定的分散性
-                const offsetX = cellWidth * 0.1 + Math.random() * cellWidth * 0.8;
-                const offsetY = cellHeight * 0.1 + Math.random() * cellHeight * 0.8;
+                var offsetX = cellWidth * 0.1 + Math.random() * cellWidth * 0.8;
+                var offsetY = cellHeight * 0.1 + Math.random() * cellHeight * 0.8;
 
                 positions.push({
                     x: col * cellWidth + offsetX - 50,
@@ -272,8 +276,8 @@
 
         // 初始化气泡（使用网格分布）- 只有未销毁时才创建
         if (!isDestroyed) {
-            const gridPositions = generateGridPositions(BUBBLE_CONFIG.count);
-            for (let i = 0; i < BUBBLE_CONFIG.count; i++) {
+            var gridPositions = generateGridPositions(BUBBLE_CONFIG.count);
+            for (var i = 0; i < BUBBLE_CONFIG.count; i++) {
                 bubbles.push(new Bubble(i, BUBBLE_CONFIG.count, gridPositions));
             }
             container.style.display = 'block';
@@ -294,13 +298,16 @@
                 currentTime = getTime();
             }
 
-            const elapsed = currentTime - lastFrameTime;
+            var elapsed = currentTime - lastFrameTime;
 
             if (elapsed > frameInterval) {
                 // 修正下一次帧的时间
                 lastFrameTime = currentTime - (elapsed % frameInterval);
 
-                bubbles.forEach(bubble => bubble.move());
+                // Edge 兼容性：使用传统 for 循环而不是 forEach
+                for (var i = 0; i < bubbles.length; i++) {
+                    bubbles[i].move();
+                }
                 checkCollisions();
             }
         }
@@ -315,12 +322,12 @@
                 return;
             }
 
-            const toggleBtn = document.createElement('div');
+            var toggleBtn = document.createElement('div');
             toggleBtn.id = 'bubbleToggleBtn';
             toggleBtn.className = 'bubble-toggle-btn';
             toggleBtn.innerHTML = '<span class="toggle-icon">×</span>';
             // 根据存储的状态设置按钮初始状态
-            const initialVisibility = isAnimationRunning && !isDestroyed;
+            var initialVisibility = isAnimationRunning && !isDestroyed;
             toggleBtn.title = initialVisibility ? '隐藏气泡' : '显示气泡';
             toggleBtn.classList.toggle('bubble-hidden', !initialVisibility);
             // 直接设置内联样式确保在右上角
@@ -361,13 +368,15 @@
             if (resizeTimeout) {
                 clearTimeout(resizeTimeout);
             }
-            resizeTimeout = setTimeout(() => {
+            resizeTimeout = setTimeout(function() {
                 if (isDestroyed) return;
-                bubbles.forEach(bubble => {
+                // Edge 兼容性：使用传统 for 循环而不是 forEach
+                for (var i = 0; i < bubbles.length; i++) {
+                    var bubble = bubbles[i];
                     bubble.x = Math.min(bubble.x, window.innerWidth - bubble.size);
                     bubble.y = Math.min(bubble.y, window.innerHeight - bubble.size);
                     bubble.updatePosition();
-                });
+                }
             }, BUBBLE_CONFIG.resizeThrottle);
         };
         window.addEventListener('resize', resizeHandler);
@@ -456,11 +465,13 @@
                 }
 
                 // 移除所有气泡 DOM 元素
-                bubbles.forEach(bubble => {
+                // Edge 兼容性：使用传统 for 循环而不是 forEach
+                for (var i = 0; i < bubbles.length; i++) {
+                    var bubble = bubbles[i];
                     if (bubble && bubble.element) {
                         bubble.element.remove();
                     }
-                });
+                }
                 bubbles.length = 0; // 清空数组
 
                 // 移除事件监听器
@@ -501,8 +512,8 @@
                 isAnimationRunning = true;
 
                 // 重新生成气泡
-                const gridPositions = generateGridPositions(BUBBLE_CONFIG.count);
-                for (let i = 0; i < BUBBLE_CONFIG.count; i++) {
+                var gridPositions = generateGridPositions(BUBBLE_CONFIG.count);
+                for (var i = 0; i < BUBBLE_CONFIG.count; i++) {
                     bubbles.push(new Bubble(i, BUBBLE_CONFIG.count, gridPositions));
                 }
 
@@ -523,20 +534,22 @@
                         if (resizeTimeout) {
                             clearTimeout(resizeTimeout);
                         }
-                        resizeTimeout = setTimeout(() => {
+                        resizeTimeout = setTimeout(function() {
                             if (isDestroyed) return;
-                            bubbles.forEach(bubble => {
+                            // Edge 兼容性：使用传统 for 循环而不是 forEach
+                            for (var i = 0; i < bubbles.length; i++) {
+                                var bubble = bubbles[i];
                                 bubble.x = Math.min(bubble.x, window.innerWidth - bubble.size);
                                 bubble.y = Math.min(bubble.y, window.innerHeight - bubble.size);
                                 bubble.updatePosition();
-                            });
+                            }
                         }, BUBBLE_CONFIG.resizeThrottle);
                     };
                     window.addEventListener('resize', resizeHandler);
                 }
 
                 // 更新开关按钮状态（按钮已存在，无需重新创建）
-                const toggleBtn = document.getElementById('bubbleToggleBtn');
+                var toggleBtn = document.getElementById('bubbleToggleBtn');
                 if (toggleBtn) {
                     toggleBtn.classList.remove('bubble-hidden');
                     toggleBtn.title = '隐藏气泡';
