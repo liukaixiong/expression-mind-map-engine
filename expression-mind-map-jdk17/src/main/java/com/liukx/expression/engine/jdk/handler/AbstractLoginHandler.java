@@ -27,4 +27,12 @@ public abstract class AbstractLoginHandler implements HandlerInterceptor {
     protected void sendRedirect(Object response, String path) throws IOException {
         ((HttpServletResponse) response).sendRedirect(path);
     }
+
+    protected void addHeader(Object response, String headerName, String headerValue) {
+        ((HttpServletResponse) response).setHeader(headerName, headerValue);
+    }
+
+    protected String getRequestURI(Object request) {
+        return ((HttpServletRequest) request).getRequestURI();
+    }
 }

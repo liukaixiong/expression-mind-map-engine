@@ -2,6 +2,11 @@
 :root {
     --primary-color: #3b82f6;
     --formula-purple: #8b5cf6;
+    /* 定义层级变量，便于维护 */
+    --bubble-z-index: 1;
+    --content-z-index: 10;
+    --toggle-btn-z-index: 9999;
+    --modal-z-index: 10000;
 }
 
 /* 通用body背景样式 */
@@ -17,7 +22,7 @@ body.bubble-bg {
 /* 确保所有页面内容在气泡上方 */
 body.bubble-bg > * {
     position: relative;
-    z-index: 1;
+    z-index: var(--content-z-index);
 }
 
 /* 确保 layui 日期选择器和弹层显示在最上层 */
@@ -25,7 +30,7 @@ body.bubble-bg > * {
 .layui-layer,
 .layui-layer-shade {
     position: absolute !important;
-    z-index: 999998 !important;
+    z-index: var(--modal-z-index) !important;
 }
 
 /* 确保日期选择器弹层紧贴输入框，减少间距 */
@@ -40,7 +45,7 @@ body.bubble-bg > * {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 0;
+    z-index: var(--bubble-z-index);
     pointer-events: none;
     overflow: hidden;
 }
@@ -54,11 +59,13 @@ body.bubble-bg > * {
         inset 0 0 20px rgba(255, 255, 255, 0.6),
         inset -5px -5px 15px rgba(0, 0, 0, 0.1),
         0 8px 20px rgba(0, 0, 0, 0.15);
+    -webkit-backdrop-filter: blur(3px);
     backdrop-filter: blur(3px);
     will-change: transform;
     transform-style: preserve-3d;
     pointer-events: none;
-    /* 提前告知浏览器变化 */
+    /* 提前告知浏览器变化，启用 GPU 加速 */
+    -webkit-transform: translateZ(0);
     transform: translateZ(0);
 }
 
@@ -94,6 +101,7 @@ body.bubble-bg > * {
     padding: 20px;
     margin: 20px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
     z-index: 1;
     border: 1px solid rgba(255, 255, 255, 0.5);
@@ -107,6 +115,7 @@ body.bubble-bg > * {
 /* 表格容器半透明 */
 .layui-table-container {
     background: rgba(255, 255, 255, 0.4) !important;
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 16px;
@@ -124,6 +133,7 @@ body.bubble-bg > * {
 /* 右侧固定列特殊处理 */
 .layui-table-fixed-r {
     background: rgba(255, 255, 255, 0.4) !important;
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
 }
 
@@ -185,6 +195,7 @@ body.bubble-bg > * {
 /* 分页条透明 */
 .layui-laypage {
     background: rgba(255, 255, 255, 0.4) !important;
+    -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
     border-radius: 8px;
     padding: 10px !important;
@@ -195,7 +206,7 @@ body.bubble-bg > * {
     position: fixed;
     top: 15px;
     right: 15px;
-    z-index: 999999;
+    z-index: var(--toggle-btn-z-index);
     width: 50px;
     height: 50px;
     border-radius: 50%;
@@ -206,12 +217,23 @@ body.bubble-bg > * {
         inset -5px -5px 15px rgba(0, 0, 0, 0.1),
         0 4px 15px rgba(0, 0, 0, 0.15),
         0 8px 30px rgba(0, 0, 0, 0.1);
+    -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);
     cursor: pointer;
+    -webkit-transition: all 0.3s ease;
     transition: all 0.3s ease;
+    display: -webkit-box;
+    display: -ms-flexbox;
     display: flex;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
     align-items: center;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
     justify-content: center;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
     user-select: none;
     pointer-events: auto;
 }

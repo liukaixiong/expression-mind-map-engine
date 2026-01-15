@@ -63,7 +63,9 @@
         // 帧率控制配置
         let targetFPS = BUBBLE_CONFIG.targetFPS;
         let frameInterval = 1000 / targetFPS;
-        let lastFrameTime = performance.now();
+        // 兼容性处理：performance.now() 降级方案
+        let getTime = performance && performance.now ? function() { return performance.now(); } : function() { return Date.now(); };
+        let lastFrameTime = getTime();
 
         // localStorage 存储键名
         const BUBBLE_VISIBLE_KEY = 'bubble_animation_visible';
@@ -287,6 +289,11 @@
                 return;
             }
 
+            // 兼容性处理：确保 currentTime 存在
+            if (currentTime == null) {
+                currentTime = getTime();
+            }
+
             const elapsed = currentTime - lastFrameTime;
 
             if (elapsed > frameInterval) {
@@ -298,7 +305,8 @@
             }
         }
 
-        animate();
+        // 初始调用（不传递参数，让函数内部处理）
+        animate(getTime());
 
         // 自动创建并插入开关按钮（灰色气泡+X图标）
         function createToggleButton() {
