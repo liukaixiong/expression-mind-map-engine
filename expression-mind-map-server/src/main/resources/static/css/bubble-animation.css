@@ -2,11 +2,6 @@
 :root {
     --primary-color: #3b82f6;
     --formula-purple: #8b5cf6;
-    /* 定义层级变量，便于维护 */
-    --bubble-z-index: 1;
-    --content-z-index: 10;
-    --toggle-btn-z-index: 9999;
-    --modal-z-index: 10000;
 }
 
 /* 通用body背景样式 */
@@ -19,34 +14,24 @@ body.bubble-bg {
     position: relative;
 }
 
-/* 气泡容器 - 添加初始显示样式 */
+/* 气泡容器 - 确保在最底层 */
 #bubbleContainer {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 1; /* 直接使用数值 */
+    z-index: 0;
     pointer-events: none;
     overflow: hidden;
-    /* 默认显示，避免首次加载时布局错乱 */
-    display: block !important;
 }
 
-/* 只对特定容器应用 z-index，而不是所有子元素 */
+/* 确保所有页面内容在最上层 */
 body.bubble-bg .engine-container,
 body.bubble-bg .layui-form,
-body.bubble-bg .mindmap-bg {
+body.bubble-bg form {
     position: relative;
     z-index: 10;
-}
-
-/* 确保 layui 日期选择器和弹层显示在最上层 */
-.layui-laydate,
-.layui-layer,
-.layui-layer-shade {
-    position: absolute !important;
-    z-index: 10000 !important; /* 直接使用数值 */
 }
 
 /* 3D气泡效果 - Edge 浏览器优化版 */

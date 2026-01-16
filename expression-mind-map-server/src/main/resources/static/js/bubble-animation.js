@@ -102,16 +102,9 @@
         // 初始化显示状态
         isAnimationRunning = getStoredVisibility();
 
-        // 确保容器初始状态正确（首次访问或已关闭的情况）
-        if (isAnimationRunning) {
-            // 首次访问或已开启：确保容器显示
-            container.style.display = 'block';
-            isDestroyed = false;
-        } else {
-            // 已关闭：标记为已销毁，不创建气泡
-            isDestroyed = true;
-            container.style.display = 'none';
-        }
+        // 重要：不要在初始化时修改容器的 display 属性
+        // 让 CSS 控制默认显示状态，JS 只负责在用户操作时切换
+        isDestroyed = !isAnimationRunning;
 
         // 鼠标位置
         let mouseX = -1000;
@@ -287,9 +280,7 @@
             for (var i = 0; i < BUBBLE_CONFIG.count; i++) {
                 bubbles.push(new Bubble(i, BUBBLE_CONFIG.count, gridPositions));
             }
-            container.style.display = 'block';
-        } else {
-            container.style.display = 'none';
+            // 不要设置 display，让 CSS 控制
         }
 
         // 动画循环（带帧率控制）
