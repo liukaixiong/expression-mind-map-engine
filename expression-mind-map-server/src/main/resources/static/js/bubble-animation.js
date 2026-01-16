@@ -126,22 +126,26 @@
 
                 // 使用配置的气泡大小
                 this.size = BUBBLE_CONFIG.size;
-                this.element.style.width = this.size + 'px';
-                this.element.style.height = this.size + 'px';
-                // 重要：内联设置 border-radius，确保圆形显示
-                this.element.style.borderRadius = '50%';
+
+                // 重要：使用 setProperty 和 !important 强制应用样式
+                this.applyStyle('width', this.size + 'px');
+                this.applyStyle('height', this.size + 'px');
+                this.applyStyle('border-radius', '50%');
+                this.applyStyle('position', 'absolute');
+                this.applyStyle('pointer-events', 'none');
 
                 // 随机颜色（淡紫色系概率更高）
                 var colorIndex = Math.floor(Math.random() * BUBBLE_CONFIG.colors.length);
                 this.color = BUBBLE_CONFIG.colors[colorIndex];
                 // Edge 兼容性：使用字符串拼接而不是模板字符串
-                this.element.style.background = 'radial-gradient(circle at 30% 30%, ' + this.color.inner + ', ' + this.color.outer + ')';
+                this.applyStyle('background', 'radial-gradient(circle at 30% 30%, ' + this.color.inner + ', ' + this.color.outer + ')');
                 // 简化阴影层数，提升性能
-                this.element.style.boxShadow =
+                this.applyStyle('box-shadow',
                     'inset 0 0 20px rgba(255, 255, 255, 0.6), ' +
                     'inset -5px -5px 15px rgba(0, 0, 0, 0.1), ' +
                     '0 8px 20px rgba(0, 0, 0, 0.15), ' +
-                    '0 0 25px ' + this.color.glow;
+                    '0 0 25px ' + this.color.glow
+                );
 
                 // 使用预设的网格位置，确保分布均匀
                 if (gridPositions && gridPositions[index]) {
@@ -162,7 +166,26 @@
                 if (Math.abs(this.vy) < 0.5) this.vy = (index % 3 === 0 ? 1 : -1) * (0.8 + Math.random() * 0.5);
 
                 container.appendChild(this.element);
+
+                // 重要：元素添加到 DOM 后，立即验证并强制应用关键样式
+                // 这确保即使 CSS 未加载或被覆盖，气泡仍然是圆形的
+                var self = this;
+                setTimeout(function() {
+                    var el = self.element;
+                    // 强制设置所有关键样式，使用 !important
+                    el.style.setProperty('width', self.size + 'px', 'important');
+                    el.style.setProperty('height', self.size + 'px', 'important');
+                    el.style.setProperty('border-radius', '50%', 'important');
+                    el.style.setProperty('position', 'absolute', 'important');
+                    el.style.setProperty('pointer-events', 'none', 'important');
+                }, 0);
+
                 this.updatePosition();
+            }
+
+            // 强制应用样式（使用 !important）
+            applyStyle(property, value) {
+                this.element.style.setProperty(property, value, 'important');
             }
 
             updatePosition() {
@@ -283,6 +306,42 @@
                 bubbles.push(new Bubble(i, BUBBLE_CONFIG.count, gridPositions));
             }
             // 不要设置 display，让 CSS 控制
+
+            // 重要：创建所有气泡后，进行全局样式验证和修复
+            // 确保在任何环境下气泡都是圆形的
+            setTimeout(function() {
+                verifyAndFixBubbleStyles();
+            }, 100);
+        }
+
+        // 全局样式验证和修复函数
+        function verifyAndFixBubbleStyles() {
+            var bubbleElements = document.querySelectorAll('.bubble');
+            console.log('验证气泡样式，共找到 ' + bubbleElements.length + ' 个气泡元素');
+
+            for (var i = 0; i < bubbleElements.length; i++) {
+                var el = bubbleElements[i];
+                var computedStyle = window.getComputedStyle(el);
+                var borderRadius = computedStyle.borderRadius;
+
+                // 检查关键样式
+                if (borderRadius !== '50%' && borderRadius !== '50px' && borderRadius.indexOf('50') === -1) {
+                    console.warn('气泡 #' + i + ' 样式异常: border-radius = ' + borderRadius + '，强制修复');
+                    el.style.setProperty('border-radius', '50%', 'important');
+                }
+
+                // 确保 width 和 height 正确
+                var width = computedStyle.width;
+                var height = computedStyle.height;
+                var expectedSize = BUBBLE_CONFIG.size + 'px';
+
+                if (width !== expectedSize) {
+                    el.style.setProperty('width', expectedSize, 'important');
+                }
+                if (height !== expectedSize) {
+                    el.style.setProperty('height', expectedSize, 'important');
+                }
+            }
         }
 
         // 动画循环（带帧率控制）
@@ -557,6 +616,11 @@
                     toggleBtn.classList.remove('bubble-hidden');
                     toggleBtn.title = '隐藏气泡';
                 }
+
+                // 重要：重新初始化后，再次验证样式
+                setTimeout(function() {
+                    verifyAndFixBubbleStyles();
+                }, 100);
 
                 // 重新启动动画
                 animate();

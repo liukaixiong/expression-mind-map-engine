@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>表达式引擎中枢</title>
-    <script src="/js/cdn/layui/layui.js"></script>
+    <!-- 重要：先加载 CSS，后加载 JavaScript，确保样式正确应用 -->
     <link href="/js/cdn/layui/css/layui.css" rel="stylesheet">
+    <link href="/css/bubble-animation.css" rel="stylesheet">
+    <script src="/js/cdn/layui/layui.js"></script>
     <script src="/js/Utils.js"></script>
     <script src="/js/engine-const.js"></script>
-    <!-- 引入通用气泡背景 -->
+    <!-- 最后加载气泡动画 JS -->
     <script src="/js/bubble-animation.js"></script>
-    <link href="/css/bubble-animation.css" rel="stylesheet">
     <style>
         /* 登录页特有样式 */
         :root {
