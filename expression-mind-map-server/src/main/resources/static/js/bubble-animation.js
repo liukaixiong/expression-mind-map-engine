@@ -77,8 +77,10 @@
         // 从 localStorage 读取初始状态（默认为 true，即显示）
         function getStoredVisibility() {
             try {
-                const stored = localStorage.getItem(BUBBLE_VISIBLE_KEY);
+                var stored = localStorage.getItem(BUBBLE_VISIBLE_KEY);
                 if (stored === null) {
+                    // 首次访问：保存默认值 true 到 localStorage
+                    saveVisibility(true);
                     return true; // 默认显示
                 }
                 return stored === 'true';
@@ -100,8 +102,13 @@
         // 初始化显示状态
         isAnimationRunning = getStoredVisibility();
 
-        // 如果保存的状态是关闭，则直接标记为已销毁，不创建气泡
-        if (!isAnimationRunning) {
+        // 确保容器初始状态正确（首次访问或已关闭的情况）
+        if (isAnimationRunning) {
+            // 首次访问或已开启：确保容器显示
+            container.style.display = 'block';
+            isDestroyed = false;
+        } else {
+            // 已关闭：标记为已销毁，不创建气泡
             isDestroyed = true;
             container.style.display = 'none';
         }
@@ -418,7 +425,7 @@
             },
             removeBubble: function() {
                 if (bubbles.length > 0) {
-                    const bubble = bubbles.pop();
+                    var bubble = bubbles.pop();
                     if (bubble && bubble.element) {
                         bubble.element.remove();
                     }
@@ -429,7 +436,7 @@
                     bubbles.push(new Bubble());
                 }
                 while (bubbles.length > count) {
-                    const bubble = bubbles.pop();
+                    var bubble = bubbles.pop();
                     if (bubble && bubble.element) {
                         bubble.element.remove();
                     }
@@ -494,7 +501,7 @@
                 isAnimationRunning = false;
                 this.isVisible = false;
 
-                // 保存销毁状态到 localStorage
+                // 保存销毁状态到 localStorage（保存为 false，表示已关闭）
                 saveVisibility(false);
 
                 return true;
@@ -510,6 +517,9 @@
                 // 重置状态 - 重新初始化意味着要启用气泡，所以强制设为 true
                 isDestroyed = false;
                 isAnimationRunning = true;
+
+                // 显示容器
+                container.style.display = 'block';
 
                 // 重新生成气泡
                 var gridPositions = generateGridPositions(BUBBLE_CONFIG.count);
@@ -555,15 +565,12 @@
                     toggleBtn.title = '隐藏气泡';
                 }
 
-                // 显示容器
-                container.style.display = isAnimationRunning ? 'block' : 'none';
-
                 // 重新启动动画
                 animate();
 
                 this.isVisible = isAnimationRunning;
 
-                // 保存重新初始化状态到 localStorage
+                // 保存重新初始化状态到 localStorage（保存为 true，表示已开启）
                 saveVisibility(isAnimationRunning);
 
                 return true;

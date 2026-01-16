@@ -19,26 +19,7 @@ body.bubble-bg {
     position: relative;
 }
 
-/* 确保所有页面内容在气泡上方 */
-body.bubble-bg > * {
-    position: relative;
-    z-index: 10; /* 直接使用数值，不使用 CSS 变量（Edge 兼容性） */
-}
-
-/* 确保 layui 日期选择器和弹层显示在最上层 */
-.layui-laydate,
-.layui-layer,
-.layui-layer-shade {
-    position: absolute !important;
-    z-index: 10000 !important; /* 直接使用数值 */
-}
-
-/* 确保日期选择器弹层紧贴输入框，减少间距 */
-.layui-laydate {
-    margin-top: -21px !important;
-}
-
-/* 气泡容器 */
+/* 气泡容器 - 添加初始显示样式 */
 #bubbleContainer {
     position: fixed;
     top: 0;
@@ -48,6 +29,24 @@ body.bubble-bg > * {
     z-index: 1; /* 直接使用数值 */
     pointer-events: none;
     overflow: hidden;
+    /* 默认显示，避免首次加载时布局错乱 */
+    display: block !important;
+}
+
+/* 只对特定容器应用 z-index，而不是所有子元素 */
+body.bubble-bg .engine-container,
+body.bubble-bg .layui-form,
+body.bubble-bg .mindmap-bg {
+    position: relative;
+    z-index: 10;
+}
+
+/* 确保 layui 日期选择器和弹层显示在最上层 */
+.layui-laydate,
+.layui-layer,
+.layui-layer-shade {
+    position: absolute !important;
+    z-index: 10000 !important; /* 直接使用数值 */
 }
 
 /* 3D气泡效果 - Edge 浏览器优化版 */
