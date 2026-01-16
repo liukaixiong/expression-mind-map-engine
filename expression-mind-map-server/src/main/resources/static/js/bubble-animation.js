@@ -14,7 +14,7 @@
  */
 (function() {
     // ==================== 配置参数区域 ====================
-    const BUBBLE_CONFIG = {
+    var BUBBLE_CONFIG = {
         // 气泡基础配置
         count: 15,              // 气泡数量
         size: 140,              // 气泡大小（像素）
@@ -48,31 +48,35 @@
 
     // 等待DOM加载完成
     function initBubbleAnimation() {
-        const container = document.getElementById('bubbleContainer');
+        var container = document.getElementById('bubbleContainer');
         if (!container) {
             console.warn('未找到 #bubbleContainer 容器，气泡动画无法初始化');
             return;
         }
 
-        const bubbles = [];
-        let isAnimationRunning = true; // 气泡显示状态
-        let isDestroyed = false;      // 是否已销毁
-        let animationFrameId = null;
-        let resizeTimeout = null; // resize 节流定时器
+        console.log('=== 气泡动画初始化开始 ===');
+        console.log('容器尺寸: offsetWidth=' + container.offsetWidth + ', offsetHeight=' + container.offsetHeight);
+        console.log('容器计算样式: position=' + window.getComputedStyle(container).position);
+
+        var bubbles = [];
+        var isAnimationRunning = true; // 气泡显示状态
+        var isDestroyed = false;      // 是否已销毁
+        var animationFrameId = null;
+        var resizeTimeout = null; // resize 节流定时器
 
         // 帧率控制配置
-        let targetFPS = BUBBLE_CONFIG.targetFPS;
-        let frameInterval = 1000 / targetFPS;
+        var targetFPS = BUBBLE_CONFIG.targetFPS;
+        var frameInterval = 1000 / targetFPS;
         // 兼容性处理：performance.now() 降级方案
-        let getTime = performance && performance.now ? function() { return performance.now(); } : function() { return Date.now(); };
-        let lastFrameTime = getTime();
+        var getTime = performance && performance.now ? function() { return performance.now(); } : function() { return Date.now(); };
+        var lastFrameTime = getTime();
 
         // localStorage 存储键名
-        const BUBBLE_VISIBLE_KEY = 'bubble_animation_visible';
+        var BUBBLE_VISIBLE_KEY = 'bubble_animation_visible';
 
         // 事件监听器引用（用于销毁时移除）
-        let mouseMoveHandler = null;
-        let resizeHandler = null;
+        var mouseMoveHandler = null;
+        var resizeHandler = null;
 
         // 从 localStorage 读取初始状态（默认为 true，即显示）
         function getStoredVisibility() {
@@ -119,121 +123,120 @@
         };
         document.addEventListener('mousemove', mouseMoveHandler);
 
-        class Bubble {
-            constructor(index, total, gridPositions) {
-                this.element = document.createElement('div');
-                this.element.className = 'bubble';
+        // Bubble 构造函数（使用传统函数而非 class，提高兼容性）
+        function Bubble(index, total, gridPositions) {
+            this.element = document.createElement('div');
+            this.element.className = 'bubble';
 
-                // 使用配置的气泡大小
-                this.size = BUBBLE_CONFIG.size;
+            // 使用配置的气泡大小
+            this.size = BUBBLE_CONFIG.size;
 
-                // 重要：使用 setProperty 和 !important 强制应用样式
-                this.applyStyle('width', this.size + 'px');
-                this.applyStyle('height', this.size + 'px');
-                this.applyStyle('border-radius', '50%');
-                this.applyStyle('position', 'absolute');
-                this.applyStyle('pointer-events', 'none');
+            // 重要：使用 setProperty 和 !important 强制应用样式
+            this.applyStyle('width', this.size + 'px');
+            this.applyStyle('height', this.size + 'px');
+            this.applyStyle('border-radius', '50%');
+            this.applyStyle('position', 'absolute');
+            this.applyStyle('pointer-events', 'none');
 
-                // 随机颜色（淡紫色系概率更高）
-                var colorIndex = Math.floor(Math.random() * BUBBLE_CONFIG.colors.length);
-                this.color = BUBBLE_CONFIG.colors[colorIndex];
-                // Edge 兼容性：使用字符串拼接而不是模板字符串
-                this.applyStyle('background', 'radial-gradient(circle at 30% 30%, ' + this.color.inner + ', ' + this.color.outer + ')');
-                // 简化阴影层数，提升性能
-                this.applyStyle('box-shadow',
-                    'inset 0 0 20px rgba(255, 255, 255, 0.6), ' +
-                    'inset -5px -5px 15px rgba(0, 0, 0, 0.1), ' +
-                    '0 8px 20px rgba(0, 0, 0, 0.15), ' +
-                    '0 0 25px ' + this.color.glow
-                );
+            // 随机颜色（淡紫色系概率更高）
+            var colorIndex = Math.floor(Math.random() * BUBBLE_CONFIG.colors.length);
+            this.color = BUBBLE_CONFIG.colors[colorIndex];
+            // Edge 兼容性：使用字符串拼接而不是模板字符串
+            this.applyStyle('background', 'radial-gradient(circle at 30% 30%, ' + this.color.inner + ', ' + this.color.outer + ')');
+            // 简化阴影层数，提升性能
+            this.applyStyle('box-shadow',
+                'inset 0 0 20px rgba(255, 255, 255, 0.6), ' +
+                'inset -5px -5px 15px rgba(0, 0, 0, 0.1), ' +
+                '0 8px 20px rgba(0, 0, 0, 0.15), ' +
+                '0 0 25px ' + this.color.glow
+            );
 
-                // 使用预设的网格位置，确保分布均匀
-                if (gridPositions && gridPositions[index]) {
-                    this.x = gridPositions[index].x;
-                    this.y = gridPositions[index].y;
-                } else {
-                    // 回退到随机位置
-                    this.x = Math.random() * (window.innerWidth - this.size);
-                    this.y = Math.random() * (window.innerHeight - this.size);
-                }
-
-                // 随机速度 (-2 到 2)
-                this.vx = (Math.random() - 0.5) * 4;
-                this.vy = (Math.random() - 0.5) * 4;
-
-                // 确保速度不为0且方向多样
-                if (Math.abs(this.vx) < 0.5) this.vx = (index % 2 === 0 ? 1 : -1) * (0.8 + Math.random() * 0.5);
-                if (Math.abs(this.vy) < 0.5) this.vy = (index % 3 === 0 ? 1 : -1) * (0.8 + Math.random() * 0.5);
-
-                container.appendChild(this.element);
-
-                // 重要：元素添加到 DOM 后，立即验证并强制应用关键样式
-                // 这确保即使 CSS 未加载或被覆盖，气泡仍然是圆形的
-                var self = this;
-                setTimeout(function() {
-                    var el = self.element;
-                    // 强制设置所有关键样式，使用 !important
-                    el.style.setProperty('width', self.size + 'px', 'important');
-                    el.style.setProperty('height', self.size + 'px', 'important');
-                    el.style.setProperty('border-radius', '50%', 'important');
-                    el.style.setProperty('position', 'absolute', 'important');
-                    el.style.setProperty('pointer-events', 'none', 'important');
-                }, 0);
-
-                this.updatePosition();
+            // 使用预设的网格位置，确保分布均匀
+            if (gridPositions && gridPositions[index]) {
+                this.x = gridPositions[index].x;
+                this.y = gridPositions[index].y;
+            } else {
+                // 回退到随机位置
+                this.x = Math.random() * (window.innerWidth - this.size);
+                this.y = Math.random() * (window.innerHeight - this.size);
             }
 
-            // 强制应用样式（使用 !important）
-            applyStyle(property, value) {
-                this.element.style.setProperty(property, value, 'important');
-            }
+            // 随机速度 (-2 到 2)
+            this.vx = (Math.random() - 0.5) * 4;
+            this.vy = (Math.random() - 0.5) * 4;
 
-            updatePosition() {
-                // Edge 兼容性：使用字符串拼接而不是模板字符串
-                this.element.style.transform = 'translate(' + this.x + 'px, ' + this.y + 'px)';
-                // 添加浏览器前缀
-                this.element.style.webkitTransform = this.element.style.transform;
-                this.element.style.msTransform = this.element.style.transform;
-            }
+            // 确保速度不为0且方向多样
+            if (Math.abs(this.vx) < 0.5) this.vx = (index % 2 === 0 ? 1 : -1) * (0.8 + Math.random() * 0.5);
+            if (Math.abs(this.vy) < 0.5) this.vy = (index % 3 === 0 ? 1 : -1) * (0.8 + Math.random() * 0.5);
 
-            move() {
-                // 计算到鼠标的距离和方向
-                var centerX = this.x + this.size / 2;
-                var centerY = this.y + this.size / 2;
-                var dx = mouseX - centerX;
-                var dy = mouseY - centerY;
-                var distance = Math.sqrt(dx * dx + dy * dy);
+            container.appendChild(this.element);
 
-                // 如果在鼠标影响范围内，向鼠标方向加速
-                if (distance < BUBBLE_CONFIG.mouseInfluenceRadius && distance > 0) {
-                    var force = (1 - distance / BUBBLE_CONFIG.mouseInfluenceRadius) * BUBBLE_CONFIG.mouseAttractionForce;
-                    this.vx += (dx / distance) * force;
-                    this.vy += (dy / distance) * force;
-                }
+            // 重要：元素添加到 DOM 后，立即验证并强制应用关键样式
+            // 这确保即使 CSS 未加载或被覆盖，气泡仍然是圆形的
+            var self = this;
+            setTimeout(function() {
+                var el = self.element;
+                // 强制设置所有关键样式，使用 !important
+                el.style.setProperty('width', self.size + 'px', 'important');
+                el.style.setProperty('height', self.size + 'px', 'important');
+                el.style.setProperty('border-radius', '50%', 'important');
+                el.style.setProperty('position', 'absolute', 'important');
+                el.style.setProperty('pointer-events', 'none', 'important');
+            }, 0);
 
-                // 限制最大速度
-                var speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-                if (speed > BUBBLE_CONFIG.maxSpeed) {
-                    this.vx = (this.vx / speed) * BUBBLE_CONFIG.maxSpeed;
-                    this.vy = (this.vy / speed) * BUBBLE_CONFIG.maxSpeed;
-                }
-
-                this.x += this.vx;
-                this.y += this.vy;
-
-                // 边界碰撞检测
-                if (this.x <= 0 || this.x >= window.innerWidth - this.size) {
-                    this.vx *= -1;
-                    this.x = Math.max(0, Math.min(this.x, window.innerWidth - this.size));
-                }
-                if (this.y <= 0 || this.y >= window.innerHeight - this.size) {
-                    this.vy *= -1;
-                    this.y = Math.max(0, Math.min(this.y, window.innerHeight - this.size));
-                }
-
-                this.updatePosition();
-            }
+            this.updatePosition();
         }
+
+        // 强制应用样式（使用 !important）
+        Bubble.prototype.applyStyle = function(property, value) {
+            this.element.style.setProperty(property, value, 'important');
+        };
+
+        Bubble.prototype.updatePosition = function() {
+            // Edge 兼容性：使用字符串拼接而不是模板字符串
+            this.element.style.transform = 'translate(' + this.x + 'px, ' + this.y + 'px)';
+            // 添加浏览器前缀
+            this.element.style.webkitTransform = this.element.style.transform;
+            this.element.style.msTransform = this.element.style.transform;
+        };
+
+        Bubble.prototype.move = function() {
+            // 计算到鼠标的距离和方向
+            var centerX = this.x + this.size / 2;
+            var centerY = this.y + this.size / 2;
+            var dx = mouseX - centerX;
+            var dy = mouseY - centerY;
+            var distance = Math.sqrt(dx * dx + dy * dy);
+
+            // 如果在鼠标影响范围内，向鼠标方向加速
+            if (distance < BUBBLE_CONFIG.mouseInfluenceRadius && distance > 0) {
+                var force = (1 - distance / BUBBLE_CONFIG.mouseInfluenceRadius) * BUBBLE_CONFIG.mouseAttractionForce;
+                this.vx += (dx / distance) * force;
+                this.vy += (dy / distance) * force;
+            }
+
+            // 限制最大速度
+            var speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+            if (speed > BUBBLE_CONFIG.maxSpeed) {
+                this.vx = (this.vx / speed) * BUBBLE_CONFIG.maxSpeed;
+                this.vy = (this.vy / speed) * BUBBLE_CONFIG.maxSpeed;
+            }
+
+            this.x += this.vx;
+            this.y += this.vy;
+
+            // 边界碰撞检测
+            if (this.x <= 0 || this.x >= window.innerWidth - this.size) {
+                this.vx *= -1;
+                this.x = Math.max(0, Math.min(this.x, window.innerWidth - this.size));
+            }
+            if (this.y <= 0 || this.y >= window.innerHeight - this.size) {
+                this.vy *= -1;
+                this.y = Math.max(0, Math.min(this.y, window.innerHeight - this.size));
+            }
+
+            this.updatePosition();
+        };
 
         // 检测气泡间碰撞（优化版 - 避免不必要的 Math.sqrt）
         function checkCollisions() {
@@ -277,10 +280,23 @@
         // 生成网格分布位置，避免气泡重叠
         function generateGridPositions(count) {
             var positions = [];
-            var cols = Math.ceil(Math.sqrt(count * (window.innerWidth / window.innerHeight)));
+            var winWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+            var winHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+
+            console.log('=== 气泡位置计算 ===');
+            console.log('窗口尺寸: width=' + winWidth + ', height=' + winHeight);
+            console.log('气泡数量: ' + count);
+
+            // 确保窗口尺寸有效
+            if (!winWidth || winWidth < 100) winWidth = 1920;
+            if (!winHeight || winHeight < 100) winHeight = 1080;
+
+            var cols = Math.ceil(Math.sqrt(count * (winWidth / winHeight)));
             var rows = Math.ceil(count / cols);
-            var cellWidth = window.innerWidth / cols;
-            var cellHeight = window.innerHeight / rows;
+            var cellWidth = winWidth / cols;
+            var cellHeight = winHeight / rows;
+
+            console.log('网格配置: cols=' + cols + ', rows=' + rows + ', cellWidth=' + cellWidth + ', cellHeight=' + cellHeight);
 
             for (var i = 0; i < count; i++) {
                 var col = i % cols;
@@ -290,12 +306,24 @@
                 var offsetX = cellWidth * 0.1 + Math.random() * cellWidth * 0.8;
                 var offsetY = cellHeight * 0.1 + Math.random() * cellHeight * 0.8;
 
+                var x = col * cellWidth + offsetX - 50;
+                var y = row * cellHeight + offsetY - 50;
+
+                // 确保坐标在有效范围内
+                x = Math.max(0, Math.min(x, winWidth - 150));
+                y = Math.max(0, Math.min(y, winHeight - 150));
+
                 positions.push({
-                    x: col * cellWidth + offsetX - 50,
-                    y: row * cellHeight + offsetY - 50
+                    x: x,
+                    y: y
                 });
+
+                if (i < 3) {
+                    console.log('气泡 #' + i + ': x=' + x.toFixed(0) + ', y=' + y.toFixed(0));
+                }
             }
 
+            console.log('位置计算完成，共 ' + positions.length + ' 个位置');
             return positions;
         }
 
