@@ -128,6 +128,8 @@
                 this.size = BUBBLE_CONFIG.size;
                 this.element.style.width = this.size + 'px';
                 this.element.style.height = this.size + 'px';
+                // 重要：内联设置 border-radius，确保圆形显示
+                this.element.style.borderRadius = '50%';
 
                 // 随机颜色（淡紫色系概率更高）
                 var colorIndex = Math.floor(Math.random() * BUBBLE_CONFIG.colors.length);

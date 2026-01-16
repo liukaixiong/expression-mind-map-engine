@@ -12,6 +12,7 @@ body.bubble-bg {
     font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont;
     overflow-x: hidden;
     position: relative;
+    /* 不要设置 display，让各页面自定义 */
 }
 
 /* 气泡容器 - 确保在最底层 */
@@ -37,7 +38,8 @@ body.bubble-bg form {
 /* 3D气泡效果 - Edge 浏览器优化版 */
 .bubble {
     position: absolute;
-    border-radius: 50%;
+    /* 重要：使用 !important 确保圆形不被覆盖 */
+    border-radius: 50% !important;
     /* 简化阴影层数，提升性能 */
     -webkit-box-shadow:
         inset 0 0 20px rgba(255, 255, 255, 0.6),

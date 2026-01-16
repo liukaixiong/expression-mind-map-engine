@@ -20,17 +20,19 @@
 
         /* body的基础样式已由bubble-animation.css提供，这里只添加登录页特有的overflow */
         body.bubble-bg {
-            overflow: hidden;
+            overflow: hidden !important;
             /* 使用 flexbox 让表单完全居中 */
-            display: -webkit-box;
-            display: -ms-flexbox;
-            display: flex;
-            -webkit-box-align: center;
-            -ms-flex-align: center;
-            align-items: center;
-            -webkit-box-pack: center;
-            -ms-flex-pack: center;
-            justify-content: center;
+            display: -webkit-box !important;
+            display: -ms-flexbox !important;
+            display: flex !important;
+            -webkit-box-align: center !important;
+            -ms-flex-align: center !important;
+            align-items: center !important;
+            -webkit-box-pack: center !important;
+            -ms-flex-pack: center !important;
+            justify-content: center !important;
+            /* 确保高度占满 */
+            min-height: 100vh !important;
         }
 
         /* 登录页特有的点动画背景 */
