@@ -6,12 +6,9 @@
     <title>表达式引擎中枢</title>
     <!-- 重要：先加载 CSS，后加载 JavaScript，确保样式正确应用 -->
     <link href="/js/cdn/layui/css/layui.css" rel="stylesheet">
-    <link href="/css/bubble-animation.css" rel="stylesheet">
     <script src="/js/cdn/layui/layui.js"></script>
     <script src="/js/Utils.js"></script>
     <script src="/js/engine-const.js"></script>
-    <!-- 最后加载气泡动画 JS -->
-    <script src="/js/bubble-animation.js"></script>
     <style>
         /* 登录页特有样式 */
         :root {
@@ -34,29 +31,8 @@
             justify-content: center !important;
             /* 确保高度占满 */
             min-height: 100vh !important;
-        }
-
-        /* 登录页特有的点动画背景 */
-        body.bubble-bg::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(128, 0, 128, 0.3) 10%, transparent 10.01%);
-            background-size: 20px 20px;
-            z-index: -1;
-            animation: moveDots 5s linear infinite;
-        }
-
-        @keyframes moveDots {
-            0% {
-                background-position: 0 0;
-            }
-            100% {
-                background-position: 20px 20px;
-            }
+            /* 使用SVG背景图片 */
+            background: url('/images/login-bg.svg') center center / cover no-repeat !important;
         }
 
         /* 表达式引擎主题表单 */
@@ -170,15 +146,12 @@
     </style>
 </head>
 <body class="bubble-bg">
-<!-- 五彩气泡容器 -->
-<div id="bubbleContainer"></div>
-
 <!-- 登录表单 -->
 <div class="engine-container">
     <form class="layui-form" id="loginForm">
         <div class="engine-header">
             <h1 class="engine-title">表达式引擎</h1>
-            <p class="layui-font-14" style="color: #64748b">【动态配置+可视化+实时生效】<br/>轻松玩转复杂业务</p>
+            <p class="layui-font-14" style="color: #64748b">【动态配置+可视化+实时生效】
         </div>
 
 

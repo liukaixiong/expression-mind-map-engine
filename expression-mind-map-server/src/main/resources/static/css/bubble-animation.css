@@ -9,13 +9,31 @@ body.bubble-bg {
     margin: 0;
     min-height: 100vh;
     background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-    font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont;
+    font-family: 'Segoe UI', system-ui;
     overflow-x: hidden;
     position: relative;
-    /* 不要设置 display，让各页面自定义 */
 }
 
-/* 气泡容器 - 确保在最底层 */
+/* 确保所有页面内容在气泡上方 */
+body.bubble-bg > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* 确保 layui 日期选择器和弹层显示在最上层 */
+.layui-laydate,
+.layui-layer,
+.layui-layer-shade {
+    position: absolute !important;
+    z-index: 999998 !important;
+}
+
+/* 确保日期选择器弹层紧贴输入框，减少间距 */
+.layui-laydate {
+    margin-top: -21px !important;
+}
+
+/* 气泡容器 */
 #bubbleContainer {
     position: fixed;
     top: 0;
@@ -27,38 +45,21 @@ body.bubble-bg {
     overflow: hidden;
 }
 
-/* 确保所有页面内容在最上层 */
-body.bubble-bg .engine-container,
-body.bubble-bg .layui-form,
-body.bubble-bg form {
-    position: relative;
-    z-index: 10;
-}
-
-/* 3D气泡效果 - Edge 浏览器优化版 */
-.bubble,
-div.bubble,
-div[class*="bubble"] {
-    position: absolute !important;
-    /* 重要：使用 !important 确保圆形不被覆盖 */
-    border-radius: 50% !important;
+/* 3D气泡效果 - 优化版 */
+.bubble {
+    position: absolute;
+    border-radius: 50%;
     /* 简化阴影层数，提升性能 */
-    -webkit-box-shadow:
-        inset 0 0 20px rgba(255, 255, 255, 0.6),
-        inset -5px -5px 15px rgba(0, 0, 0, 0.1),
-        0 8px 20px rgba(0, 0, 0, 0.15) !important;
     box-shadow:
         inset 0 0 20px rgba(255, 255, 255, 0.6),
         inset -5px -5px 15px rgba(0, 0, 0, 0.1),
-        0 8px 20px rgba(0, 0, 0, 0.15) !important;
-    /* Edge 不支持 backdrop-filter，使用降级方案 */
-    background: rgba(255, 255, 255, 0.1) !important;
-    pointer-events: none !important;
-    /* 启用 GPU 加速 */
-    -webkit-transform: translate3d(0, 0, 0) !important;
-    -ms-transform: translate3d(0, 0, 0) !important;
-    transform: translate3d(0, 0, 0) !important;
-    /* 移除 will-change 和 transform-style，在 Edge 中可能导致渲染问题 */
+        0 8px 20px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(3px);
+    will-change: transform;
+    transform-style: preserve-3d;
+    pointer-events: none;
+    /* 提前告知浏览器变化 */
+    transform: translateZ(0);
 }
 
 .bubble::before {
@@ -93,7 +94,7 @@ div[class*="bubble"] {
     padding: 20px;
     margin: 20px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-    /* 移除 backdrop-filter，Edge 不支持 */
+    backdrop-filter: blur(8px);
     z-index: 1;
     border: 1px solid rgba(255, 255, 255, 0.5);
 }
@@ -106,7 +107,7 @@ div[class*="bubble"] {
 /* 表格容器半透明 */
 .layui-table-container {
     background: rgba(255, 255, 255, 0.4) !important;
-    /* 移除 backdrop-filter，Edge 不支持 */
+    backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 255, 255, 0.5);
     border-radius: 16px;
 }
@@ -123,7 +124,7 @@ div[class*="bubble"] {
 /* 右侧固定列特殊处理 */
 .layui-table-fixed-r {
     background: rgba(255, 255, 255, 0.4) !important;
-    /* 移除 backdrop-filter，Edge 不支持 */
+    backdrop-filter: blur(8px);
 }
 
 .layui-table-fixed-r .layui-table-body {
@@ -184,7 +185,7 @@ div[class*="bubble"] {
 /* 分页条透明 */
 .layui-laypage {
     background: rgba(255, 255, 255, 0.4) !important;
-    /* 移除 backdrop-filter，Edge 不支持 */
+    backdrop-filter: blur(8px);
     border-radius: 8px;
     padding: 10px !important;
 }
@@ -194,55 +195,29 @@ div[class*="bubble"] {
     position: fixed;
     top: 15px;
     right: 15px;
-    z-index: 9999; /* 直接使用数值 */
+    z-index: 999999;
     width: 50px;
     height: 50px;
     border-radius: 50%;
     background: radial-gradient(circle at 30% 30%, rgba(148, 163, 184, 0.9), rgba(100, 116, 139, 0.85));
-    -webkit-box-shadow:
-        inset 0 0 20px rgba(255, 255, 255, 0.6),
-        inset 0 0 40px rgba(255, 255, 255, 0.3),
-        inset -5px -5px 15px rgba(0, 0, 0, 0.1),
-        0 4px 15px rgba(0, 0, 0, 0.15),
-        0 8px 30px rgba(0, 0, 0, 0.1);
     box-shadow:
         inset 0 0 20px rgba(255, 255, 255, 0.6),
         inset 0 0 40px rgba(255, 255, 255, 0.3),
         inset -5px -5px 15px rgba(0, 0, 0, 0.1),
         0 4px 15px rgba(0, 0, 0, 0.15),
         0 8px 30px rgba(0, 0, 0, 0.1);
-    /* 移除 backdrop-filter，Edge 不支持 */
+    backdrop-filter: blur(5px);
     cursor: pointer;
-    -webkit-transition: all 0.3s ease;
-    -moz-transition: all 0.3s ease;
-    -ms-transition: all 0.3s ease;
     transition: all 0.3s ease;
-    display: -webkit-box;
-    display: -ms-flexbox;
     display: flex;
-    -webkit-box-align: center;
-    -ms-flex-align: center;
     align-items: center;
-    -webkit-box-pack: center;
-    -ms-flex-pack: center;
     justify-content: center;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
     user-select: none;
     pointer-events: auto;
 }
 
 .bubble-toggle-btn:hover {
-    -webkit-transform: scale(1.1);
-    -ms-transform: scale(1.1);
     transform: scale(1.1);
-    -webkit-box-shadow:
-        inset 0 0 20px rgba(255, 255, 255, 0.7),
-        inset 0 0 40px rgba(255, 255, 255, 0.4),
-        inset -5px -5px 15px rgba(0, 0, 0, 0.1),
-        0 6px 20px rgba(0, 0, 0, 0.2),
-        0 12px 40px rgba(0, 0, 0, 0.15);
     box-shadow:
         inset 0 0 20px rgba(255, 255, 255, 0.7),
         inset 0 0 40px rgba(255, 255, 255, 0.4),
@@ -252,8 +227,6 @@ div[class*="bubble"] {
 }
 
 .bubble-toggle-btn:active {
-    -webkit-transform: scale(0.95);
-    -ms-transform: scale(0.95);
     transform: scale(0.95);
 }
 
