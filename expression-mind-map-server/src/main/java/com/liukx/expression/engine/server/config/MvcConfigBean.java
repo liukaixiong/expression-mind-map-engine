@@ -93,7 +93,8 @@ public class MvcConfigBean implements WebMvcConfigurer {
                 .excludePathPatterns(BaseConstants.HTML_LOGIN_PATH, BaseConstants.LOGIN_URL)
                 // 待优化，还是需要鉴权等等
                 .excludePathPatterns("/server/**")
-                .excludePathPatterns("/js/**")
+                // 排除静态资源路径，避免登录页面的背景图等资源被拦截
+                .excludePathPatterns("/js/**", "/css/**", "/fonts/**", "/images/**", "/webjars/**")
         ;
 
         // 静态资源缓存控制拦截器
