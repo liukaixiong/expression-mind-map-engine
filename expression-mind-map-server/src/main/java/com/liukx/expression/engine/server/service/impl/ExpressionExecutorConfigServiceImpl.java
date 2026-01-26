@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.liukx.expression.engine.client.enums.EnginCacheKeyEnums;
 import com.liukx.expression.engine.server.constants.BaseConstants;
 import com.liukx.expression.engine.server.constants.enums.ErrorEnum;
 import com.liukx.expression.engine.server.constants.enums.ResponseCodeEnum;
@@ -28,6 +29,7 @@ import com.liukx.expression.engine.server.util.ServiceCommonUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -51,6 +53,9 @@ public class ExpressionExecutorConfigServiceImpl extends ServiceImpl<ExpressionE
 
     @Autowired
     private ExpressionConfigService configService;
+
+    @Autowired
+    private RedisTemplate<Object, Object> redisTemplate;
 
     @Override
     public RestResult<ExpressionExecutorBaseDTO> addExpressionExecutor(AddExpressionExecutorRequest addRequest) {
@@ -177,5 +182,37 @@ public class ExpressionExecutorConfigServiceImpl extends ServiceImpl<ExpressionE
             return Convert.convert(ExpressionExecutorBaseDTO.class, expressionExecutorBaseInfo);
         }
         return null;
+    }
+
+    @Override
+    public RestResult<?> saveGlobalVariableConfig(String configJson) {
+        try {
+            Throws.nullError(configJson, "configJson");
+            // 验证 JSON 格式并解析成对象
+            Object configObj;
+            try {
+                configObj = cn.hutool.json.JSONUtil.parse(configJson);
+            } catch (Exception e) {
+                return RestResult.failed(400, "JSON 格式错误: " + e.getMessage());
+            }
+            // 保存对象到 Redis（避免双重序列化）
+            String redisKey = EnginCacheKeyEnums.GLOBAL_VARIABLE_CONFIG.generateKey();
+            redisTemplate.opsForValue().set(redisKey, configObj);
+            return RestResult.ok("保存成功");
+        } catch (Exception e) {
+            return RestResult.failed(500, "保存失败: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public RestResult<Object> getGlobalVariableConfig() {
+        try {
+            String redisKey = EnginCacheKeyEnums.GLOBAL_VARIABLE_CONFIG.generateKey();
+            Object config = redisTemplate.opsForValue().get(redisKey);
+            // 返回空对象而不是 null
+            return RestResult.ok(Objects.requireNonNullElseGet(config, HashMap::new));
+        } catch (Exception e) {
+            return RestResult.failed(500, "查询失败: " + e.getMessage());
+        }
     }
 }

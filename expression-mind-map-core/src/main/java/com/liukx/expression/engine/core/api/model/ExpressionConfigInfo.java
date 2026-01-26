@@ -31,6 +31,11 @@ public class ExpressionConfigInfo {
     private String varDefinition;
 
     /**
+     * 全局的变量配置
+     */
+    private String globalVarConfig;
+
+    /**
      * 拓展能力
      */
     private Map<String, Object> configurabilityMap;

@@ -16,6 +16,7 @@ public enum EnginCacheKeyEnums {
     EXPRESSION_DOC_KEY("expression_doc", null),
     EXPRESSION_VAR_TYPE_KEY("expression_var_type", null),
     EXPRESSION_LOCK("expression_lock", null),
+    GLOBAL_VARIABLE_CONFIG("global_variable_config", null),
 
 
     ;

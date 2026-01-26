@@ -68,6 +68,15 @@ let final_const = {
         expression_import_node: '/expression-engine/executor/expression/importNode',
         expression_edit_parent: '/expression-engine/executor/expression/editParentId',
         expression_copy_node: '/expression-engine/executor/expression/copyNode',
+
+        /**
+         * 保存全局变量配置
+         */
+        save_global_variable_config: '/expression-engine/executor/info/saveGlobalVariableConfig',
+        /**
+         * 查询全局变量配置
+         */
+        get_global_variable_config: '/expression-engine/executor/info/getGlobalVariableConfig',
     },
 
     template_path: {

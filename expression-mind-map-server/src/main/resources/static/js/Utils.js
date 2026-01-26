@@ -29,6 +29,55 @@ let engineUtils = function () {
             }
         });
     };
+
+    /**
+     * 静默 POST 请求 - 不弹出错误提示，始终执行回调
+     * 适用于自动补全等场景
+     *
+     * @param url 请求地址
+     * @param data 请求数据
+     * @param callback 回调函数，无论成功失败都会执行，参数为 response 或 null
+     */
+    let requestPostSilent = function postSilent(url, data, callback) {
+        let $ = layui.$;
+        $.ajax({
+            url: url,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            dataType: 'json',
+            success: function (response) {
+                callback(response);
+            },
+            error: function (xhr, status, error) {
+                // 请求失败时传递 null 给回调
+                callback(null);
+            }
+        });
+    };
+
+    /**
+     * 静默 GET 请求 - 不弹出错误提示，始终执行回调
+     * 适用于自动补全等场景
+     *
+     * @param url 请求地址（参数已包含在 url 中）
+     * @param callback 回调函数，无论成功失败都会执行，参数为 response 或 null
+     */
+    let requestGetSilent = function getSilent(url, callback) {
+        let $ = layui.$;
+        $.ajax({
+            url: url,
+            type: 'GET',
+            dataType: 'json',
+            success: function (response) {
+                callback(response);
+            },
+            error: function (xhr, status, error) {
+                // 请求失败时传递 null 给回调
+                callback(null);
+            }
+        });
+    };
     let getRequestParams = function getRequest() {
         var url = location.search; //获取url中"?"符后的字串
         var theRequest = new Object();
@@ -73,6 +122,8 @@ let engineUtils = function () {
     }
     return {
         requestPost: requestPost,
+        requestPostSilent: requestPostSilent,
+        requestGetSilent: requestGetSilent,
         getRequestParams: getRequestParams,
         compareDateStr: compareDateStr
     }

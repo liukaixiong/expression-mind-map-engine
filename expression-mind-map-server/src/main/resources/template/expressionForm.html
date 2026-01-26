@@ -6,12 +6,36 @@
     <link href="/js/cdn/layui/css/layui.css" rel="stylesheet">
     <script src="/js/cdn/layui/layui.js"></script>
 
+    <!-- Ace Editor - 本地版本 -->
+    <script src="/js/cdn/ace/ace.min.js"></script>
+    <script src="/js/cdn/ace/mode-javascript.min.js"></script>
+    <script src="/js/cdn/ace/theme-chrome.min.js"></script>
+    <script src="/js/cdn/ace/ext-language_tools.min.js"></script>
+    <script src="/js/cdn/ace/ext-error_marker.min.js"></script>
     <script src="/js/cdn/jquery-3.3.1.min.js"></script>
     <script src="/js/cdn/json-viewer/jquery.json-viewer.js"></script>
     <link href="/js/cdn/json-viewer/jquery.json-viewer.css" type="text/css" rel="stylesheet">
 
     <script src="/js/Utils.js"></script>
     <script src="/js/engine-const.js"></script>
+    <script src="/js/ace-expression-editor.js"></script>
+    <style>
+        /* Ace Editor 基础样式 */
+        #expressionEditor {
+            height: 200px;
+            font-size: 14px;
+            line-height: 1.5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        /* Ace Editor 补全提示框样式 - 使用 Ace 内置的文档显示 */
+        /* 注意：Ace Editor 1.32.2 会自动处理补全文档的显示 */
+        /* 这里只做最小的样式调整，避免覆盖默认行为 */
+        .ace_editor.ace_autocomplete {
+            z-index: 999999;  /* 确保补全框在最上层 */
+        }
+    </style>
 </head>
 <body>
 <div id="exp-form-data" style="padding-left: 50px;padding-top: 50px">
@@ -73,9 +97,11 @@
                 </span>
             </label>
             <div class="layui-input-block">
-                <textarea style="min-height: 150px" class="layui-textarea" id="expression_input_search"
-                          name="expressionContent"
-                          placeholder="请输入表达式内容,如果为空的情况下建议填true"></textarea>
+                <!-- 隐藏的原始输入框，用于表单提交 -->
+                <textarea class="layui-hide" id="expression_input_search"
+                          name="expressionContent"></textarea>
+                <!-- Ace Editor 容器 -->
+                <div id="expressionEditor"></div>
             </div>
         </div>
         <div class="layui-form-item">
@@ -165,6 +191,12 @@
                 }
             }
             form.val('expression-form', defaultData);
+            // 数据加载完成后更新编辑器内容
+            setTimeout(function () {
+                if (expressionEditor && defaultData.expressionContent) {
+                    expressionEditor.setValue(defaultData.expressionContent, -1);
+                }
+            }, 100);
         })
     } else {
         // 代表新增逻辑
@@ -183,57 +215,29 @@
         this.checked ? configurabilityEnableArray.add(name) : configurabilityEnableArray.delete(name);
     });
 
-    //引入自定义插件
-    layui.config({
-        base: '/js/cdn/layui/ext/' //设置自定义插件路径:根据实际路径进行设置
-    }).use(['yutons_sug'], function () {
-        //创建yutons_sug搜索框提示插件||输入框提示插件实例
-        var yutons_sug = layui.yutons_sug;
+    // ========================================
+    // 初始化 Ace Editor 表达式编辑器
+    // ========================================
+    let expressionEditor = null;
 
-        //初始化姓名输入提示框
-        yutons_sug.render({
-            id: "expression_input_search", //设置容器唯一id
-            height: "full",
-            page: false,
-            cols: [
-                [{
-                    field: 'name',
-                    title: '名称'
-                }, {
-                    field: 'params',
-                    title: '参数'
-                }, {
-                    field: 'describe',
-                    title: '描述'
-                }, {
-                    field: 'example',
-                    title: '案例'
-                }, {
-                    field: 'groupName',
-                    title: '分组'
-                }, {
-                    field: 'type',
-                    title: '类型'
-                }]
-            ], //设置表头
-            type: 'sugTable', //设置输入框提示类型：sug-下拉框，sugTable-下拉表格
-            url: api_executor_doc_search_list + "?executorId=" + executorId + "&&expressionId=" + (dataId || '') + "&&limit=8&&name=" //设置异步数据接口,url为必填项,params为字段名
-            , parseData: function (res) {
-                return {
-                    "code": res.code === 200 ? 0 : res.code, //解析接口状态
-                    // "msg": res.message, //解析提示文本
-                    // "count": res.total, //解析数据长度
-                    "data": res.data //解析数据列表
-                };
-            },
-            showText: function (res) {
-                let text = res.name;
-                if (res.type === 'fn') {
-                    text = text + "()";
-                }
-                return text;
-            }
+    $(document).ready(function () {
+        // 创建编辑器实例
+        expressionEditor = new AceExpressionEditor({
+            containerId: 'expressionEditor',
+            textareaId: 'expression_input_search',
+            executorId: executorId,
+            expressionId: dataId,
+            apiPath: api_executor_doc_search_list,
+            height: '200px',
+            theme: 'ace/theme/chrome',
+            mode: 'ace/mode/javascript',
+            fontSize: '14px',
+            enableLiveAutocompletion: true,
+            enableBasicAutocompletion: true
         });
+
+        // 初始化编辑器
+        expressionEditor.init();
     });
 
     // 刷新编码

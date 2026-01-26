@@ -10,5 +10,8 @@ public enum ExecutorCoxnfigurabilitySwitchEnum {
      * 开启追踪
      */
     enableTrace,
-
+    /**
+     * 注入全局变量
+     */
+    enableGlobalVar,
 }

@@ -79,5 +79,17 @@ public class ExecutorManagerController {
         return RestResult.ok();
     }
 
+    //    @ApiOperation("保存全局变量配置")
+    @PostMapping("/saveGlobalVariableConfig")
+    public RestResult<?> saveGlobalVariableConfig(@RequestBody String configJson) {
+        return executorConfigService.saveGlobalVariableConfig(configJson);
+    }
+
+    //    @ApiOperation("查询全局变量配置")
+    @PostMapping("/getGlobalVariableConfig")
+    public RestResult<Object> getGlobalVariableConfig() {
+        return executorConfigService.getGlobalVariableConfig();
+    }
+
 
 }
