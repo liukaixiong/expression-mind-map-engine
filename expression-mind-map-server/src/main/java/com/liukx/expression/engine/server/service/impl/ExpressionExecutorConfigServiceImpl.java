@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.liukx.expression.engine.client.enums.EnginCacheKeyEnums;
+import com.liukx.expression.engine.core.utils.Jsons;
 import com.liukx.expression.engine.server.constants.BaseConstants;
 import com.liukx.expression.engine.server.constants.enums.ErrorEnum;
 import com.liukx.expression.engine.server.constants.enums.ResponseCodeEnum;
@@ -191,7 +192,7 @@ public class ExpressionExecutorConfigServiceImpl extends ServiceImpl<ExpressionE
             // 验证 JSON 格式并解析成对象
             Object configObj;
             try {
-                configObj = cn.hutool.json.JSONUtil.parse(configJson);
+                configObj = Jsons.parseMap(configJson);
             } catch (Exception e) {
                 return RestResult.failed(400, "JSON 格式错误: " + e.getMessage());
             }
