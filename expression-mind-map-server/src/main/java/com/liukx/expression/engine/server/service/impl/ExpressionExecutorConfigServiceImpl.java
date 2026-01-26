@@ -198,7 +198,7 @@ public class ExpressionExecutorConfigServiceImpl extends ServiceImpl<ExpressionE
             }
             // 保存对象到 Redis（避免双重序列化）
             String redisKey = EnginCacheKeyEnums.GLOBAL_VARIABLE_CONFIG.generateKey();
-            redisTemplate.opsForValue().set(redisKey, configObj);
+            redisTemplate.opsForValue().set(redisKey, configJson);
             return RestResult.ok("保存成功");
         } catch (Exception e) {
             return RestResult.failed(500, "保存失败: " + e.getMessage());
