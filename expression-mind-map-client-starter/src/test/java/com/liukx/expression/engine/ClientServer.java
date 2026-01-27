@@ -42,8 +42,8 @@ public class ClientServer {
     /**
      * 演示示例:
      * 1、启动服务端【注意redis要连接上喔~具体配置=> src/test/resources/application.yml】
-     * 2、<a href="http://localhost:20888/template/trace-list.html">进入页面</a>
-     * 3、导入规则：demo_example.json
+     * 2、执行器配置页面: <a href="http://localhost:20888/template/executor-list.html">进入页面</a>
+     * 3、导入规则覆盖：demo_example.json => src/test/resources/demo_example.json
      * 4、执行该用例
      * 5、<a href="http://localhost:20888/template/trace-list.html">查看追踪结果</a>
      *
@@ -66,6 +66,7 @@ public class ClientServer {
 
         // 这里是一个执行器请求
         ClientExpressionSubmitRequest request = new ClientExpressionSubmitRequest();
+        // 这里是来自: http://localhost:20888/template/executor-list.html 定义的参数
         // 这里对应的是业务组
         request.setBusinessCode("demo");
         // 这里对应的是业务编码
@@ -89,7 +90,7 @@ public class ClientServer {
 
 
         // 指定分支流程
-//        context.addEnvContext("enableExampleDemo", Arrays.asList("branch_fun_demo"));
+//        context.addEnvContext("enableExampleDemo", Arrays.asList("flow_demo"));
         // 跑通全流程
         context.addEnvContext("enableExampleDemo", Arrays.asList("base_expression_demo", "base_fun_demo", "branch_fun_demo", "flow_demo"));
 

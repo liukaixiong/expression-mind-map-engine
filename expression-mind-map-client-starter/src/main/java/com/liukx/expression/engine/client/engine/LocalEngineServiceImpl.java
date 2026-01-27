@@ -14,7 +14,6 @@ import com.liukx.expression.engine.client.helper.ConfigurabilityHelper;
 import com.liukx.expression.engine.client.log.LogEventEnum;
 import com.liukx.expression.engine.client.log.LogHelper;
 import com.liukx.expression.engine.client.process.ExpressionFilterChain;
-import com.liukx.expression.engine.client.process.ExpressionNodeFilterChain;
 import com.liukx.expression.engine.core.api.model.*;
 import com.liukx.expression.engine.core.utils.AssertUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -63,9 +62,6 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
 
     @Autowired(required = false)
     private List<ExpressionExecutorPostProcessor> executorPostProcessors = new ArrayList<>();
-
-    @Autowired(required = false)
-    private List<ExpressionNodeExecutorFilter> expressionNodeExecutorFilters = new ArrayList<>();
 
     @Override
     public EngineCallType type() {
@@ -240,12 +236,12 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
             envContext.addEnvThreadClassInfo(treeModel);
 
             // 清理当前分支存储结果
-//            envContext.clearBranchResult(expressionId);
+            envContext.clearBranchResult(expressionId);
 
             executionCallbackList.forEach(var -> var.before(treeModel, baseRequest, envContext));
 
             // 如果表达式是空的,那么默认认为是可执行的
-            ExpressionFilterChain filterChain = new ExpressionFilterChain(expressionExecutorFilters, () -> expressionService.execute(expression, envContext.getSourceMap()));
+            ExpressionFilterChain filterChain = new ExpressionFilterChain(expressionExecutorFilters, () -> executorExpressionContext(baseRequest, envContext, expressionService, treeModel, configInfo));
             if (StringUtils.isNotEmpty(expression)) {
                 final ExpressionContextResult expressionContextResult = filterChain.doFilter(envContext, configInfo, treeModel, baseRequest);
                 execute = expressionContextResult.getResult();
@@ -262,10 +258,31 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
 
         LogHelper.trace(envContext, baseRequest, LogEventEnum.EXPRESSION_CALL, " [{}] [{}] [title:{}],[表达式:{}] -> 结果:[{}]", expressionType, expressionId, title, expression, execute);
 
-        final FlowControlEnum flowControl = calculateFlowControlInfo(envContext, treeModel);
+        return envContext.getBranchFlowResult(treeModel.getExpressionId());
+    }
 
-        if (execute instanceof Boolean) {
-            if ((Boolean) execute) {
+    /**
+     * 表达式的执行过程
+     *
+     * @param baseRequest
+     * @param envContext
+     * @param expressionService
+     * @param treeModel
+     * @param configInfo
+     * @return
+     */
+    private ExpressionContextResult executorExpressionContext(ExpressionBaseRequest baseRequest, ExpressionEnvContext envContext, ExpressionService expressionService, ExpressionConfigTreeModel treeModel, ExpressionConfigInfo configInfo) {
+        final String expression = treeModel.getExpression();
+        final Long expressionId = treeModel.getExpressionId();
+        final String expressionType = treeModel.getExpressionType();
+        final String title = treeModel.getTitle();
+
+        // 执行表达式
+        final ExpressionContextResult execute = expressionService.execute(expression, envContext.getSourceMap());
+
+        final Object result = execute.getResult();
+        if (result instanceof Boolean) {
+            if ((Boolean) result) {
                 // 下面可能到时候还需要重构一版: 无法组合使用
                 // 跳转分支的处理,从这里开始实现,目前来看这个功能有一定的场景实用性,但感觉不大,实现起来也比较麻烦.
                 // 它的场景: 就是思维导图的方式无法直接把一些公用的逻辑抽离出来(比如A分支需要执行一段子分支逻辑C,B分支也需要执行一段子逻辑分支C)
@@ -286,14 +303,6 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
                     final List<ExpressionConfigTreeModel> nodeExpressionList = treeModel.getNodeExpression();
                     final List<CompletableFuture<Void>> taskList = nodeExpressionList.stream().map(nodeExpression -> CompletableFuture.runAsync(() -> expressionProcessor(baseRequest, envContext, configInfo, nodeExpression, expressionService), TtlExecutors.getTtlExecutorService(executor.executorService()))).collect(Collectors.toList());
                     CompletableFuture.allOf(taskList.toArray(new CompletableFuture[0])).join();
-                } else if (ConfigurabilityHelper.isEnableExpressionConfigurability(treeModel.getConfigurabilityMap(), ExpressionCoxnfigurabilitySwitchEnum.enableGlobalLock)) {
-                    // 如果启用了全局锁的能力,这部分就是应对并发的加锁的逻辑
-                    // 这里是为了实现局部子分支统一管理比如说：上锁
-                    ExpressionNodeFilterChain chain = new ExpressionNodeFilterChain(expressionNodeExecutorFilters, () -> {
-                        executorExpression(baseRequest, envContext, configInfo, treeModel.getNodeExpression());
-                        return null;
-                    });
-                    chain.doFilter(baseRequest, envContext, configInfo, treeModel, execute);
                 } else {
                     // 未开启任何能力的逻辑
                     executorExpression(baseRequest, envContext, configInfo, treeModel.getNodeExpression());
@@ -301,7 +310,7 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
             }
         }
 
-        return flowControl;
+        return execute;
     }
 
     /**

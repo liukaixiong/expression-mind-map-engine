@@ -12,6 +12,7 @@ import com.liukx.expression.engine.core.api.model.ExpressionConfigTreeModel;
  * @author liukaixiong
  * @date 2024/8/23 - 10:10
  */
+@Deprecated
 public interface ExpressionNodeExecutorFilter {
 
     void doExpressionNodeFilter(ExpressionBaseRequest baseRequest, ExpressionEnvContext envContext, ExpressionConfigInfo configInfo, ExpressionConfigTreeModel configTreeModelList, Object execute, ExpressionNodeFilterChain chain);

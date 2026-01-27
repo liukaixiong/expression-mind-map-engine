@@ -16,6 +16,7 @@ import java.util.function.Supplier;
  * @author liukaixiong
  * @date 2024/8/23 - 10:09
  */
+@Deprecated
 public class ExpressionNodeFilterChain {
     /**
      * 拦截器

@@ -22,8 +22,6 @@ public class BranchContextExpressionExecutorFilter implements ExpressionExecutor
     @Override
     public ExpressionContextResult doExpressionFilter(ExpressionEnvContext env, ExpressionConfigInfo configInfo, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request, ExpressionFilterChain chain) {
         env.recordBranchResult(configTreeModel.getExpressionId(), "_branchContext", configTreeModel);
-        final ExpressionContextResult expressionContextResult = chain.doFilter(env, configInfo, configTreeModel, request);
-        env.clearBranchResult(configTreeModel.getExpressionId());
-        return expressionContextResult;
+        return chain.doFilter(env, configInfo, configTreeModel, request);
     }
 }

@@ -22,6 +22,7 @@ public enum BaseFunctionDescEnum implements ExpressFunctionDocumentLoader {
     END_IN_RETURN("base_flow_control", "fn_in_return", "执行当前分支的内部子分支流程后,返回到上层分支，同级别分支不在继续", new String[]{}, "true || false", "fn_return()"),
     END_FORCE("base_flow_control", "fn_force_end", "强制终止流程,不在继续执行任何流程", new String[]{}, "true || false", "fn_force_end()"),
     END_ERROR_MESSAGE("base_flow_control", "fn_error_message", "强制终止流程,不在继续执行任何流程,并返回异常结果", new String[]{"错误信息"}, "true || false", "fn_error_message('信息描述')"),
+    END_ERROR_EXCEPTION("base_flow_control", "fn_error_exception", "直接抛出异常", new String[]{"错误信息"}, "break", "fn_error_exception('异常信息')"),
     END_REDIRECT("base_flow_control", "fn_redirect", "重定向到指定分支", new String[]{"表达式编码"}, "true || false", "fn_redirect('表达式编码')"),
     DEBUG_BODY("base_debug", "debug_body", "打印请求参数", new String[]{"上下文key"}, "true || false", "debug_body('request')"),
     DEBUG_OBJECT("base_debug", "debug_object", "打印请求参数", new String[]{"上下文对象"}, "true || false", "debug_object(request)"),
