@@ -89,9 +89,15 @@ var AceExpressionEditor = (function () {
             showPrintMargin: false,
             enableBasicAutocompletion: this.config.enableBasicAutocompletion,
             enableLiveAutocompletion: this.config.enableLiveAutocompletion,
+            // 设置实时补全延迟，确保每次输入都能触发后端请求
+            liveAutocompletionDelay: 300,
+            liveAutocompletionThreshold: 2,  // 输入1个字符就触发
             wrap: true,
             autoScrollEditorIntoView: true
         });
+
+        // 扩展 JavaScript 模式以支持 Aviator lambda 语法
+        this._extendModeForAviator();
 
         // 同步内容到 textarea
         this._bindTextareaSync();
@@ -205,11 +211,11 @@ var AceExpressionEditor = (function () {
                     return;
                 }
 
-                // 使用缓存
-                if (self.completerCache[keyword]) {
-                    callback(null, self.completerCache[keyword]);
-                    return;
-                }
+                // 禁用缓存，每次都请求后端获取最新的前缀匹配结果
+                // if (self.completerCache[keyword]) {
+                //     callback(null, self.completerCache[keyword]);
+                //     return;
+                // }
 
                 // 请求后端 API
                 self._fetchCompletions(keyword, callback);
@@ -457,6 +463,76 @@ var AceExpressionEditor = (function () {
                 this.langTools.completers.unshift(completer);
             }
         }
+    };
+
+    /**
+     * 扩展 JavaScript 模式以支持 Aviator lambda 语法
+     * Aviator lambda 语法: lambda -> lambda + 1, (x, y) -> x + y
+     * @private
+     */
+    AceExpressionEditor.prototype._extendModeForAviator = function () {
+        var self = this;
+
+        // 等待 mode 完全加载后扩展
+        setTimeout(function () {
+            try {
+                var JavaScriptHighlightRules = ace.require('ace/mode/javascript_highlight_rules').JavaScriptHighlightRules;
+                var oop = ace.require('ace/lib/oop');
+
+                // 创建自定义 Aviator 高亮规则
+                var AviatorHighlightRules = function () {
+                    JavaScriptHighlightRules.call(this);
+                    this.$rules.start.unshift({
+                        token: 'storage.type.function',
+                        regex: '\\blambda\\b'
+                    }, {
+                        token: 'keyword.operator',
+                        regex: '->'
+                    });
+                };
+                oop.inherits(AviatorHighlightRules, JavaScriptHighlightRules);
+
+                // 创建自定义 Mode
+                var AviatorMode = function () {
+                    ace.require('ace/mode/javascript').Mode.call(this);
+                    this.HighlightRules = AviatorHighlightRules;
+                };
+                oop.inherits(AviatorMode, ace.require('ace/mode/javascript').Mode);
+
+                self.editor.session.setMode(new AviatorMode());
+
+                // 拦截 session 的 setAnnotations 方法，过滤 lambda 相关错误
+                var originalSetAnnotations = self.editor.session.setAnnotations;
+                self.editor.session.setAnnotations = function (annotations) {
+                    var filtered = [];
+
+                    for (var i = 0; i < annotations.length; i++) {
+                        var anno = annotations[i];
+                        var line = self.editor.session.getLine(anno.row);
+
+                        // 如果包含 lambda 语法，过滤掉相关的语法错误
+                        if (line.indexOf('->') > -1 || line.indexOf('lambda') > -1) {
+                            if (anno.text && (
+                                anno.text.indexOf('Unexpected token') > -1 ||
+                                anno.text.indexOf('Missing') > -1 ||
+                                anno.text.indexOf('Expected') > -1 ||
+                                anno.text.indexOf('arrow') > -1 ||
+                                anno.text.indexOf('=>') > -1
+                            )) {
+                                continue;
+                            }
+                        }
+                        filtered.push(anno);
+                    }
+
+                    originalSetAnnotations.call(this, filtered);
+                };
+
+                console.log('AceExpressionEditor: 已扩展支持 Aviator lambda 语法 (->)');
+            } catch (e) {
+                console.warn('AceExpressionEditor: 扩展 Aviator 语法失败', e);
+            }
+        }, 100);
     };
 
     /**
