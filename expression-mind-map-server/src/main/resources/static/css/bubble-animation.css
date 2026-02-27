@@ -7,24 +7,24 @@
 /* 通用body背景样式 */
 body.bubble-bg {
     margin: 0;
-    min-height: auto;
+    min-height: 100vh;  /* 改为 100vh 确保页面至少占满视口高度 */
     background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
     font-family: 'Segoe UI', system-ui;
     overflow-x: hidden;
     position: relative;
 }
 
-/* 确保所有页面内容在气泡上方 */
-body.bubble-bg > * {
+/* 确保所有页面内容在气泡上方，但不影响 layui 弹层 */
+body.bubble-bg > *:not(.layui-layer):not(.layui-layer-shade) {
     position: relative;
     z-index: 1;
 }
 
-/* 确保 layui 日期选择器和弹层显示在最上层 */
+/* 确保 layui 日期选择器和弹层使用 fixed 定位，不受 body 高度影响 */
 .layui-laydate,
 .layui-layer,
 .layui-layer-shade {
-    position: absolute !important;
+    position: fixed !important;  /* 改为 fixed，相对于视口定位 */
     z-index: 999998 !important;
 }
 

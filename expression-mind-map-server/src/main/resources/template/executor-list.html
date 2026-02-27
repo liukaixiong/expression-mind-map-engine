@@ -152,11 +152,13 @@
             maxmin: true,
             resize: true,
             title: title,
-            offset: 'auto',
+            offset: ['15%', '15%'],  // 固定偏移位置，避免受父容器影响
             shadeClose: true,
             scrollbar: true,  // 改为 true，显示滚动条，避免内容撑满
             area: ['70%', '70%'],
             content: apiUrl,
+            fixed: true,  // 确保弹层固定定位
+            anim: 1,  // 添加动画效果
         });
     }
 
@@ -168,6 +170,7 @@
         method: 'post',
         title: '执行器列表',
         limit: 20,
+        // height: 'full-200', // 设置表格高度为满屏减去200px，避免数据少时表格被压缩
         contentType: 'application/json',
         cols: [[
             {field: 'id', title: '主键', width: 50}, // 单选框
