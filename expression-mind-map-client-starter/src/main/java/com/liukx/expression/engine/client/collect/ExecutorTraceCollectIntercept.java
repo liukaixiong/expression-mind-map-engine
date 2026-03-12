@@ -3,6 +3,7 @@ package com.liukx.expression.engine.client.collect;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.thread.ThreadUtil;
 import com.alibaba.ttl.TransmittableThreadLocal;
+import com.googlecode.aviator.runtime.type.AviatorFunction;
 import com.googlecode.aviator.utils.Reflector;
 import com.liukx.expression.engine.client.api.ExpressionConfigExecutorIntercept;
 import com.liukx.expression.engine.client.api.ExpressionExecutorPostProcessor;
@@ -25,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.CollectionUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -177,7 +179,11 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
             dto.setResultType(resultType.name());
             dto.setExpressionConfigId(configTreeModel.getExpressionId());
             dto.setFunctionApiModel(functionInfo);
-            dto.setFuncArgs(funcArgs);
+            // 这里需要过滤一些参数,aviator的某些函数类型会导致死循环
+            if (!CollectionUtils.isEmpty(funcArgs)) {
+                final List<Object> functionArgs = funcArgs.stream().filter(var -> !(var instanceof AviatorFunction)).collect(Collectors.toList());
+                dto.setFuncArgs(functionArgs);
+            }
             dto.setResult(result);
 
             if (resultType == ExpressionLogTypeEnum.expression) {

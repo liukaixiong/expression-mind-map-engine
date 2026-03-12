@@ -27,12 +27,14 @@ public enum BaseFunctionDescEnum implements ExpressFunctionDocumentLoader {
     DEBUG_BODY("base_debug", "debug_body", "打印请求参数", new String[]{"上下文key"}, "true || false", "debug_body('request')"),
     DEBUG_OBJECT("base_debug", "debug_object", "打印请求参数", new String[]{"上下文对象"}, "true || false", "debug_object(request)"),
     DEBUG_LOG("base_debug", "debug_log", "打印请求参数", new String[]{"打印对象"}, "true || false", "debug_log(param)"),
+    DEBUG_TEST_LOG("base_debug", "debug_test_log", "打印请求参数", new String[]{"结果描述","结果值"}, "true || false", "debug_log(param)"),
     ENV_ADD_LIST("base_env", "fn_env_add_list", "添加上下文环境变量", new String[]{"环境变量key", "环境变量值"}, "true || false", "fn_add_env_list('key','value')"),
     ENV_PUT_VALUE("base_env", "fn_env_put_value", "设置上下文环境变量", new String[]{"环境变量key", "环境变量值"}, "true || false", "fn_put_value('key','value')"),
     ENV_PUT_BRANCH_VALUE("base_env", "fn_env_put_branch_value", "设置当前分支的变量，该变量仅存在与该分支内部用作一些关键功能的参数回调", new String[]{"环境变量组或者key", "环境变量值"}, "true || false", "fn_env_put_branch_value('key','value')"),
     ENV_GET_BRANCH_VALUE("base_env", "fn_env_get_branch_value", "获取当前分支的变量", new String[]{"环境变量组或者key"}, "true || false", "fn_env_get_branch_value('key')"),
     ENV_PUT_ALL_VALUE("base_env", "fn_env_put_all_value", "设置上下文环境变量", new String[]{"环境变量key", "环境变量值"}, "true || false", "fn_put_value('key','value')"),
     ENV_GET_VALUE("base_env", "fn_env_get_value", "获取上下文环境变量", new String[]{"环境变量key"}, "true || false", "fn_get_value('key')"),
+    ENV_SPRING_GET_VALUE("base_env", "fn_env_spring_get_value", "获取spring中的环境变量", new String[]{"环境变量key","转换的值:obj,list,map","默认值"}, "true || false", "fn_env_spring_get_value('key','value','default')"),
     ENV_GET_RESULT_MAP_VALUE("base_env", "fn_env_get_result_map", "获取结果缓存中的Map结构的值", new String[]{"组key","键"}, "object", "fn_env_get_result_map('group','key')"),
     ENV_INVOKE_METHOD("base", "fn_env_invoke_method", "执行变量中对应的方法", new String[]{"变量对象", "变量的方法", "变量的参数: 使用seq.list(变量1,变量2,变量3)"}, "true || false", "fn_env_invoke_method(obj,'xxMethod',seq.list(1,2,3))"),
     SYS_SLEEP("base", "fn_sys_sleep", "休眠", new String[]{"毫秒值"}, "true || false", "fn_sys_sleep(5000)"),
@@ -44,6 +46,8 @@ public enum BaseFunctionDescEnum implements ExpressFunctionDocumentLoader {
     RECORD_RESULT_MAP_CONTEXT("base_result", "fn_record_result_map_context", "设置结果到上下文中", new String[]{"组", "键", "值"}, "true || false", "fn_record_result_map_context('result','abc')"),
     OBJECT_IS_NOT_NULL("base_util", "fn_object_is_not_null", "判断值是否为空,允许传递多个值,请传递变量", new String[]{"值1", "值2"}, "true || false", "fn_object_is_not_null(a1,a2)"),
     OBJECT_STR_TO_JSON("base_util", "fn_str_to_json", "字符串转json对象", new String[]{"json字符串"}, "true || false", "fn_str_to_json(jsonStr)"),
+    LIST_STREAM_MAP("base_util", "fn_list_stream_map", "集合转换", new String[]{"集合对象","转换数值"}, "true || false", "fn_list_stream_map(list,lambda(x)-> xxx end)"),
+
     ;
     private final FunctionApiModel functionApiModel;
 

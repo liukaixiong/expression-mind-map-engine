@@ -2,10 +2,13 @@ package com.liukx.expression.engine.client.process;
 
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.ClassUtil;
 import com.google.common.base.Splitter;
 import com.googlecode.aviator.runtime.function.AbstractVariadicFunction;
 import com.googlecode.aviator.runtime.function.FunctionUtils;
+import com.googlecode.aviator.runtime.type.AviatorFunction;
 import com.googlecode.aviator.runtime.type.AviatorObject;
+import com.googlecode.aviator.runtime.type.AviatorRuntimeJavaType;
 import com.liukx.expression.engine.client.api.ExpressFunctionDocumentLoader;
 import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
 import com.liukx.expression.engine.client.example.DemoFunDescDefinitionService;
@@ -26,6 +29,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.function.Function;
 
 /**
  * 简单的函数定义
@@ -36,7 +40,7 @@ import java.util.*;
 public abstract class AbstractSimpleFunction extends AbstractVariadicFunction implements ExpressFunctionDocumentLoader {
 
     @Autowired
-    private FunctionContextManager functionContextManager;
+    private FunctionContextManager functionContextManager = new FunctionContextManager();
 
     @Override
     public AviatorObject variadicCall(Map<String, Object> env, AviatorObject... args) {
@@ -84,18 +88,37 @@ public abstract class AbstractSimpleFunction extends AbstractVariadicFunction im
             if (processor == null) {
                 //子类识别处理
                 processor = processor(expressionEnvContext, configTreeModel, request, funcArgs);
-                LogHelper.trace(expressionEnvContext, request, LogEventEnum.FUNCTION_CALL, "function result {} 结果: {}", cacheKey, processor);
+                LogHelper.trace(expressionEnvContext, request, LogEventEnum.FUNCTION_CALL, "function result {} 结果: {}", cacheKey, logValue(processor));
                 expressionEnvContext.addFunctionCache(cacheKey, processor);
             } else {
                 expressionEnvContext.recordTraceDebugContent(getName(), "命中本地缓存", cacheKey + "=" + processor);
-                LogHelper.trace(expressionEnvContext, request, LogEventEnum.FUNCTION_CALL, "★★★命中缓存★★★ {} 中获取值: {}", cacheKey, processor);
+                LogHelper.trace(expressionEnvContext, request, LogEventEnum.FUNCTION_CALL, "★★★命中缓存★★★ {} 中获取值: {}", cacheKey, logValue(processor));
             }
         } else {
             // 强制执行函数
             processor = processor(expressionEnvContext, configTreeModel, request, funcArgs);
-            LogHelper.trace(expressionEnvContext, request, LogEventEnum.FUNCTION_CALL, "skip cache function result {} 结果: {}", cacheKey, processor);
+            LogHelper.trace(expressionEnvContext, request, LogEventEnum.FUNCTION_CALL, "skip cache function result {} 结果: {}", cacheKey, logValue(processor));
         }
         return processor;
+    }
+
+    /**
+     * 打印数据
+     *
+     * @param value
+     * @return
+     */
+    public String logValue(Object value) {
+
+        if (value == null) {
+            return "null";
+        }
+
+        if (ClassUtil.isSimpleValueType(value.getClass())) {
+            return value.toString();
+        } else {
+            return value.getClass().getSimpleName();
+        }
     }
 
     /**
@@ -316,6 +339,30 @@ public abstract class AbstractSimpleFunction extends AbstractVariadicFunction im
             }
         }
         return list;
+    }
+
+    /**
+     * 获取 lambda 函数，支持指定输入类型
+     *
+     * @param env       表达式环境
+     * @param funArgs   函数参数列表
+     * @param index     参数索引
+     * @param inputType 输入类型（null 表示自动推断为 Object）
+     * @param clazz     返回类型
+     * @param <I>       输入类型泛型
+     * @param <T>       返回类型泛型
+     * @return Function 对象
+     */
+    @SuppressWarnings("unchecked")
+    protected <I, T> Function<I, T> getArgsIndexFunction(ExpressionEnvContext env, List<Object> funArgs, int index, Class<I> inputType, Class<T> clazz) {
+        final Map<String, Object> sourceMap = env.getSourceMap();
+        AviatorFunction lambda = FunctionUtils.getFunction(FunctionUtils.wrapReturn(funArgs.get(index)), sourceMap, 1);
+
+        // 转换为 Java Function 以便复用
+        return input -> {
+            AviatorObject result = lambda.call(sourceMap, AviatorRuntimeJavaType.valueOf(input));
+            return Convert.convert(clazz, result.getValue(sourceMap));
+        };
     }
 
 }
