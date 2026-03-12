@@ -93,6 +93,10 @@
                                 onclick="linkExpressionSampleBody()" type="button">
                             跳转追踪示例
                         </button>
+                        <button class="layui-btn layui-btn-radius layui-btn-warm" id="expression_history_btn"
+                                onclick="openExpressionHistory()" type="button">
+                            查看历史版本
+                        </button>
                     </i>
                 </span>
             </label>
@@ -362,6 +366,194 @@
             result += characters.charAt(Math.floor(Math.random() * characters.length));
         }
         return result;
+    }
+
+    // ========================================
+    // 表达式历史版本相关函数
+    // ========================================
+    let api_expression_history_list = final_const.api_path.expression_history_list;
+    let api_expression_history_detail = final_const.api_path.expression_history_detail;
+
+    /**
+     * 打开历史版本弹窗
+     */
+    function openExpressionHistory() {
+        if (!dataId) {
+            layer.msg('请先保存表达式后再查看历史版本！');
+            return;
+        }
+
+        engineUtils.requestPost(api_expression_history_list + "?expressionId=" + dataId, {}, function (response) {
+            if (response.code === 200) {
+                let historyList = response.data || [];
+                showHistoryDialog(historyList);
+            } else {
+                layer.msg(response.message);
+            }
+        });
+    }
+
+    /**
+     * 显示历史版本弹窗
+     */
+    function showHistoryDialog(historyList) {
+        if (historyList.length === 0) {
+            layer.msg('暂无历史版本记录');
+            return;
+        }
+
+        // 构建表格HTML
+        let tableHtml = `
+            <div style="padding: 20px;">
+                <table class="layui-table" lay-skin="line">
+                    <thead>
+                        <tr>
+                            <th>版本号</th>
+                            <th>变更类型</th>
+                            <th>操作人</th>
+                            <th>时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${historyList.map(item => `
+                            <tr>
+                                <td>V${item.versionNo}</td>
+                                <td>${getChangeTypeBadge(item.changeType)}</td>
+                                <td>${item.operator || '-'}</td>
+                                <td>${formatDateTime(item.createTime)}</td>
+                                <td>
+                                    <button class="layui-btn layui-btn-xs"
+                                            onclick="previewVersion(${item.versionNo})">
+                                        预览
+                                    </button>
+                                    <button class="layui-btn layui-btn-xs layui-btn-normal"
+                                            onclick="restoreVersion(${item.versionNo})">
+                                        恢复
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        layer.open({
+            type: 1,
+            title: '表达式历史版本',
+            area: ['800px', '600px'],
+            shadeClose: true,
+            content: tableHtml,
+            btn: ['关闭'],
+            yes: function(index) {
+                layer.close(index);
+            }
+        });
+    }
+
+    /**
+     * 预览版本内容
+     */
+    function previewVersion(versionNo) {
+        engineUtils.requestPost(
+            api_expression_history_detail + "?expressionId=" + dataId + "&versionNo=" + versionNo,
+            {},
+            function (response) {
+                if (response.code === 200) {
+                    let history = response.data;
+                    let contentHtml = `
+                        <div style="padding: 20px;">
+                            <fieldset class="layui-elem-field">
+                                <legend>版本信息</legend>
+                                <div class="layui-field-box">
+                                    <p><strong>版本号：</strong>V${history.versionNo}</p>
+                                    <p><strong>变更类型：</strong>${history.changeType}</p>
+                                    <p><strong>操作人：</strong>${history.operator || '-'}</p>
+                                    <p><strong>时间：</strong>${formatDateTime(history.createTime)}</p>
+                                    ${history.changeReason ? `<p><strong>变更原因：</strong>${history.changeReason}</p>` : ''}
+                                </div>
+                            </fieldset>
+                            <fieldset class="layui-elem-field">
+                                <legend>表达式内容</legend>
+                                <div class="layui-field-box">
+                                    <pre style="background: #f6f6f6; padding: 10px; border-radius: 4px; overflow-x: auto;">${escapeHtml(history.expressionContent)}</pre>
+                                </div>
+                            </fieldset>
+                        </div>
+                    `;
+                    layer.open({
+                        type: 1,
+                        title: '历史版本详情',
+                        area: ['700px', '500px'],
+                        shadeClose: true,
+                        content: contentHtml
+                    });
+                }
+            }
+        );
+    }
+
+    /**
+     * 恢复版本到编辑器
+     */
+    function restoreVersion(versionNo) {
+        layer.confirm('确定要将此版本内容恢复到编辑器吗？当前内容将被覆盖。', {icon: 3, title: '确认恢复'}, function(index) {
+            engineUtils.requestPost(
+                api_expression_history_detail + "?expressionId=" + dataId + "&versionNo=" + versionNo,
+                {},
+                function (response) {
+                    if (response.code === 200) {
+                        let history = response.data;
+                        // 将历史内容设置到编辑器
+                        expressionEditor.setValue(history.expressionContent, -1);
+                        layer.msg('版本内容已恢复到编辑器，请检查后保存');
+                        layer.close(index);
+                        // 关闭历史版本弹窗
+                        layer.closeAll('page');
+                    }
+                }
+            );
+        });
+    }
+
+    /**
+     * 格式化日期时间
+     */
+    function formatDateTime(dateStr) {
+        if (!dateStr) return '-';
+        let date = new Date(dateStr);
+        return date.toLocaleString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    /**
+     * HTML 转义
+     */
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text.replace(/&/g, "&amp;")
+                   .replace(/</g, "&lt;")
+                   .replace(/>/g, "&gt;")
+                   .replace(/"/g, "&quot;")
+                   .replace(/'/g, "&#039;");
+    }
+
+    /**
+     * 获取变更类型徽章
+     */
+    function getChangeTypeBadge(changeType) {
+        const badges = {
+            'CREATE': '<span class="layui-badge layui-bg-green">创建</span>',
+            'UPDATE': '<span class="layui-badge layui-bg-blue">更新</span>',
+            'DELETE': '<span class="layui-badge layui-bg-red">删除</span>'
+        };
+        return badges[changeType] || changeType;
     }
 </script>
 </html>

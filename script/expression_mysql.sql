@@ -124,4 +124,29 @@ CREATE TABLE `expression_trace_log_info` (
 ;
 
 
+-- ----------------------------
+-- Table structure for expression_history_version
+-- ----------------------------
+DROP TABLE IF EXISTS `expression_history_version`;
+CREATE TABLE `expression_history_version` (
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键id',
+  `expression_id` bigint NOT NULL COMMENT '表达式id',
+  `executor_id` bigint NOT NULL COMMENT '执行器id',
+  `expression_code` varchar(50) NOT NULL COMMENT '表达式编码',
+  `expression_title` varchar(100) DEFAULT NULL COMMENT '表达式标题（历史快照）',
+  `expression_content` varchar(1000) NOT NULL COMMENT '表达式内容（历史快照）',
+  `expression_description` varchar(500) DEFAULT NULL COMMENT '表达式描述（历史快照）',
+  `version_no` int NOT NULL COMMENT '版本号',
+  `change_type` varchar(20) NOT NULL COMMENT '变更类型: CREATE-创建, UPDATE-更新, DELETE-删除',
+  `change_reason` varchar(500) DEFAULT NULL COMMENT '变更原因（可选）',
+  `operator` varchar(50) DEFAULT NULL COMMENT '操作人',
+  `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  PRIMARY KEY (`id`),
+  KEY `idx_expression_id` (`expression_id`) USING BTREE,
+  KEY `idx_executor_id` (`executor_id`) USING BTREE,
+  KEY `idx_create_time` (`create_time`) USING BTREE,
+  KEY `idx_expression_version` (`expression_id`, `version_no`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='表达式历史版本表';
+
+
 SET FOREIGN_KEY_CHECKS = 1;

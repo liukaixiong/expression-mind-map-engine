@@ -77,6 +77,14 @@ let final_const = {
          * 查询全局变量配置
          */
         get_global_variable_config: '/expression-engine/executor/info/getGlobalVariableConfig',
+        /**
+         * 获取表达式历史版本列表
+         */
+        expression_history_list: '/expression-engine/executor/expression/history/list',
+        /**
+         * 获取历史版本详情
+         */
+        expression_history_detail: '/expression-engine/executor/expression/history/detail',
     },
 
     template_path: {

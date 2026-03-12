@@ -18,11 +18,13 @@ import com.liukx.expression.engine.server.event.ExecutorConfigRefreshEvent;
 import com.liukx.expression.engine.server.exception.Throws;
 import com.liukx.expression.engine.server.mapper.ExpressionConfigMapper;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorInfoConfig;
+import com.liukx.expression.engine.server.mapper.entity.ExpressionHistoryVersion;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionTraceLogInfo;
 import com.liukx.expression.engine.server.model.dto.request.*;
 import com.liukx.expression.engine.server.model.dto.response.ExpressionExecutorDetailConfigDTO;
 import com.liukx.expression.engine.server.model.dto.response.RestResult;
 import com.liukx.expression.engine.server.service.ExpressionConfigService;
+import com.liukx.expression.engine.server.service.ExpressionHistoryVersionService;
 import com.liukx.expression.engine.server.service.ExpressionTraceLogInfoService;
 import com.liukx.expression.engine.server.service.impl.syncData.ExpressionConfigSyncDataServiceImpl;
 import com.liukx.expression.engine.server.util.ExpressionUtils;
@@ -63,6 +65,9 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
     @Autowired
     private ExpressionConfigSyncDataServiceImpl expressionConfigSyncDataService;
 
+    @Autowired
+    private ExpressionHistoryVersionService expressionHistoryVersionService;
+
     private static List<ExpressionExecutorDetailConfigDTO> convertExpressionExecutorDetailConfigDTO(List<ExpressionExecutorInfoConfig> expressionExecutorDetailConfigs) {
         return expressionExecutorDetailConfigs.stream().map(config -> Convert.convert(ExpressionExecutorDetailConfigDTO.class, config)).collect(Collectors.toList());
     }
@@ -92,6 +97,9 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
 
         RestResult<ExpressionExecutorDetailConfigDTO> result = new RestResult<>();
         if (addSuccess) {
+            // 保存历史版本
+            expressionHistoryVersionService.saveHistory(expressionExecutorDetailConfig, "CREATE", request.getCreateBy());
+
             ExpressionExecutorDetailConfigDTO nodeDTO = new ExpressionExecutorDetailConfigDTO();
             BeanUtil.copyProperties(expressionExecutorDetailConfig, nodeDTO, CopyOptions.create().setIgnoreError(true).setIgnoreNullValue(true));
             result.setCode(ResponseCodeEnum.E_200.getCode());
@@ -148,6 +156,12 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         BeanUtil.copyProperties(editRequest, nodeConfig, CopyOptions.create().setIgnoreNullValue(true).setIgnoreError(true));
         nodeConfig.setUpdateTime(LocalDateTime.now());
         boolean updateSuccess = this.updateById(nodeConfig);
+
+        if (updateSuccess) {
+            // 保存历史版本 - 先获取更新后的完整数据
+            ExpressionExecutorInfoConfig updatedConfig = this.getById(editRequest.getId());
+            expressionHistoryVersionService.saveHistory(updatedConfig, "UPDATE", editRequest.getUpdateBy());
+        }
 
         ExpressionExecutorDetailConfigDTO expressionExecutorDetailConfigDTO = new ExpressionExecutorDetailConfigDTO();
         BeanUtil.copyProperties(editRequest, expressionExecutorDetailConfigDTO);
@@ -267,6 +281,14 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         final RestResult<?> restResult = ServiceCommonUtil.batchDelete(delRequest, "找不到相关记录，不用执行删除操作", getBaseMapper(), queryWrapper, updateWrapper);
 
         if (restResult.isOk()) {
+            // 保存所有删除的表达式到历史版本
+            if (CollectionUtil.isNotEmpty(idSet)) {
+                List<ExpressionExecutorInfoConfig> expressionsToDelete = this.listByIds(idSet);
+                for (ExpressionExecutorInfoConfig expression : expressionsToDelete) {
+                    expressionHistoryVersionService.saveHistory(expression, "DELETE", delRequest.getUpdateBy());
+                }
+            }
+
             if (detailConfig != null) {
                 refreshConfigPost(detailConfig.getExecutorId());
             }
