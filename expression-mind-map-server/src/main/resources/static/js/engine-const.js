@@ -85,6 +85,21 @@ let final_const = {
          * 获取历史版本详情
          */
         expression_history_detail: '/expression-engine/executor/expression/history/detail',
+
+        /**
+         * 远程调试执行
+         */
+        debug_execute: '/expression-engine/debug/execute',
+
+        /**
+         * 获取执行器绑定的服务信息
+         */
+        debug_executor_info: '/expression-engine/debug/executor-info',
+
+        /**
+         * 获取Nacos注册中心的所有服务列表
+         */
+        debug_nacos_services: '/expression-engine/debug/services',
     },
 
     template_path: {

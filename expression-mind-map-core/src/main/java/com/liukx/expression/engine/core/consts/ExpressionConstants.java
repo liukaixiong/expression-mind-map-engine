@@ -47,4 +47,8 @@ public class ExpressionConstants {
      * 客户端文档信息提交
      */
     public static final String SERVER_DOC_SUBMIT = "/server/doc/submit";
+    /**
+     * 客户端调试信息提交
+     */
+    public static final String CLIENT_DEBUG_EXECUTOR = "/client/debug/executor";
 }

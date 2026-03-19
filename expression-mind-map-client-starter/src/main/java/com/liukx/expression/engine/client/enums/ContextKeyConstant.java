@@ -13,6 +13,8 @@ public class ContextKeyConstant {
      */
     public static final String FUNCTION_REDIRECT_EXPRESSION_CODE = "_redirectExpressionCode";
 
+    public static final String SPRING_PLUGIN_EXPRESS = "spring.plugin.express";
+
     public static class End {
         public static final String END_TOP_KEY = "_feature_end_top";
 

@@ -87,6 +87,7 @@ public class ExpClientEnginAutoConfiguration {
     public BranchContextExpressionExecutorFilter branchContextExpressionExecutorFilter() {
         return new BranchContextExpressionExecutorFilter();
     }
+
     @Bean
     public ExceptionSkipExpressionExecutorFilter exceptionSkipExpressionExecutorFilter(List<ExpressionConfigExecutorIntercept> executionCallbackList) {
         return new ExceptionSkipExpressionExecutorFilter(executionCallbackList);
@@ -103,5 +104,7 @@ public class ExpClientEnginAutoConfiguration {
     public RedissonLockExpressionConfigurabilityProcessor redissonLockExpressionConfig(RedissonClient redissonClient) {
         return new RedissonLockExpressionConfigurabilityProcessor(redissonClient);
     }
+
+
 
 }

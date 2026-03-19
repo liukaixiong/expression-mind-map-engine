@@ -7,6 +7,10 @@ import com.liukx.expression.engine.client.api.thread.ExpressionSpringThreadExecu
 import com.liukx.expression.engine.client.collect.ExecutorTraceCollectIntercept;
 import com.liukx.expression.engine.client.collect.ExpressionDocCollect;
 import com.liukx.expression.engine.client.config.props.ExpressionProperties;
+import com.liukx.expression.engine.client.debug.DebugController;
+import com.liukx.expression.engine.client.debug.service.IDebugTokenService;
+import com.liukx.expression.engine.client.debug.service.impl.DebugTokenServiceImpl;
+import com.liukx.expression.engine.client.enums.ContextKeyConstant;
 import com.liukx.expression.engine.client.factory.ExpressionExecutorFactory;
 import com.liukx.expression.engine.client.feature.ExpressionConfigIdFilterSupport;
 import com.liukx.expression.engine.client.feature.ExpressionFunctionNameFilterSupport;
@@ -40,10 +44,20 @@ public class ExpressionConfiguration {
      * @return
      */
     @Bean
-    @ConditionalOnProperty(prefix = "spring.plugin.express", value = "enable-trace-log", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnProperty(prefix = ContextKeyConstant.SPRING_PLUGIN_EXPRESS, value = "enable-trace-log", havingValue = "true", matchIfMissing = true)
     public ExecutorTraceCollectIntercept executorTraceCollectIntercept() {
         log.info("expression -> 【启用表达式日志追踪能力】");
         return new ExecutorTraceCollectIntercept();
+    }
+
+    @Bean
+    public IDebugTokenService engineDebugTokenService() {
+        return new DebugTokenServiceImpl();
+    }
+
+    @Bean
+    public DebugController engineDebugController() {
+        return new DebugController();
     }
 
     /**

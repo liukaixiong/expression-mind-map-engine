@@ -52,6 +52,10 @@ spring:
   plugin:
     express:
       enable-trace-log: false
+      # 是否起启用调试开关
+      debug-enabled: true
+      # 调试的token信息
+      debug-token: admin-token
   expression:
     server:
       enable-login: true
