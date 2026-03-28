@@ -41,16 +41,18 @@ public class FnEnvSpringGetValueFunction extends AbstractSimpleFunction implemen
     public Object processor(ExpressionEnvContext env, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request, List<Object> funArgs) {
         // fn_env_spring_get_value("server.port", "int", "defaultValue")
         String propertyKey = getArgsIndexValue(funArgs, 0);
-        String propertyClass = getArgsIndexValue(funArgs, 1);
-        Object defaultValue = getArgsIndexValue(funArgs, 2);
+        String propertyClass = getArgsIndexValue(funArgs, 1, "string");
+        Object defaultValue = getArgsIndexOptionalValue(funArgs, 2);
+
         final Class<?> shotClass = ClassUtils.getShotClass(propertyClass);
         final String strValue = applicationContext.getEnvironment().getProperty(propertyKey);
         final Object value = Jsons.parseObject(strValue, shotClass);
 
-        if (ObjectUtils.isEmpty(value)) {
+        if (ObjectUtils.isEmpty(value) && defaultValue != null) {
             env.recordTraceDebugContent(getName(), "defaultValue", defaultValue);
             return Convert.convert(shotClass, defaultValue);
         }
+
         return value;
     }
 }

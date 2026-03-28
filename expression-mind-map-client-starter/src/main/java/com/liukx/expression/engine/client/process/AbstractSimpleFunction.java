@@ -190,6 +190,22 @@ public abstract class AbstractSimpleFunction extends AbstractVariadicFunction im
         return ExpressFunctionDocumentLoader.super.loadFunctionList();
     }
 
+
+    /**
+     * 获取参数的可选值,允许下标的值为空
+     *
+     * @param objectList 对象
+     * @param index      下标
+     * @param <T>
+     * @return
+     */
+    protected <T> T getArgsIndexOptionalValue(List<Object> objectList, int index) {
+        if (objectList != null && objectList.size() > index) {
+            return (T) objectList.get(index);
+        }
+        return null;
+    }
+
     /**
      * 获取参数对象
      * <p>
@@ -202,8 +218,10 @@ public abstract class AbstractSimpleFunction extends AbstractVariadicFunction im
      * @return
      */
     protected <T> T getArgsIndexValue(List<Object> objectList, int index, T defaultValue) {
-        if (objectList != null && objectList.size() > index) {
-            return (T) objectList.get(index);
+        final T value = getArgsIndexOptionalValue(objectList, index);
+
+        if (value != null) {
+            return value;
         }
 
         AssertUtils.Function.isTrue(defaultValue != null, "函数[" + getName() + "] 第[" + index + "]个参数为空!");

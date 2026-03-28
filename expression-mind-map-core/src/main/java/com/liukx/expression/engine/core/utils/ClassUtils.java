@@ -11,10 +11,11 @@ import java.util.Map;
  * @date 2024/11/14 - 15:00
  */
 public class ClassUtils {
-    private static final Map<String, Class<?>> namePrimitiveMap = new HashMap<String, Class<?>>();
+    private static final Map<String, Class<?>> namePrimitiveMap = new HashMap<>();
 
     static {
         namePrimitiveMap.put("boolean", Boolean.TYPE);
+        namePrimitiveMap.put("string", String.class);
         namePrimitiveMap.put("byte", Byte.TYPE);
         namePrimitiveMap.put("char", Character.TYPE);
         namePrimitiveMap.put("short", Short.TYPE);
