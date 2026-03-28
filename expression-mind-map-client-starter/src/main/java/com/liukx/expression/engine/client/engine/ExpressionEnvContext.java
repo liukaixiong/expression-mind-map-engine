@@ -81,7 +81,7 @@ public class ExpressionEnvContext {
     public void recordTraceDebugContent(String name, String key, Object value) {
         Map<String, Object> debugTraceMap = (Map<String, Object>) this.sourceMap.computeIfAbsent(getCacheFunctionKeyName(name, getConfigTreeModel()), k -> new LinkedHashMap<String, Object>());
         debugTraceMap.put(key, value);
-         logger.info("函数追踪埋点 :{} -> {} -> {} ", name, key, value);
+        // logger.info("函数追踪埋点 :{} -> {} -> {} ", name, key, value);
     }
 
     public ExpressionConfigTreeModel getConfigTreeModel() {

@@ -201,6 +201,7 @@ public abstract class AbstractSimpleFunction extends AbstractVariadicFunction im
      */
     protected <T> T getArgsIndexOptionalValue(List<Object> objectList, int index) {
         if (objectList != null && objectList.size() > index) {
+            //noinspection unchecked
             return (T) objectList.get(index);
         }
         return null;
@@ -218,10 +219,9 @@ public abstract class AbstractSimpleFunction extends AbstractVariadicFunction im
      * @return
      */
     protected <T> T getArgsIndexValue(List<Object> objectList, int index, T defaultValue) {
-        final T value = getArgsIndexOptionalValue(objectList, index);
-
-        if (value != null) {
-            return value;
+        if (objectList != null && objectList.size() > index) {
+            //noinspection unchecked
+            return (T) objectList.get(index);
         }
 
         AssertUtils.Function.isTrue(defaultValue != null, "函数[" + getName() + "] 第[" + index + "]个参数为空!");
