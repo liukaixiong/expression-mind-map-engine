@@ -192,7 +192,7 @@ public class ExpressionTraceLogIndexServiceImpl extends ServiceImpl<ExpressionTr
             if (result instanceof Boolean) {
                 traceLogInfo.setExpressionResult((Boolean) result ? 1 : 0);
             } else {
-                traceLogInfo.setExpressionResult(Objects.equals(result, -1) ? -1 : 0);
+                traceLogInfo.setExpressionResult(Objects.equals(result, -1) ? -1 : 1);
             }
 
             if (expressionLogTypeEnum == ExpressionLogTypeEnum.function) {
