@@ -56,6 +56,10 @@ spring:
       debug-enabled: true
       # 调试的token信息
       debug-token: admin-token
+  # RestTemplate 超时配置
+  http:
+    connect-timeout: ${engine.http.connect-timeout:5s}
+    read-timeout: ${engine.http.read-timeout:10s}
   expression:
     server:
       enable-login: true

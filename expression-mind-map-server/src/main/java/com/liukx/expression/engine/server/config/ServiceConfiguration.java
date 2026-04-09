@@ -2,6 +2,7 @@ package com.liukx.expression.engine.server.config;
 
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
@@ -9,12 +10,20 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
+
 /**
  * @author liukaixiong
  * @date 2023/12/12
  */
 @Configuration
 public class ServiceConfiguration {
+
+    @Value("${spring.http.connect-timeout:5s}")
+    private Duration connectTimeout;
+
+    @Value("${spring.http.read-timeout:10s}")
+    private Duration readTimeout;
 
     //    @Bean(
 //            name = {"multipartResolver"}
@@ -40,7 +49,10 @@ public class ServiceConfiguration {
     @ConditionalOnMissingBean
     @LoadBalanced
     public RestTemplate restTemplate(RestTemplateBuilder restTemplateBuilder) {
-        return restTemplateBuilder.build();
+        return restTemplateBuilder
+                .setConnectTimeout(connectTimeout)
+                .setReadTimeout(readTimeout)
+                .build();
     }
 
 }

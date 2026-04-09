@@ -402,3 +402,148 @@ public class DemoEnvRegister implements ExpressionVariableRegister {
 
 使用方式：`fn_redirect('hjN38DRW0h')` 参数就是分支的表达式编码。
 
+## 6. 业务场景案例
+
+基于引擎能力，提供了三个贴近实际业务的完整场景案例，方便快速理解和上手。所有案例均支持通过服务端页面导入后直接运行。
+
+### 前置准备
+
+1. 启动服务端（注意 Redis 要连接上，配置参考 `src/test/resources/application.yml`）
+2. 打开执行器配置页面: http://localhost:20888/template/executor-list.html
+3. 导入对应的 JSON 规则文件
+4. 运行测试类 `com.liukx.expression.engine.BusinessScenarioTest` 中的对应方法
+5. 在追踪页面查看执行结果: http://localhost:20888/template/trace-list.html
+
+### 场景概览
+
+| 场景 | JSON文件 | businessCode | executorCode | 测试方法 |
+|------|---------|-------------|-------------|---------|
+| 电商订单风控 | `scenario_shop_order_risk.json` | `shop` | `orderRisk` | `testShopOrder_*` |
+| 金融贷款审批 | `scenario_finance_loan_approval.json` | `finance` | `loanApproval` | `testFinanceLoan_*` |
+| 营销活动引擎 | `scenario_marketing_promotion.json` | `marketing` | `promotion` | `testMarketing_*` |
+
+### 场景1：电商订单风控
+
+模拟一个完整的电商下单链路风控检查：
+
+```
+下单入口
+├── [最高优先级] 黑名单拦截 → fn_force_end() 强制终止
+├── 订单金额校验
+│   ├── 低于最低限额 → fn_in_end() 分支结束
+│   ├── 超过最高限额 → 标记需要人工审核
+│   └── 金额正常 → 通过
+├── 用户等级判断
+│   ├── 黄金会员(VIP3) → 85折
+│   ├── 白银会员(VIP2) → 9折
+│   └── 普通用户 → 无折扣
+├── 限时秒杀活动
+│   ├── 秒杀时段校验(10:00-12:00)
+│   │   ├── 通过 → 全局锁保护下库存扣减
+│   │   └── 未开放 → 拒绝
+├── 优惠券核销
+│   ├── 满足门槛 → 核销成功
+│   └── 不满足门槛 → 拒绝
+└── 订单结算汇总
+```
+
+测试方法：
+
+| 方法 | 说明 |
+|------|------|
+| `testShopOrder_NormalOrder()` | 正常下单：黄金会员 + 优惠券 + 结算成功 |
+| `testShopOrder_BlacklistUser()` | 黑名单用户被 `fn_force_end()` 拦截 |
+| `testShopOrder_AmountTooLow()` | 金额不足被拒绝 |
+| `testShopOrder_FlashSaleOutOfTime()` | 非秒杀时段被拒绝 |
+
+### 场景2：金融贷款审批
+
+模拟银行贷款自动审批流程：
+
+```
+贷款审批入口
+├── [最高优先级] 风控前置检查
+│   ├── 高风险用户(HIGH) → fn_force_end() 强制终止
+│   ├── 逾期记录(>3次) → fn_force_end() 强制终止
+│   └── 风控通过
+├── 信用评分校验
+│   ├── < 600 → 拒绝（信用不足）
+│   ├── >= 750（优秀）→ 基准利率下浮10%
+│   └── 600~749（良好）→ 基准利率
+├── 收入负债比(DTI)校验
+│   ├── 负债率 > 50% → 拒绝
+│   └── 负债率正常 → 通过
+├── 贷款额度与期限校验
+│   ├── < 1000 → 拒绝（金额过低）
+│   ├── > 500000 → 转人工审批
+│   ├── 期限 > 36月 → 利率上浮10%
+│   └── 金额正常 → 通过
+└── 最终审批决策 → 汇总结果
+```
+
+测试方法：
+
+| 方法 | 说明 |
+|------|------|
+| `testFinanceLoan_Approved()` | 审批通过：优秀信用 + 低负债 + 正常额度 |
+| `testFinanceLoan_HighRiskReject()` | 高风险用户被拦截 |
+| `testFinanceLoan_LowCreditScore()` | 信用评分不足被拒绝 |
+| `testFinanceLoan_HighDTI()` | 负债率过高被拒绝 |
+
+### 场景3：营销活动引擎
+
+模拟多类型营销活动的统一处理引擎：
+
+```
+营销活动入口
+├── 活动时间校验
+│   ├── 日期范围(全年) + 时段(8:00-22:00)
+│   └── 非活动时段 → 拒绝
+├── 参与次数限制
+│   ├── 已达每日上限 → 拒绝
+│   └── 未达上限 → 计算剩余次数
+├── 新人专享活动
+│   ├── 注册<=7天 → 发放50积分新人礼包
+│   └── 注册>7天 → 拒绝
+├── 邀请有奖
+│   ├── VIP邀请人 → 1.5倍积分(150积分)
+│   └── 普通邀请人 → 标准积分(100积分)
+├── 每日签到
+│   ├── 连续>=7天 → 积分翻倍(20积分)
+│   └── 普通 → 10积分
+├── 抽奖活动
+│   ├── VIP3及以上 → VIP通道(200积分)
+│   └── 普通用户 → 普通通道(20积分)
+├── 周末双倍积分检查
+└── 活动结算汇总
+```
+
+测试方法：
+
+| 方法 | 说明 |
+|------|------|
+| `testMarketing_NewUserGift()` | 新人礼包：注册3天获得50积分 |
+| `testMarketing_VIPInviteReward()` | VIP邀请获得1.5倍积分 |
+| `testMarketing_ConsecutiveSignin()` | 连续签到7天积分翻倍 |
+| `testMarketing_ParticipateLimitExceeded()` | 参与次数已满被拒绝 |
+| `testMarketing_VIPLottery()` | VIP抽奖 + 周末双倍积分 |
+| `testAllScenarios()` | 一键运行所有场景的典型用例 |
+
+### 案例覆盖的引擎能力
+
+| 能力 | 涉及函数/特性 | 使用场景 |
+|------|-------------|---------|
+| 强制终止 | `fn_force_end()` | 黑名单拦截、高风险用户拒绝 |
+| 分支结束 | `fn_in_end()` | 金额不足拒绝、秒杀非时段 |
+| 异常终止+消息 | `fn_error_message()` | 黑名单用户提示 |
+| 上下文变量 | `fn_env_put_value()` | 标记折扣率、记录校验状态 |
+| 结果记录 | `fn_record_result_context()` | 记录审批结果、奖励金额 |
+| 调试日志 | `debug_log()` / `debug_body()` | 追踪各环节执行状态 |
+| 时间判断 | `fn_sys_date_hour_range()` / `fn_sys_date_day_range()` | 秒杀时段、活动有效期 |
+| 日期变量 | `env_date_local_date` / `env_date_local_date_time` | 周末判断、审批时间记录 |
+| 静态类方法 | `stringUtils.isNotEmpty()` | 优惠券编码校验 |
+| 配置变量 | `configEnv_*` | 最低限额、基准利率、积分倍率 |
+| 全局锁 | `enableGlobalLock` | 秒杀库存扣减 |
+| 分支路由 | `include(scenarioModules,'xxx')` | 模块化开关控制 |
+| 请求参数 | `request.*` | 订单金额、用户等级、信用评分等 |
+
