@@ -22,6 +22,9 @@
 
     <script src="/js/Utils.js"></script>
     <script src="/js/engine-const.js"></script>
+    <script src="/js/cdn/ace/ace.min.js"></script>
+    <script src="/js/cdn/ace/mode-json.min.js"></script>
+    <script src="/js/cdn/ace/ext-language_tools.min.js"></script>
 </head>
 <body>
 <div class="layui-btn-sm">
@@ -1058,8 +1061,12 @@
                     <div class="layui-form-item layui-form-text">
                         <label class="layui-form-label">上下文参数</label>
                         <div class="layui-input-block">
-                            <textarea id="debug-context-textarea" placeholder='请输入JSON格式的上下文参数，如:{"userId":123,"userName":"test"}'
-                                      class="layui-textarea" style="min-height:200px;font-family:'Monaco','Menlo','Ubuntu Mono','Consolas',monospace;font-size:14px;"></textarea>
+                            <div style="margin-bottom:5px;">
+                                <button type="button" class="layui-btn layui-btn-xs" id="debug-json-format-btn"><i class="layui-icon layui-icon-screen-full"></i> 格式化</button>
+                                <button type="button" class="layui-btn layui-btn-xs layui-btn-primary" id="debug-json-compress-btn"><i class="layui-icon layui-icon-shrink-right"></i> 压缩</button>
+                            </div>
+                            <div id="debug-context-editor" style="width:100%;height:250px;border:1px solid #e6e6e6;border-radius:2px;"></div>
+                            <textarea id="debug-context-textarea" style="display:none;"></textarea>
                         </div>
                     </div>
                     <div class="layui-form-item">
@@ -1101,8 +1108,63 @@
             $('#debug-expression-input').val($(this).val());
         });
 
+        // 初始化Ace JSON编辑器
+        initDebugContextEditor();
+
         // 服务名自动完成
         initServiceAutocomplete();
+    }
+
+    // Ace JSON编辑器实例
+    let debugContextAceEditor = null;
+
+    // 初始化上下文参数JSON编辑器
+    function initDebugContextEditor() {
+        debugContextAceEditor = ace.edit('debug-context-editor');
+        debugContextAceEditor.setTheme('ace/theme/chrome');
+        debugContextAceEditor.session.setMode('ace/mode/json');
+        debugContextAceEditor.setOptions({
+            fontSize: '14px',
+            showPrintMargin: false,
+            wrap: true,
+            autoScrollEditorIntoView: true,
+            tabSize: 2
+        });
+        debugContextAceEditor.setValue('{\n  \n}', -1);
+        debugContextAceEditor.clearSelection();
+
+        // 同步内容到隐藏的textarea
+        debugContextAceEditor.session.on('change', function() {
+            $('#debug-context-textarea').val(debugContextAceEditor.getValue());
+        });
+
+        // 格式化按钮
+        $('#debug-json-format-btn').on('click', function() {
+            try {
+                const val = debugContextAceEditor.getValue().trim();
+                if (val === '') return;
+                const parsed = JSON.parse(val);
+                debugContextAceEditor.setValue(JSON.stringify(parsed, null, 2), -1);
+                debugContextAceEditor.clearSelection();
+                layer.msg('格式化成功', {icon: 1, time: 1000});
+            } catch (e) {
+                layer.msg('JSON格式错误: ' + e.message, {icon: 2});
+            }
+        });
+
+        // 压缩按钮
+        $('#debug-json-compress-btn').on('click', function() {
+            try {
+                const val = debugContextAceEditor.getValue().trim();
+                if (val === '') return;
+                const parsed = JSON.parse(val);
+                debugContextAceEditor.setValue(JSON.stringify(parsed), -1);
+                debugContextAceEditor.clearSelection();
+                layer.msg('压缩成功', {icon: 1, time: 1000});
+            } catch (e) {
+                layer.msg('JSON格式错误: ' + e.message, {icon: 2});
+            }
+        });
     }
 
     // 初始化服务名自动完成
@@ -1274,6 +1336,10 @@
     $('#debug-reset-btn').on('click', function() {
         $('#debug-expression-textarea').val('');
         $('#debug-context-textarea').val('');
+        if (debugContextAceEditor) {
+            debugContextAceEditor.setValue('{\n  \n}', -1);
+            debugContextAceEditor.clearSelection();
+        }
         $('#debug-result-container').hide();
     });
 
