@@ -10,7 +10,9 @@ import com.liukx.expression.engine.core.api.model.api.ExpressionResultLogCollect
 import com.liukx.expression.engine.core.api.model.api.ExpressionResultLogDTO;
 import com.liukx.expression.engine.core.api.model.api.FunctionApiModel;
 import com.liukx.expression.engine.core.enums.ExpressionLogTypeEnum;
+import com.liukx.expression.engine.core.enums.MetricKeyEnum;
 import com.liukx.expression.engine.core.utils.Jsons;
+import com.liukx.expression.engine.core.utils.MetricHelper;
 import com.liukx.expression.engine.server.manager.MysqlTableManager;
 import com.liukx.expression.engine.server.mapper.ExpressionTraceLogIndexMapper;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionTraceLogIndex;
@@ -156,6 +158,16 @@ public class ExpressionTraceLogIndexServiceImpl extends ServiceImpl<ExpressionTr
     }
 
     private void saveIndexInfo(ExpressionExecutorResultDTO expressionExecutorResultDTO) {
+        // ---- 埋点：追踪日志写入计数 ----
+        String serviceName = expressionExecutorResultDTO.getServiceName();
+        String businessCode = expressionExecutorResultDTO.getBusinessCode();
+        String executorCode = expressionExecutorResultDTO.getExecutorCode();
+
+        MetricHelper.increment(MetricKeyEnum.expression_trace_log_index_save_count, 1,
+                "serviceName", serviceName,
+                "businessCode", businessCode,
+                "executorCode", executorCode);
+
         ExpressionTraceLogIndex index = new ExpressionTraceLogIndex();
         BeanUtils.copyProperties(expressionExecutorResultDTO, index);
         String envBody = expressionExecutorResultDTO.getEnvBody();
@@ -174,6 +186,12 @@ public class ExpressionTraceLogIndexServiceImpl extends ServiceImpl<ExpressionTr
         final Long id = index.getId();
 
         final List<ExpressionResultLogDTO> resultLogList = expressionExecutorResultDTO.getResultLogList();
+
+        // ---- 埋点：单次追踪日志明细条数分布 ----
+        MetricHelper.record(MetricKeyEnum.expression_trace_log_detail, resultLogList.size(),
+                "serviceName", serviceName,
+                "businessCode", businessCode,
+                "executorCode", executorCode);
 
         // 构建函数信息
         final List<ExpressionTraceLogInfo> saveInfoList = new ArrayList<>();

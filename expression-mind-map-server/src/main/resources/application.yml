@@ -79,3 +79,9 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
 logging:
   config: classpath:logback-plus.xml
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health,info

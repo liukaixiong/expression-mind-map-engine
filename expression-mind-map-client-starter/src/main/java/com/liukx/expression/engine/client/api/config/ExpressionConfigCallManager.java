@@ -3,6 +3,8 @@ package com.liukx.expression.engine.client.api.config;
 import com.liukx.expression.engine.client.api.RemoteExpressionConfigService;
 import com.liukx.expression.engine.client.config.props.ExpressionProperties;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigInfo;
+import com.liukx.expression.engine.core.enums.MetricKeyEnum;
+import com.liukx.expression.engine.core.utils.MetricHelper;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -32,8 +34,8 @@ public class ExpressionConfigCallManager implements InitializingBean {
     }
 
     public ExpressionConfigInfo getConfigInfo(String serviceName, String businessCode, String executorCode) {
-        return keyMap.get(expressionProperties.getExpressionConfigCall()).getConfigInfo(serviceName, businessCode, executorCode);
+        final String expressionConfigCall = expressionProperties.getExpressionConfigCall();
+        return MetricHelper.timed(MetricKeyEnum.expression_config_query_call, () -> keyMap.get(expressionConfigCall).getConfigInfo(serviceName, businessCode, executorCode), "serviceName", serviceName, "businessCode", businessCode, "executorCode", executorCode, "callType", expressionConfigCall);
     }
-
 
 }

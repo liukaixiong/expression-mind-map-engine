@@ -12,6 +12,7 @@ import com.liukx.expression.engine.client.api.configurability.RedissonLockExpres
 import com.liukx.expression.engine.client.api.configurability.TraceSwitchConfigurabilityProcessor;
 import com.liukx.expression.engine.client.engine.ClientEngineFactory;
 import com.liukx.expression.engine.client.engine.LocalEngineServiceImpl;
+import com.liukx.expression.engine.client.filter.executor.MetricExecutorFilter;
 import com.liukx.expression.engine.client.filter.expression.BranchContextExpressionExecutorFilter;
 import com.liukx.expression.engine.client.filter.expression.ExceptionSkipExpressionExecutorFilter;
 import com.liukx.expression.engine.client.http.RestRemoteHttpService;
@@ -91,6 +92,11 @@ public class ExpClientEnginAutoConfiguration {
     @Bean
     public ExceptionSkipExpressionExecutorFilter exceptionSkipExpressionExecutorFilter(List<ExpressionConfigExecutorIntercept> executionCallbackList) {
         return new ExceptionSkipExpressionExecutorFilter(executionCallbackList);
+    }
+
+    @Bean
+    public MetricExecutorFilter metricExecutorFilter() {
+        return new MetricExecutorFilter();
     }
 
     @Bean

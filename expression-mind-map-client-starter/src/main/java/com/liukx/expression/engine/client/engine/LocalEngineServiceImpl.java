@@ -13,6 +13,7 @@ import com.liukx.expression.engine.client.factory.ExpressionExecutorFactory;
 import com.liukx.expression.engine.client.helper.ConfigurabilityHelper;
 import com.liukx.expression.engine.client.log.LogEventEnum;
 import com.liukx.expression.engine.client.log.LogHelper;
+import com.liukx.expression.engine.client.process.ExecutorFilterChain;
 import com.liukx.expression.engine.client.process.ExpressionFilterChain;
 import com.liukx.expression.engine.core.api.model.*;
 import com.liukx.expression.engine.core.utils.AssertUtils;
@@ -56,6 +57,9 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
 
     @Autowired(required = false)
     private List<ExpressionConfigExecutorIntercept> executionCallbackList = new ArrayList<>();
+
+    @Autowired(required = false)
+    private List<ExecutorFilter> executorFilters = new ArrayList<>();
 
     @Autowired(required = false)
     private List<ExpressionExecutorFilter> expressionExecutorFilters = new ArrayList<>();
@@ -123,7 +127,13 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
 
             expressionEnvContext.addEnvClassInfo(configInfo);
 
-            executorExpression(baseRequest, expressionEnvContext, configInfo, configTreeModelList);
+            ExecutorFilterChain filterChain = new ExecutorFilterChain(executorFilters, () -> {
+                executorExpression(baseRequest, expressionEnvContext, finalConfigInfo, configTreeModelList);
+                return null;
+            });
+
+            filterChain.doFilter(baseRequest, expressionEnvContext, finalConfigInfo, configTreeModelList);
+
         } finally {
             ExpressionConfigInfo finalConfigInfo = configInfo;
             executorPostProcessors.forEach(var -> var.afterExecutor(expressionEnvContext, baseRequest, finalConfigInfo));

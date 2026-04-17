@@ -4,7 +4,9 @@ import com.liukx.expression.engine.client.api.config.RedisExpressionConfigServic
 import com.liukx.expression.engine.client.factory.ExpressionExecutorFactory;
 import com.liukx.expression.engine.core.api.model.*;
 import com.liukx.expression.engine.core.enums.ExpressionTypeEnum;
+import com.liukx.expression.engine.core.enums.MetricKeyEnum;
 import com.liukx.expression.engine.core.utils.Jsons;
+import com.liukx.expression.engine.core.utils.MetricHelper;
 import com.liukx.expression.engine.server.components.TraceLogHelper;
 import com.liukx.expression.engine.server.constants.BaseConstants;
 import com.liukx.expression.engine.server.enums.TraceStageEnums;
@@ -62,12 +64,22 @@ public class ExpressionExecutor implements ExpressionExecutorService {
     }
 
 
+    /**
+     * 查询规则业务配置
+     *
+     * @param serviceName  服务名称
+     * @param businessCode 业务编码
+     * @param executorCode 执行器编码
+     * @return 业务配置
+     */
     public ExpressionConfigInfo queryBusinessConfigInfo(String serviceName, String businessCode, String executorCode) {
-        Object configInfoObject = redisExpressionConfigService.getConfigInfo(serviceName, businessCode, executorCode);
-        if (configInfoObject != null) {
-            return (ExpressionConfigInfo) configInfoObject;
-        }
-        return getRefreshBusinessConfigInfo(serviceName, businessCode, executorCode);
+        return MetricHelper.timed(MetricKeyEnum.expression_config_query_call, () -> {
+            ExpressionConfigInfo configInfoObject = redisExpressionConfigService.getConfigInfo(serviceName, businessCode, executorCode);
+            if (configInfoObject != null) {
+                return configInfoObject;
+            }
+            return getRefreshBusinessConfigInfo(serviceName, businessCode, executorCode);
+        }, "serviceName", serviceName, "businessCode", businessCode, "executorCode", executorCode);
     }
 
     public ExpressionConfigInfo getRefreshBusinessConfigInfo(String serviceName, String businessCode, String executorCode) {
