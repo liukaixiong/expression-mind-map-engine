@@ -219,7 +219,6 @@ public class MetricHelper {
     private static Timer resolveTimer(String name, String desc, String unit, String[] tags) {
         return Timer.builder(name)
                 .description(defaultIfEmpty(desc, ""))
-                .publishPercentileHistogram()
                 .serviceLevelObjectives(
                         Duration.ofMillis(10),
                         Duration.ofMillis(50),
