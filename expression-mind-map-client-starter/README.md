@@ -1,3 +1,7 @@
+---
+typora-copy-images-to: ..\doc\images\v1
+---
+
 # expression-mind-map-client-starter
 
 该框架是基于模版引擎抽象出来的通用定义，默认是基于Aviator实现，集成SpringBoot拓展而来。
@@ -546,4 +550,16 @@ public class DemoEnvRegister implements ExpressionVariableRegister {
 | 全局锁 | `enableGlobalLock` | 秒杀库存扣减 |
 | 分支路由 | `include(scenarioModules,'xxx')` | 模块化开关控制 |
 | 请求参数 | `request.*` | 订单金额、用户等级、信用评分等 |
+
+## 7. 仪表盘
+
+1、搭建prometheus、grafana 【这里不做赘述】
+
+- prometheus配置：需要抓取服务端和客户端的`/actuator/prometheus` 接口.
+
+2、找到`script/grafana/grafana-expression-engine.json`文件
+
+3、导入
+
+![image-20260420110148726](../doc/images/v1/image-20260420110148726.png)
 

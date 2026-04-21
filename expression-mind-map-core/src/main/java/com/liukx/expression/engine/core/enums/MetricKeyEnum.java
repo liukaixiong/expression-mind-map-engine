@@ -23,6 +23,12 @@ public enum MetricKeyEnum {
 
     // ---- 执行器 ----
     expression_executor_local_call("表达式引擎-客户端本地调用执行指标 ", MetricType.TIMER, "ms"),
+
+    // ---- 表达式级别 ----
+    expression_slow_execution("表达式引擎-客户端慢表达式执行记录", MetricType.SUMMARY, "ms"),
+
+    // ---- 函数级别 ----
+    function_slow_execution("表达式引擎-客户端慢函数执行记录", MetricType.SUMMARY, "ms"),
     ;
 
     private final String desc;

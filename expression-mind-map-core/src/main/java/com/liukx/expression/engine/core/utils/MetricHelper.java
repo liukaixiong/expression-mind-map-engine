@@ -133,6 +133,21 @@ public class MetricHelper {
         return resolveTimer(metric.name(), metric.getDesc(), metric.getUnit(), keyValueTags).record(() -> action.get());
     }
 
+    /**
+     * 直接记录一个已计算好的耗时值到 Timer（枚举方式，自动携带描述、单位和 SLO buckets）。
+     * <p>
+     * 适用于调用方自行测量耗时、满足条件后才记录的场景（如慢调用阈值过滤），
+     * 而非 {@link #timed(MetricKeyEnum, Runnable, String...)} 那样包裹整个动作。
+     *
+     * @param metric    指标枚举
+     * @param durationMs 耗时（毫秒）
+     * @param keyValueTags 键值对标签
+     */
+    public static void recordDuration(MetricKeyEnum metric, long durationMs, String... keyValueTags) {
+        resolveTimer(metric.name(), metric.getDesc(), metric.getUnit(), keyValueTags)
+                .record(durationMs, java.util.concurrent.TimeUnit.MILLISECONDS);
+    }
+
 
     /**
      * 注册一个 Long Gauge。

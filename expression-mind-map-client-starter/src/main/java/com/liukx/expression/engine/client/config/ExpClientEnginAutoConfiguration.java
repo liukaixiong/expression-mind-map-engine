@@ -15,7 +15,9 @@ import com.liukx.expression.engine.client.engine.LocalEngineServiceImpl;
 import com.liukx.expression.engine.client.filter.executor.MetricExecutorFilter;
 import com.liukx.expression.engine.client.filter.expression.BranchContextExpressionExecutorFilter;
 import com.liukx.expression.engine.client.filter.expression.ExceptionSkipExpressionExecutorFilter;
+import com.liukx.expression.engine.client.filter.expression.SlowExpressionMetricFilter;
 import com.liukx.expression.engine.client.http.RestRemoteHttpService;
+import com.liukx.expression.engine.client.config.props.ExpressionProperties;
 import org.redisson.api.RedissonClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -97,6 +99,11 @@ public class ExpClientEnginAutoConfiguration {
     @Bean
     public MetricExecutorFilter metricExecutorFilter() {
         return new MetricExecutorFilter();
+    }
+
+    @Bean
+    public SlowExpressionMetricFilter slowExpressionMetricFilter(ExpressionProperties properties) {
+        return new SlowExpressionMetricFilter(properties);
     }
 
     @Bean

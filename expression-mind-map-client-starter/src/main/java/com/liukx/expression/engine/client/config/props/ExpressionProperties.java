@@ -47,6 +47,16 @@ public class ExpressionProperties {
      */
     private String debugToken;
 
+    /**
+     * 慢表达式阈值（毫秒），超过此值才记录慢调用指标。默认 100ms。设为 0 或负数则禁用。
+     */
+    private long slowExpressionThresholdMs = 1000;
+
+    /**
+     * 慢函数阈值（毫秒），超过此值才记录慢调用指标。默认 50ms。设为 0 或负数则禁用。
+     */
+    private long slowFunctionThresholdMs = 500;
+
 
     public String getInjectTypePackage() {
         return injectTypePackage;
@@ -110,5 +120,21 @@ public class ExpressionProperties {
 
     public void setDebugToken(String debugToken) {
         this.debugToken = debugToken;
+    }
+
+    public long getSlowExpressionThresholdMs() {
+        return slowExpressionThresholdMs;
+    }
+
+    public void setSlowExpressionThresholdMs(long slowExpressionThresholdMs) {
+        this.slowExpressionThresholdMs = slowExpressionThresholdMs;
+    }
+
+    public long getSlowFunctionThresholdMs() {
+        return slowFunctionThresholdMs;
+    }
+
+    public void setSlowFunctionThresholdMs(long slowFunctionThresholdMs) {
+        this.slowFunctionThresholdMs = slowFunctionThresholdMs;
     }
 }

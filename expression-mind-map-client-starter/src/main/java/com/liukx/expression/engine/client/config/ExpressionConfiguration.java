@@ -16,6 +16,7 @@ import com.liukx.expression.engine.client.feature.ExpressionConfigIdFilterSuppor
 import com.liukx.expression.engine.client.feature.ExpressionFunctionNameFilterSupport;
 import com.liukx.expression.engine.client.feature.ExpressionVarConfigRegisterSupport;
 import com.liukx.expression.engine.client.feature.FunctionContextManager;
+import com.liukx.expression.engine.client.filter.function.SlowFunctionMetricFilter;
 import com.liukx.expression.engine.client.log.LogHelper;
 import com.liukx.expression.engine.client.log.LogTraceService;
 import com.liukx.expression.engine.client.log.Sl4jLogServiceImpl;
@@ -114,6 +115,11 @@ public class ExpressionConfiguration {
     @Bean
     public ExpressionFunctionNameFilterSupport expressionFunctionNameFilterSupport() {
         return new ExpressionFunctionNameFilterSupport();
+    }
+
+    @Bean
+    public SlowFunctionMetricFilter slowFunctionMetricFilter(ExpressionProperties properties) {
+        return new SlowFunctionMetricFilter(properties);
     }
 
     @Bean

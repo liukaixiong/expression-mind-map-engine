@@ -1,0 +1,1205 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "description": "表达式规则引擎核心指标监控，按服务端/客户端两个维度展示",
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "panels": [],
+      "title": "概览",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 100 },
+              { "color": "red", "value": 500 }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 1 },
+      "id": 2,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sum(rate(expression_trace_log_index_save_count_total{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[5m]))",
+          "legendFormat": "日志写入 QPS",
+          "refId": "A"
+        }
+      ],
+      "title": "服务端 - 追踪日志写入 QPS",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "red", "value": 200 }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 1 },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sum(rate(expression_config_query_call_seconds_count{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[5m]))",
+          "legendFormat": "配置查询 QPS",
+          "refId": "A"
+        }
+      ],
+      "title": "客户端 - 配置查询 QPS",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 100 },
+              { "color": "red", "value": 500 }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 1 },
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "histogram_quantile(0.95, sum(rate(expression_config_query_call_seconds_bucket{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[5m])) by (le)) * 1000",
+          "legendFormat": "P95",
+          "refId": "A"
+        }
+      ],
+      "title": "客户端 - 配置查询 P95 耗时",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 100 },
+              { "color": "red", "value": 500 }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 1 },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "auto"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "histogram_quantile(0.95, sum(rate(expression_executor_local_call_seconds_bucket{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[5m])) by (le)) * 1000",
+          "legendFormat": "P95",
+          "refId": "A"
+        }
+      ],
+      "title": "客户端 - 执行器 P95 耗时",
+      "type": "stat"
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 100,
+      "panels": [],
+      "title": "服务端指标（追踪日志）",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "追踪日志索引写入速率，反映规则执行频率",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "id": 11,
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sum by (businessCode, executorCode) (rate(expression_trace_log_index_save_count_total{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[5m]))",
+          "legendFormat": "{{businessCode}}_{{executorCode}}",
+          "refId": "A"
+        }
+      ],
+      "title": "日志写入速率（按 executorCode）",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "指定时间范围内每个规则组产生的追踪日志总条数",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "id": 12,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "text"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sort_desc(sum by (businessCode, executorCode) (increase(expression_trace_log_index_save_count_total{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[$__range])))",
+          "instant": true,
+          "legendFormat": "{{businessCode}}_{{executorCode}}",
+          "refId": "A"
+        }
+      ],
+      "title": "日志条数（按 executorCode）",
+      "type": "bargauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "最近 1 小时日志写入量 Top 10 规则",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
+      "id": 13,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "text"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sort_desc(topk(10, sum by (businessCode, executorCode) (increase(expression_trace_log_index_save_count_total{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[1h]))))",
+          "instant": true,
+          "legendFormat": "{{businessCode}}_{{executorCode}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Top 10 规则（最近 1h 日志量）",
+      "type": "bargauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Top 10 规则日志明细，包含服务名称信息",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
+      "id": 14,
+      "options": {
+        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+        "showHeader": true,
+        "sortBy": [{ "desc": true, "displayName": "日志量" }]
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "topk(10, sort_desc(sum by (businessCode, executorCode, serviceName) (increase(expression_trace_log_index_save_count_total{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[1h]))))",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "A"
+        }
+      ],
+      "title": "Top 10 规则日志明细（含服务名）",
+      "type": "table",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true },
+            "renameByName": {
+              "Value": "日志量",
+              "businessCode": "业务组",
+              "executorCode": "执行器编码",
+              "serviceName": "服务名称"
+            }
+          }
+        }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 },
+      "id": 200,
+      "panels": [],
+      "title": "客户端指标（配置查询 & 执行器）",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "客户端规则配置查询耗时分布，反映配置获取性能",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 24 },
+      "id": 21,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "histogram_quantile(0.50, sum by (le, businessCode, executorCode, callType) (rate(expression_config_query_call_seconds_bucket{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[5m]))) * 1000",
+          "legendFormat": "{{businessCode}}_{{executorCode}}_{{callType}} P50",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "histogram_quantile(0.95, sum by (le, businessCode, executorCode, callType) (rate(expression_config_query_call_seconds_bucket{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[5m]))) * 1000",
+          "legendFormat": "{{businessCode}}_{{executorCode}}_{{callType}} P95",
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "histogram_quantile(0.99, sum by (le, businessCode, executorCode, callType) (rate(expression_config_query_call_seconds_bucket{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[5m]))) * 1000",
+          "legendFormat": "{{businessCode}}_{{executorCode}}_{{callType}} P99",
+          "refId": "C"
+        }
+      ],
+      "title": "配置查询耗时分布（按 executorCode）",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "执行器本地调用耗时分布，反映规则执行性能",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 24 },
+      "id": 31,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "histogram_quantile(0.50, sum by (le, businessCode, executorCode) (rate(expression_executor_local_call_seconds_bucket{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[5m]))) * 1000",
+          "legendFormat": "{{businessCode}}_{{executorCode}} P50",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "histogram_quantile(0.95, sum by (le, businessCode, executorCode) (rate(expression_executor_local_call_seconds_bucket{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[5m]))) * 1000",
+          "legendFormat": "{{businessCode}}_{{executorCode}} P95",
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "histogram_quantile(0.99, sum by (le, businessCode, executorCode) (rate(expression_executor_local_call_seconds_bucket{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[5m]))) * 1000",
+          "legendFormat": "{{businessCode}}_{{executorCode}} P99",
+          "refId": "C"
+        }
+      ],
+      "title": "执行器本地调用耗时分布（按 executorCode）",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "客户端配置查询 QPS，反映配置获取频率",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 32 },
+      "id": 22,
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sum by (businessCode, executorCode, callType) (rate(expression_config_query_call_seconds_count{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[5m]))",
+          "legendFormat": "{{businessCode}}_{{executorCode}}_{{callType}}",
+          "refId": "A"
+        }
+      ],
+      "title": "配置查询 QPS（按 executorCode）",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "执行器本地调用 QPS，反映规则执行频率",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 32 },
+      "id": 32,
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sum by (businessCode, executorCode) (rate(expression_executor_local_call_seconds_count{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[5m]))",
+          "legendFormat": "{{businessCode}}_{{executorCode}}",
+          "refId": "A"
+        }
+      ],
+      "title": "执行器调用 QPS（按 executorCode）",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "配置查询最慢的 Top 10 规则（按 P95 耗时排序）",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "mappings": [],
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 40 },
+      "id": 23,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "text"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sort_desc(topk(10, histogram_quantile(0.95, sum by (le, businessCode, executorCode, callType) (rate(expression_config_query_call_seconds_bucket{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[5m]))) * 1000))",
+          "instant": true,
+          "legendFormat": "{{businessCode}}_{{executorCode}}_{{callType}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Top 10 最慢规则（P95 配置查询耗时）",
+      "type": "bargauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "执行器本地调用最慢的 Top 10（按 P95 耗时排序）",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "mappings": [],
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 40 },
+      "id": 33,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "text"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sort_desc(topk(10, histogram_quantile(0.95, sum by (le, businessCode, executorCode) (rate(expression_executor_local_call_seconds_bucket{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[5m]))) * 1000))",
+          "instant": true,
+          "legendFormat": "{{businessCode}}_{{executorCode}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Top 10 最慢执行器（P95 耗时）",
+      "type": "bargauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "配置查询 QPS 按服务名称分组",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 48 },
+      "id": 24,
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sum by (serviceName, callType) (rate(expression_config_query_call_seconds_count{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[5m]))",
+          "legendFormat": "{{serviceName}}({{callType}})",
+          "refId": "A"
+        }
+      ],
+      "title": "配置查询 QPS（按 serviceName）",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "最近 1 小时最活跃的 Top 10 执行器（按调用量排序）",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 48 },
+      "id": 34,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "text"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sort_desc(topk(10, sum by (businessCode, executorCode) (increase(expression_executor_local_call_seconds_count{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[1h]))))",
+          "instant": true,
+          "legendFormat": "{{businessCode}}_{{executorCode}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Top 10 最活跃执行器（最近 1h 调用量）",
+      "type": "bargauge"
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 56 },
+      "id": 300,
+      "panels": [],
+      "title": "慢表达式分析",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "按慢调用次数排序的 Top 10 慢表达式",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 57 },
+      "id": 301,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "text"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sort_desc(topk(10, sum by (businessCode, executorCode, expressionCode, expressionType) (increase(expression_slow_execution_ms_count{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[$__range]))))",
+          "instant": true,
+          "legendFormat": "{{businessCode}}_{{executorCode}}_{{expressionCode}}({{expressionType}})",
+          "refId": "A"
+        }
+      ],
+      "title": "Top 10 慢表达式（调用次数）",
+      "type": "bargauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "慢表达式调用频率趋势",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 57 },
+      "id": 302,
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sum by (businessCode, executorCode, expressionCode, expressionType) (rate(expression_slow_execution_ms_count{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[5m]))",
+          "legendFormat": "{{businessCode}}_{{executorCode}}_{{expressionCode}}({{expressionType}})",
+          "refId": "A"
+        }
+      ],
+      "title": "慢表达式调用频率趋势",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "慢表达式明细表，按调用次数排序，avg 耗时 = sum/count",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 65 },
+      "id": 303,
+      "options": {
+        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+        "showHeader": true,
+        "sortBy": [{ "desc": true, "displayName": "慢调用次数" }]
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "topk(20, sort_desc(sum by (businessCode, executorCode, expressionCode, expressionType) (increase(expression_slow_execution_ms_count{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[$__range]))))",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "topk(20, sort_desc(sum by (businessCode, executorCode, expressionCode, expressionType) (increase(expression_slow_execution_ms_sum{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[$__range]))))",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "topk(20, sort_desc(max by (businessCode, executorCode, expressionCode, expressionType) (expression_slow_execution_ms_max{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"})))",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "C"
+        }
+      ],
+      "title": "慢表达式明细表",
+      "type": "table",
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true, "Time 1": true, "Time 2": true, "Time 3": true },
+            "renameByName": {
+              "Value #A": "慢调用次数",
+              "Value #B": "总耗时(ms)",
+              "Value #C": "最大耗时(ms)",
+              "businessCode": "业务组",
+              "executorCode": "执行器编码",
+              "expressionCode": "表达式编码",
+              "expressionType": "表达式类型"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "avg 耗时(ms)",
+            "binary": { "left": "总耗时(ms)", "operator": "/", "right": "慢调用次数" },
+            "mode": "binary",
+            "reduce": { "reducer": "sum" }
+          }
+        }
+      ]
+    },
+
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 73 },
+      "id": 400,
+      "panels": [],
+      "title": "慢函数分析",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "按慢调用次数排序的 Top 10 慢函数",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 74 },
+      "id": 401,
+      "options": {
+        "displayMode": "gradient",
+        "maxVizHeight": 300,
+        "minVizHeight": 16,
+        "minVizWidth": 8,
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showUnfilled": true,
+        "sizing": "auto",
+        "valueMode": "text"
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sort_desc(topk(10, sum by (functionName, groupName) (increase(function_slow_execution_ms_count{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[$__range]))))",
+          "instant": true,
+          "legendFormat": "{{functionName}}({{groupName}})",
+          "refId": "A"
+        }
+      ],
+      "title": "Top 10 慢函数（调用次数）",
+      "type": "bargauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "慢函数调用频率趋势",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 74 },
+      "id": 402,
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "none" }
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sum by (functionName, groupName) (rate(function_slow_execution_ms_count{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[5m]))",
+          "legendFormat": "{{functionName}}({{groupName}})",
+          "refId": "A"
+        }
+      ],
+      "title": "慢函数调用频率趋势",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "慢函数明细表，按调用次数排序，avg 耗时 = sum/count",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 82 },
+      "id": 403,
+      "options": {
+        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
+        "showHeader": true,
+        "sortBy": [{ "desc": true, "displayName": "慢调用次数" }]
+      },
+      "pluginVersion": "11.0.0",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "topk(20, sort_desc(sum by (functionName, groupName) (increase(function_slow_execution_ms_count{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[$__range]))))",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "topk(20, sort_desc(sum by (functionName, groupName) (increase(function_slow_execution_ms_sum{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"}[$__range]))))",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "topk(20, sort_desc(max by (functionName, groupName) (function_slow_execution_ms_max{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\", executorCode=~\"$executorCode\", job=~\"$job\"})))",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "",
+          "refId": "C"
+        }
+      ],
+      "title": "慢函数明细表",
+      "type": "table",
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true, "Time 1": true, "Time 2": true, "Time 3": true },
+            "renameByName": {
+              "Value #A": "慢调用次数",
+              "Value #B": "总耗时(ms)",
+              "Value #C": "最大耗时(ms)",
+              "functionName": "函数名",
+              "groupName": "分组"
+            }
+          }
+        },
+        {
+          "id": "calculateField",
+          "options": {
+            "alias": "avg 耗时(ms)",
+            "binary": { "left": "总耗时(ms)", "operator": "/", "right": "慢调用次数" },
+            "mode": "binary",
+            "reduce": { "reducer": "sum" }
+          }
+        }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["expression-engine", "prometheus"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": false, "text": "Prometheus", "value": "Prometheus" },
+        "hide": 0,
+        "includeAll": false,
+        "label": "数据源",
+        "multi": false,
+        "name": "datasource",
+        "options": [],
+        "query": "prometheus",
+        "queryValue": "",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "definition": "label_values(expression_trace_log_index_save_count_total, serviceName)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "服务",
+        "multi": true,
+        "name": "serviceName",
+        "options": [],
+        "query": { "qryType": 1, "query": "label_values(expression_trace_log_index_save_count_total, serviceName)", "refId": "VariableQuery" },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "definition": "label_values(expression_trace_log_index_save_count_total{serviceName=~\"$serviceName\"}, businessCode)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "业务组",
+        "multi": true,
+        "name": "businessCode",
+        "options": [],
+        "query": { "qryType": 1, "query": "label_values(expression_trace_log_index_save_count_total{serviceName=~\"$serviceName\"}, businessCode)", "refId": "VariableQuery" },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "definition": "label_values(expression_trace_log_index_save_count_total{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\"}, executorCode)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "执行器",
+        "multi": true,
+        "name": "executorCode",
+        "options": [],
+        "query": { "qryType": 1, "query": "label_values(expression_trace_log_index_save_count_total{serviceName=~\"$serviceName\", businessCode=~\"$businessCode\"}, executorCode)", "refId": "VariableQuery" },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "definition": "label_values({serviceName!=\"\"}, job)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Job",
+        "multi": true,
+        "name": "job",
+        "options": [],
+        "query": { "qryType": 1, "query": "label_values({serviceName!=\"\"}, job)", "refId": "VariableQuery" },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "timeRangePicker": {},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "表达式规则引擎",
+  "uid": "expression-engine-metrics",
+  "version": 1
+}
