@@ -25,7 +25,7 @@ import com.liukx.expression.engine.server.model.dto.response.ExpressionExecutorD
 import com.liukx.expression.engine.server.model.dto.response.RestResult;
 import com.liukx.expression.engine.server.service.ExpressionConfigService;
 import com.liukx.expression.engine.server.service.ExpressionHistoryVersionService;
-import com.liukx.expression.engine.server.service.ExpressionTraceLogInfoService;
+import com.liukx.expression.engine.server.service.TraceLogStorageService;
 import com.liukx.expression.engine.server.service.impl.syncData.ExpressionConfigSyncDataServiceImpl;
 import com.liukx.expression.engine.server.util.ExpressionUtils;
 import com.liukx.expression.engine.server.util.ServiceCommonUtil;
@@ -60,7 +60,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
     private ApplicationEventPublisher eventPublisher;
 
     @Autowired
-    private ExpressionTraceLogInfoService traceLogInfoService;
+    private TraceLogStorageService traceLogStorageService;
 
     @Autowired
     private ExpressionConfigSyncDataServiceImpl expressionConfigSyncDataService;
@@ -229,7 +229,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
             final Long traceLogId = queryRequest.getTraceLogId();
             // 如果涵盖追踪编号,那么获取对应的追踪信息绑定到数据中
             if (traceLogId != null) {
-                final List<ExpressionTraceLogInfo> infoListByTraceLogId = traceLogInfoService.getInfoListByTraceLogId(traceLogId);
+                final List<ExpressionTraceLogInfo> infoListByTraceLogId = traceLogStorageService.getInfoListByTraceLogId(traceLogId);
                 if (CollectionUtil.isNotEmpty(infoListByTraceLogId)) {
                     traceConfigMap = infoListByTraceLogId.stream().collect(Collectors.groupingBy(ExpressionTraceLogInfo::getExpressionConfigId));
                 }
@@ -250,7 +250,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
                         expressionExecutorDetailConfigDTO.setLastMissed(true);
                         missTraceId.add(expressionId);
                     } else {
-                        if (!traceLogInfoService.getExpressionRecentlySuccessCount(expressionId, queryRequest.getMissStartDate())) {
+                        if (!traceLogStorageService.hasRecentlySuccessLog(expressionId, queryRequest.getMissStartDate())) {
                             expressionExecutorDetailConfigDTO.setLastMissed(true);
                             missTraceId.add(expressionId);
                         } else {

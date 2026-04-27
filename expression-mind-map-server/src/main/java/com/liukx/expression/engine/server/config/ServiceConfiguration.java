@@ -2,6 +2,8 @@ package com.liukx.expression.engine.server.config;
 
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import com.liukx.expression.engine.server.service.TraceLogStorageService;
+import com.liukx.expression.engine.server.service.impl.storage.DefaultMysqlTraceLogStorageService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -53,6 +55,12 @@ public class ServiceConfiguration {
                 .setConnectTimeout(connectTimeout)
                 .setReadTimeout(readTimeout)
                 .build();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public TraceLogStorageService traceLogStorageService() {
+        return new DefaultMysqlTraceLogStorageService();
     }
 
 }

@@ -1,37 +1,24 @@
 package com.liukx.expression.engine.server.service.impl;
 
 import cn.hutool.core.thread.ThreadUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.liukx.expression.engine.core.api.model.api.ExpressionExecutorResultDTO;
 import com.liukx.expression.engine.core.api.model.api.ExpressionResultLogCollect;
-import com.liukx.expression.engine.core.api.model.api.ExpressionResultLogDTO;
-import com.liukx.expression.engine.core.api.model.api.FunctionApiModel;
-import com.liukx.expression.engine.core.enums.ExpressionLogTypeEnum;
-import com.liukx.expression.engine.core.enums.MetricKeyEnum;
-import com.liukx.expression.engine.core.utils.Jsons;
-import com.liukx.expression.engine.core.utils.MetricHelper;
-import com.liukx.expression.engine.server.manager.MysqlTableManager;
 import com.liukx.expression.engine.server.mapper.ExpressionTraceLogIndexMapper;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionTraceLogIndex;
-import com.liukx.expression.engine.server.mapper.entity.ExpressionTraceLogInfo;
 import com.liukx.expression.engine.server.model.dto.request.QueryExpressionTraceRequest;
 import com.liukx.expression.engine.server.model.dto.response.ExpressionTraceInfoDTO;
+import com.liukx.expression.engine.server.model.dto.response.TraceLogPageResult;
 import com.liukx.expression.engine.server.service.ExpressionTraceLogIndexService;
-import com.liukx.expression.engine.server.service.ExpressionTraceLogInfoService;
+import com.liukx.expression.engine.server.service.TraceLogStorageService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * <p>
@@ -44,11 +31,9 @@ import java.util.Objects;
 @Service
 @Slf4j
 public class ExpressionTraceLogIndexServiceImpl extends ServiceImpl<ExpressionTraceLogIndexMapper, ExpressionTraceLogIndex> implements IService<ExpressionTraceLogIndex>, ExpressionTraceLogIndexService, InitializingBean {
-    @Autowired
-    private ExpressionTraceLogInfoService traceLogInfoService;
 
     @Autowired
-    private MysqlTableManager tableManager;
+    private TraceLogStorageService traceLogStorageService;
 
     @Override
     public void afterPropertiesSet() {
@@ -58,7 +43,7 @@ public class ExpressionTraceLogIndexServiceImpl extends ServiceImpl<ExpressionTr
                     final List<ExpressionExecutorResultDTO> resultList = ExpressionResultLogCollect.getInstance().pollBatch(10);
                     if (!CollectionUtils.isEmpty(resultList)) {
                         for (ExpressionExecutorResultDTO expressionExecutorResultDTO : resultList) {
-                            saveIndexInfo(expressionExecutorResultDTO);
+                            traceLogStorageService.saveTraceLog(expressionExecutorResultDTO);
                         }
                     } else {
                         ThreadUtil.sleep(50);
@@ -72,58 +57,14 @@ public class ExpressionTraceLogIndexServiceImpl extends ServiceImpl<ExpressionTr
         });
     }
 
-
     @Override
-    public Page<ExpressionTraceLogIndex> queryExpressionTraceLogList(QueryExpressionTraceRequest queryRequest) {
-        Page<ExpressionTraceLogIndex> page = new Page<>(queryRequest.getPageNum(), queryRequest.getPageSize());
-        page.setSearchCount(false);
-        LambdaQueryWrapper<ExpressionTraceLogIndex> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(StringUtils.isNotEmpty(queryRequest.getServiceName()), ExpressionTraceLogIndex::getServiceName, queryRequest.getServiceName())
-                .eq(StringUtils.isNotEmpty(queryRequest.getBusinessCode()), ExpressionTraceLogIndex::getBusinessCode, queryRequest.getBusinessCode())
-                .eq(StringUtils.isNotEmpty(queryRequest.getEventName()), ExpressionTraceLogIndex::getEventName, queryRequest.getEventName())
-                .eq(StringUtils.isNotEmpty(queryRequest.getUnionId()), ExpressionTraceLogIndex::getUnionId, queryRequest.getUnionId())
-                .eq(StringUtils.isNotEmpty(queryRequest.getExecutorCode()), ExpressionTraceLogIndex::getExecutorCode, queryRequest.getExecutorCode())
-                .eq(StringUtils.isNotEmpty(queryRequest.getTraceId()), ExpressionTraceLogIndex::getTraceId, queryRequest.getTraceId())
-                .eq(queryRequest.getUserId() != null, ExpressionTraceLogIndex::getUserId, queryRequest.getUserId())
-                .eq(queryRequest.getExecutorId() != null, ExpressionTraceLogIndex::getExecutorId, queryRequest.getExecutorId())
-                .orderByDesc(ExpressionTraceLogIndex::getId);
-
-        final Page<ExpressionTraceLogIndex> expressionTraceLogIndexPage = getBaseMapper().selectPage(page, wrapper);
-
-        final int currentPageSize = expressionTraceLogIndexPage.getRecords().size();
-        expressionTraceLogIndexPage.setTotal(currentPageSize >= queryRequest.getPageSize() ? 100 : currentPageSize);
-
-        // 尝试拿两部分数据出来处理
-        if (currentPageSize < queryRequest.getPageSize()) {
-            final String pastTableName = tableManager.getLastTableNameList(ExpressionTraceLogIndex.class, -1);
-            if (StringUtils.isNotEmpty(pastTableName)) {
-                Page<ExpressionTraceLogIndex> pageV2 = new Page<>(1, queryRequest.getPageSize());
-                pageV2.setSearchCount(false);
-                final Page<ExpressionTraceLogIndex> expressionTraceLogIndex = getBaseMapper().selectPageByTable(pageV2, pastTableName, wrapper);
-                final List<ExpressionTraceLogIndex> recordV2s = expressionTraceLogIndex.getRecords();
-                if (!recordV2s.isEmpty()) {
-                    expressionTraceLogIndexPage.getRecords().addAll(recordV2s);
-                    if (currentPageSize == 0) {
-                        expressionTraceLogIndexPage.setTotal(currentPageSize >= queryRequest.getPageSize() ? 100 : recordV2s.size());
-                    }
-                }
-            }
-        }
-
-        return expressionTraceLogIndexPage;
+    public TraceLogPageResult<ExpressionTraceLogIndex> queryExpressionTraceLogList(QueryExpressionTraceRequest queryRequest) {
+        return traceLogStorageService.queryTraceLogList(queryRequest);
     }
 
     @Override
     public ExpressionTraceInfoDTO getTraceInfoList(Long id) {
-        final ExpressionTraceLogIndex traceLogIndex = getById(id);
-        if (traceLogIndex != null) {
-            List<ExpressionTraceLogInfo> traceLogInfos = traceLogInfoService.getInfoListByTraceLogId(id);
-            ExpressionTraceInfoDTO expressionTraceInfoDTO = new ExpressionTraceInfoDTO();
-            BeanUtils.copyProperties(traceLogIndex, expressionTraceInfoDTO);
-            expressionTraceInfoDTO.setTraceLogInfoList(traceLogInfos);
-            return expressionTraceInfoDTO;
-        }
-        return null;
+        return traceLogStorageService.getTraceInfo(id);
     }
 
     @Override
@@ -134,105 +75,6 @@ public class ExpressionTraceLogIndexServiceImpl extends ServiceImpl<ExpressionTr
 
     @Override
     public ExpressionTraceLogIndex getExpressionSampleBody(Long expressionId) {
-        ExpressionTraceLogInfo traceLogInfo = traceLogInfoService.getExpressionRecentlySuccessLog(expressionId);
-        if (traceLogInfo != null) {
-            return getById(traceLogInfo.getTraceLogId());
-        }
-        return null;
+        return traceLogStorageService.getExpressionSampleBody(expressionId);
     }
-
-    /**
-     * 遇到过长的字符串，保留一部分。（MYSQL的长度限制）
-     *
-     * @param text 字符串
-     * @return 短字符串
-     */
-    private String getMiniString(String text) {
-        if (StringUtils.isNotEmpty(text)) {
-            int maxLength = 1500;
-            if (text.length() > maxLength) {
-                return text.substring(0, maxLength) + "...";
-            }
-        }
-        return text;
-    }
-
-    private void saveIndexInfo(ExpressionExecutorResultDTO expressionExecutorResultDTO) {
-        // ---- 埋点：追踪日志写入计数 ----
-        String serviceName = expressionExecutorResultDTO.getServiceName();
-        String businessCode = expressionExecutorResultDTO.getBusinessCode();
-        String executorCode = expressionExecutorResultDTO.getExecutorCode();
-
-        MetricHelper.increment(MetricKeyEnum.expression_trace_log_index_save_count, 1,
-                "serviceName", serviceName,
-                "businessCode", businessCode,
-                "executorCode", executorCode);
-
-        ExpressionTraceLogIndex index = new ExpressionTraceLogIndex();
-        BeanUtils.copyProperties(expressionExecutorResultDTO, index);
-        String envBody = expressionExecutorResultDTO.getEnvBody();
-
-        // 受限于mysql存储字段大小有限制,如果es不会有问题.
-        if (StringUtils.isNotEmpty(envBody)) {
-            if (envBody.length() > 2000) {
-                index.setEnvBody(Jsons.compressReserveJsonKeyString(envBody));
-            } else {
-                index.setEnvBody(envBody);
-            }
-        }
-
-        final boolean save = this.save(index);
-
-        final Long id = index.getId();
-
-        final List<ExpressionResultLogDTO> resultLogList = expressionExecutorResultDTO.getResultLogList();
-
-        // ---- 埋点：单次追踪日志明细条数分布 ----
-        MetricHelper.record(MetricKeyEnum.expression_trace_log_detail, resultLogList.size(),
-                "serviceName", serviceName,
-                "businessCode", businessCode,
-                "executorCode", executorCode);
-
-        // 构建函数信息
-        final List<ExpressionTraceLogInfo> saveInfoList = new ArrayList<>();
-        for (ExpressionResultLogDTO expressionResultLogDTO : resultLogList) {
-            ExpressionTraceLogInfo traceLogInfo = new ExpressionTraceLogInfo();
-            BeanUtils.copyProperties(expressionResultLogDTO, traceLogInfo);
-            final String resultType = expressionResultLogDTO.getResultType();
-            final ExpressionLogTypeEnum expressionLogTypeEnum = ExpressionLogTypeEnum.valueOf(resultType);
-            traceLogInfo.setModuleType(expressionResultLogDTO.getResultType());
-            traceLogInfo.setExpressionDescription(expressionResultLogDTO.getDescription());
-            traceLogInfo.setTraceLogId(id);
-            traceLogInfo.setDebugTraceContent(getMiniString(Jsons.toJsonString(expressionResultLogDTO.getDebugTraceContent())));
-            traceLogInfo.setExecutorId(expressionExecutorResultDTO.getExecutorId());
-            // 结果构建
-            final Object result = expressionResultLogDTO.getResult();
-            if (result instanceof Boolean) {
-                traceLogInfo.setExpressionResult((Boolean) result ? 1 : 0);
-            } else {
-                traceLogInfo.setExpressionResult(Objects.equals(result, -1) ? -1 : 1);
-            }
-
-            if (expressionLogTypeEnum == ExpressionLogTypeEnum.function) {
-                final FunctionApiModel functionApiModel = expressionResultLogDTO.getFunctionApiModel();
-                final List<Object> funcArgs = expressionResultLogDTO.getFuncArgs();
-                // 构建函数信息
-                final String name = functionApiModel.getName();
-                final String param = StringUtils.join(funcArgs, ",");
-                String functionName = name + "(" + param + ")";
-                traceLogInfo.setExpressionContent(getMiniString(functionName));
-                if (StringUtils.isEmpty(expressionResultLogDTO.getDescription())) {
-                    traceLogInfo.setExpressionDescription(functionApiModel.getDescribe());
-                }
-            } else {
-                traceLogInfo.setExpressionContent(expressionResultLogDTO.getExpression());
-                traceLogInfo.setExpressionDescription(expressionResultLogDTO.getDescription());
-            }
-            saveInfoList.add(traceLogInfo);
-        }
-
-        traceLogInfoService.saveBatch(saveInfoList);
-    }
-
-
 }
