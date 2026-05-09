@@ -252,6 +252,11 @@ public class AviatorEvaluatorServiceImpl extends AbstractExpressionService imple
 
     @Override
     public ExpressionContextResult execute(String expression, Map<String, Object> env) {
+        // 优化空逻辑分支
+        if (StringUtils.isEmpty(expression) || "true".equals(expression)) {
+            return new ExpressionContextResult(expression, Collections.emptyList(), Collections.emptyList(), true);
+        }
+
         final Expression compile = evaluator.compile(expression, true);
         final Object execute = compile.execute(env);
         return new ExpressionContextResult(expression, compile.getFunctionNames(), compile.getVariableFullNames(), execute);

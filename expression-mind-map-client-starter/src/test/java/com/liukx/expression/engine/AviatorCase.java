@@ -12,6 +12,7 @@ import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
 import com.liukx.expression.engine.client.function.BaseFunctionDescEnum;
 import com.liukx.expression.engine.client.log.AviatorLoggerTraceOutputStream;
 import com.liukx.expression.engine.client.process.AviatorEvaluatorServiceImpl;
+import com.liukx.expression.engine.core.api.model.ExpressionContextResult;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
@@ -100,6 +101,29 @@ public class AviatorCase {
         envContext.enableTrace();
         final Object execute = aviatorEvaluatorService.execute("objectUtils.compare(startDate,endDate)", env);
         System.out.println(execute);
+    }
+
+    @Test
+    public void testTrueKeyword() {
+        Map<String, Object> env = new LinkedHashMap<>();
+        final ExpressionEnvContext envContext = ExpressionEnvContext.of(env);
+
+        int count = 100000;
+        String expression = "true";
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            final ExpressionContextResult result = aviatorEvaluatorService.execute(expression, env);
+        }
+        long time = System.currentTimeMillis() - start;
+        System.out.println("expression : " + time);
+
+        long start1 = System.currentTimeMillis();
+        for (int i = 0; i < count; i++) {
+            final boolean equals = "true".equals(expression);
+        }
+        long time1 = System.currentTimeMillis() - start1;
+        System.out.println("eq : " + time1);
+
     }
 
 }

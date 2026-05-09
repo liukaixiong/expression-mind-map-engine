@@ -652,7 +652,7 @@
             "      <td>" + node.data.expressionCode + "</td>\n" +
             "    </tr>\n" +
             "    <tr>\n" +
-            "      <td>表达式编码</td>\n" +
+            "      <td>表达式标题</td>\n" +
             "      <td>" + node.data.expressionTitle + "</td>\n" +
             "    </tr>\n" +
             "    <tr>\n" +
@@ -662,6 +662,14 @@
             "    <tr>\n" +
             "      <td>表达式描述</td>\n" +
             "      <td>" + node.data.expressionDescription + "</td>\n" +
+            "    </tr>\n" +
+            "    <tr>\n" +
+            "      <td>创建时间</td>\n" +
+            "      <td>" + (node.data.createTime || '') + "</td>\n" +
+            "    </tr>\n" +
+            "    <tr>\n" +
+            "      <td>修改时间</td>\n" +
+            "      <td>" + (node.data.updateTime || '') + "</td>\n" +
             "    </tr>\n" + traceHtml +
             "  </tbody>\n" +
             "</table>";
