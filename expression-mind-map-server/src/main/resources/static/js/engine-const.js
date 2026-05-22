@@ -100,6 +100,19 @@ let final_const = {
          * 获取Nacos注册中心的所有服务列表
          */
         debug_nacos_services: '/expression-engine/debug/services',
+
+        /**
+         * AI生成表达式
+         */
+        ai_generate_expression: '/expression-engine/ai/generate',
+
+        /**
+         * AI提示词管理
+         */
+        ai_prompt_list: '/expression-engine/ai/prompt/list',
+        ai_prompt_get: '/expression-engine/ai/prompt/get',
+        ai_prompt_save: '/expression-engine/ai/prompt/save',
+        ai_prompt_delete: '/expression-engine/ai/prompt/delete',
     },
 
     template_path: {
@@ -107,7 +120,7 @@ let final_const = {
         executor_form: '/template/executor-form.html',
         expression_rule_config: '/template/expression-rule-config.html',
         expression_form: '/template/expressionForm.html',
-
+        ai_prompt_list: '/template/ai-prompt-list.html',
     },
     final_constants: {
         /**

@@ -7,8 +7,6 @@
     <script src="/js/cdn/layui/layui.js"></script>
     <script src="/js/Utils.js"></script>
     <script src="/js/engine-const.js"></script>
-    <script src="/js/bubble-animation.js"></script>
-    <link href="/css/bubble-animation.css" rel="stylesheet">
     <!-- Ace Editor JSON 编辑器 - 本地版本 -->
     <script src="/js/cdn/ace/ace.min.js"></script>
     <script src="/js/cdn/ace/mode-json.min.js"></script>
@@ -42,9 +40,7 @@
         }
     </style>
 </head>
-<body class="bubble-bg">
-<!-- 五彩气泡容器 -->
-<div id="bubbleContainer"></div>
+<body>
 
 <form class="layui-form layui-row layui-col-space16">
     <div class="layui-col-md4">
@@ -115,6 +111,9 @@
         </button>
         <a class="layui-btn layui-btn-sm layui-bg-blue" href="/template/trace-list.html" target="_blank">
             <i class="layui-icon layui-icon-search"></i>跳转追踪查询页
+        </a>
+        <a class="layui-btn layui-btn-sm layui-bg-orange" href="/template/ai-prompt-list.html" target="_blank">
+            <i class="layui-icon layui-icon-template-1"></i>提示词管理
         </a>
         <div style="float: right;">
             <button class="layui-btn layui-btn-sm layui-btn-warm" lay-event="globalVariableConfig">

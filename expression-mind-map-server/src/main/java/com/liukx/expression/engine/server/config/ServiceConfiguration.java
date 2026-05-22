@@ -1,7 +1,9 @@
 package com.liukx.expression.engine.server.config;
 
+import com.alibaba.nacos.api.config.ConfigService;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import com.liukx.expression.engine.server.config.props.AiExpressionProperties;
 import com.liukx.expression.engine.server.service.TraceLogStorageService;
 import com.liukx.expression.engine.server.service.impl.storage.DefaultMysqlTraceLogStorageService;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,5 +64,7 @@ public class ServiceConfiguration {
     public TraceLogStorageService traceLogStorageService() {
         return new DefaultMysqlTraceLogStorageService();
     }
+
+
 
 }

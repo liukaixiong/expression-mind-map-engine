@@ -99,7 +99,8 @@ public class AviatorCase {
         envContext.addEnvContext("startDate", DateUtil.parseDate("2025-02-27"));
         envContext.addEnvContext("endDate", DateUtil.parseDate("2025-03-27"));
         envContext.enableTrace();
-        final Object execute = aviatorEvaluatorService.execute("objectUtils.compare(startDate,endDate)", env);
+//        final Object execute = aviatorEvaluatorService.execute("objectUtils.compare(startDate,endDate)", env);
+        final Object execute = aviatorEvaluatorService.execute("startDate >= '2026-01-01'", env);
         System.out.println(execute);
     }
 

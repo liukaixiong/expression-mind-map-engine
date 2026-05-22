@@ -1,0 +1,327 @@
+<mxfile host="Electron" agent="Claude Code">
+  <diagram id="sys-arch" name="系统架构图">
+    <mxGraphModel dx="2046" dy="1054" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1050" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;fontSize=22;fontStyle=1;fontColor=#1e293b;align=center;" value="表达式思维导图引擎 - 系统架构图" vertex="1">
+          <mxGeometry height="40" width="800" x="300" y="15" as="geometry" />
+        </mxCell>
+        <mxCell id="title-line" parent="1" style="line;strokeColor=#3b82f6;strokeWidth=3;" value="" vertex="1">
+          <mxGeometry height="4" width="440" x="480" y="52" as="geometry" />
+        </mxCell>
+        <mxCell id="a-bg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f9ff;strokeColor=#93c5fd;strokeWidth=1;dashed=1;dashPattern=8 4;" value="" vertex="1">
+          <mxGeometry height="80" width="1320" x="40" y="75" as="geometry" />
+        </mxCell>
+        <mxCell id="a-hdr" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2563eb;fontColor=#ffffff;fontSize=13;fontStyle=1;arcSize=8;" value="接入层" vertex="1">
+          <mxGeometry height="80" width="60" x="40" y="75" as="geometry" />
+        </mxCell>
+        <mxCell id="a-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;strokeWidth=2;shadow=1;arcSize=10;" value="&lt;b&gt;业务应用系统&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;Spring Boot 应用&lt;br&gt;集成 Client Starter SDK&lt;/font&gt;" vertex="1">
+          <mxGeometry height="55" width="260" x="120" y="88" as="geometry" />
+        </mxCell>
+        <mxCell id="a-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;strokeWidth=2;shadow=1;arcSize=10;" value="&lt;b&gt;管理员&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size: 10px;&quot;&gt;Web 浏览器访问管理界面&lt;br&gt;规则配置 / 追踪查看 / AI 助手&lt;/font&gt;" vertex="1">
+          <mxGeometry height="55" width="260" x="410" y="88" as="geometry" />
+        </mxCell>
+        <mxCell id="a-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;strokeWidth=2;shadow=1;arcSize=10;" value="&lt;b&gt;开发 / 调试人员&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;远程调试 / 表达式测试&lt;br&gt;Nacos 服务发现&lt;/font&gt;" vertex="1">
+          <mxGeometry height="55" width="260" x="700" y="88" as="geometry" />
+        </mxCell>
+        <mxCell id="a-note" parent="1" style="text;html=1;align=center;" value="&lt;font color=&quot;#3b82f6&quot; style=&quot;font-size:9px&quot;&gt;通信协议: HTTP REST | 配置获取: HTTP / Redis | 调试: HTTP + Nacos&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="340" x="1000" y="103" as="geometry" />
+        </mxCell>
+        <mxCell id="c-bg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#6ee7b7;strokeWidth=1;dashed=1;dashPattern=8 4;" value="" vertex="1">
+          <mxGeometry height="250" width="640" x="40" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="c-hdr" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#059669;gradientColor=#10b981;fontColor=#ffffff;fontSize=13;fontStyle=1;arcSize=10;" value="Client SDK&lt;br&gt;expression-mind-map-client-starter" vertex="1">
+          <mxGeometry height="35" width="640" x="40" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="c-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6ee7b7;strokeWidth=1.5;shadow=1;arcSize=10;" value="&lt;b&gt;ClientEngineFactory&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;引擎工厂&lt;br&gt;invoke() / submit() / syncGetResult()&lt;/font&gt;" vertex="1">
+          <mxGeometry height="50" width="300" x="55" y="222" as="geometry" />
+        </mxCell>
+        <mxCell id="c-1b" parent="1" style="rounded=1;fillColor=#10b981;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="5" width="300" x="55" y="222" as="geometry" />
+        </mxCell>
+        <mxCell id="c-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6ee7b7;strokeWidth=1.5;shadow=1;arcSize=10;" value="&lt;b&gt;引擎调用服务&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;LocalEngineServiceImpl (本地)&lt;br&gt;RemoteSync / RemoteAsync (远程)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="50" width="290" x="370" y="222" as="geometry" />
+        </mxCell>
+        <mxCell id="c-2b" parent="1" style="rounded=1;fillColor=#10b981;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="5" width="290" x="370" y="222" as="geometry" />
+        </mxCell>
+        <mxCell id="c-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ecfdf5;strokeColor=#059669;strokeWidth=2;shadow=1;arcSize=10;" value="&lt;b style=&quot;font-size:12px&quot;&gt;Aviator 表达式引擎&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#059669&quot; style=&quot;font-size:10px&quot;&gt;AviatorEvaluatorServiceImpl&lt;br&gt;表达式求值 / 变量解析 / 函数加载&lt;/font&gt;" vertex="1">
+          <mxGeometry height="50" width="300" x="55" y="282" as="geometry" />
+        </mxCell>
+        <mxCell id="c-3b" parent="1" style="rounded=1;fillColor=#059669;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="5" width="300" x="55" y="282" as="geometry" />
+        </mxCell>
+        <mxCell id="c-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6ee7b7;strokeWidth=1.5;shadow=1;arcSize=10;" value="&lt;b&gt;配置加载&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;HttpExpressionConfigService&lt;br&gt;RedisExpressionConfigService&lt;/font&gt;" vertex="1">
+          <mxGeometry height="50" width="290" x="370" y="282" as="geometry" />
+        </mxCell>
+        <mxCell id="c-4b" parent="1" style="rounded=1;fillColor=#10b981;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="5" width="290" x="370" y="282" as="geometry" />
+        </mxCell>
+        <mxCell id="c-5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#6ee7b7;strokeWidth=1.5;shadow=1;arcSize=10;" value="&lt;b&gt;扩展点 (Spring Bean 自动注册)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;ExecutorPostProcessor | ExecutorFilter | ConfigExecutorIntercept | FunctionPostProcessor | FunctionFilter&lt;/font&gt;" vertex="1">
+          <mxGeometry height="42" width="605" x="55" y="342" as="geometry" />
+        </mxCell>
+        <mxCell id="c-5b" parent="1" style="rounded=1;fillColor=#10b981;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="5" width="605" x="55" y="342" as="geometry" />
+        </mxCell>
+        <mxCell id="c-bar" parent="1" style="rounded=1;fillColor=#f0fdf4;strokeColor=#bbf7d0;" value="" vertex="1">
+          <mxGeometry height="22" width="605" x="55" y="394" as="geometry" />
+        </mxCell>
+        <mxCell id="c-bar-t" parent="1" style="text;html=1;fontSize=9;fontColor=#059669;align=center;" value="自定义: AbstractSimpleFunction (函数) | AbstractExpressionVariableContextProcessor (变量) | 30+ 内置函数" vertex="1">
+          <mxGeometry height="18" width="595" x="60" y="396" as="geometry" />
+        </mxCell>
+        <mxCell id="s-bg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fffbeb;strokeColor=#fcd34d;strokeWidth=1;dashed=1;dashPattern=8 4;" value="" vertex="1">
+          <mxGeometry height="300" width="660" x="700" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="s-hdr" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d97706;gradientColor=#f59e0b;fontColor=#ffffff;fontSize=13;fontStyle=1;arcSize=10;" value="Server&lt;br&gt;expression-mind-map-server (Spring Boot :20888)" vertex="1">
+          <mxGeometry height="35" width="660" x="700" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="s-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#fcd34d;strokeWidth=1.5;shadow=1;arcSize=10;" value="&lt;b&gt;Web UI&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;jsMind 思维导图&lt;br&gt;Layui + Ace Editor&lt;/font&gt;" vertex="1">
+          <mxGeometry height="50" width="200" x="715" y="222" as="geometry" />
+        </mxCell>
+        <mxCell id="s-1b" parent="1" style="rounded=1;fillColor=#f59e0b;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="5" width="200" x="715" y="222" as="geometry" />
+        </mxCell>
+        <mxCell id="s-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#fcd34d;strokeWidth=1.5;shadow=1;arcSize=10;" value="&lt;b&gt;REST Controllers&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;Config / Trace / AI / Debug&lt;br&gt;Executor / Components&lt;/font&gt;" vertex="1">
+          <mxGeometry height="50" width="200" x="930" y="222" as="geometry" />
+        </mxCell>
+        <mxCell id="s-2b" parent="1" style="rounded=1;fillColor=#f59e0b;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="5" width="200" x="930" y="222" as="geometry" />
+        </mxCell>
+        <mxCell id="s-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#fcd34d;strokeWidth=1.5;shadow=1;arcSize=10;" value="&lt;b&gt;登录鉴权&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;IExpressionLoginService&lt;br&gt;Token / Cookie&lt;/font&gt;" vertex="1">
+          <mxGeometry height="50" width="195" x="1145" y="222" as="geometry" />
+        </mxCell>
+        <mxCell id="s-3b" parent="1" style="rounded=1;fillColor=#f59e0b;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="5" width="195" x="1145" y="222" as="geometry" />
+        </mxCell>
+        <mxCell id="s-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#fcd34d;strokeWidth=1.5;shadow=1;arcSize=10;" value="&lt;b&gt;配置管理 Service&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;ExpressionExecutorConfigService&lt;br&gt;执行器 / 表达式树 CRUD / 版本管理&lt;/font&gt;" vertex="1">
+          <mxGeometry height="50" width="310" x="715" y="282" as="geometry" />
+        </mxCell>
+        <mxCell id="s-4b" parent="1" style="rounded=1;fillColor=#f59e0b;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="5" width="310" x="715" y="282" as="geometry" />
+        </mxCell>
+        <mxCell id="s-5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#fcd34d;strokeWidth=1.5;shadow=1;arcSize=10;" value="&lt;b&gt;追踪 &amp;amp; 调试 Service&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;TraceLogHelper / DebugController&lt;br&gt;日志查询 / 远程调试执行&lt;/font&gt;" vertex="1">
+          <mxGeometry height="50" width="300" x="1040" y="282" as="geometry" />
+        </mxCell>
+        <mxCell id="s-5b" parent="1" style="rounded=1;fillColor=#f59e0b;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="5" width="300" x="1040" y="282" as="geometry" />
+        </mxCell>
+        <mxCell id="s-bar" parent="1" style="rounded=1;fillColor=#fffbeb;strokeColor=#fde68a;" value="" vertex="1">
+          <mxGeometry height="40" width="625" x="715" y="342" as="geometry" />
+        </mxCell>
+        <mxCell id="s-bar-t" parent="1" style="text;html=1;fontSize=10;fontColor=#d97706;align=center;" value="&lt;b&gt;自动配置&lt;/b&gt;: ExpressionConfiguration&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:9px&quot;&gt;spring.factories + AutoConfiguration.imports | @ConfigurationProperties(&quot;spring.plugin.express&quot;)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="36" width="615" x="720" y="344" as="geometry" />
+        </mxCell>
+        <mxCell id="s-ai-hdr" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4338ca;gradientColor=#6366f1;fontColor=#ffffff;fontSize=11;fontStyle=1;arcSize=8;" value="AI 表达式助手 (智谱AI GLM)" vertex="1">
+          <mxGeometry height="20" width="625" x="715" y="392" as="geometry" />
+        </mxCell>
+        <mxCell id="s-ai-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eef2ff;strokeColor=#818cf8;strokeWidth=2;shadow=1;arcSize=10;" value="&lt;b style=&quot;font-size:11px&quot;&gt;AI 表达式服务&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#4338ca&quot; style=&quot;font-size:10px&quot;&gt;AiExpressionService&lt;br&gt;两阶段上下文扩展 / 多轮对话&lt;/font&gt;" vertex="1">
+          <mxGeometry height="48" width="200" x="715" y="418" as="geometry" />
+        </mxCell>
+        <mxCell id="s-ai-1b" parent="1" style="rounded=1;fillColor=#4338ca;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="5" width="200" x="715" y="418" as="geometry" />
+        </mxCell>
+        <mxCell id="s-ai-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#818cf8;strokeWidth=1.5;shadow=1;arcSize=10;" value="&lt;b&gt;LlmClient&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;HTTP 通信客户端&lt;br&gt;OpenAI 兼容协议&lt;/font&gt;" vertex="1">
+          <mxGeometry height="48" width="200" x="925" y="418" as="geometry" />
+        </mxCell>
+        <mxCell id="s-ai-2b" parent="1" style="rounded=1;fillColor=#4338ca;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="5" width="200" x="925" y="418" as="geometry" />
+        </mxCell>
+        <mxCell id="s-ai-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#818cf8;strokeWidth=1.5;shadow=1;arcSize=10;" value="&lt;b&gt;提示词管理&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;SystemPromptLoader&lt;br&gt;Redis 存储提示词模板&lt;/font&gt;" vertex="1">
+          <mxGeometry height="48" width="205" x="1135" y="418" as="geometry" />
+        </mxCell>
+        <mxCell id="s-ai-3b" parent="1" style="rounded=1;fillColor=#4338ca;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="5" width="205" x="1135" y="418" as="geometry" />
+        </mxCell>
+        <mxCell id="e-cs" edge="1" parent="1" source="c-4" style="rounded=1;strokeColor=#f97316;strokeWidth=2;dashed=1;dashPattern=8 4;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="s-4" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-cs-l" connectable="0" parent="e-cs" style="edgeLabel;html=1;fontSize=10;fontColor=#d97706;fontStyle=1;labelBackgroundColor=#fffbeb;" value="HTTP / Redis&lt;br&gt;配置获取 / 追踪提交" vertex="1">
+          <mxGeometry relative="1" x="-0.1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="core-bg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#faf5ff;strokeColor=#c4b5fd;strokeWidth=1;dashed=1;dashPattern=8 4;" value="" vertex="1">
+          <mxGeometry height="90" width="1320" x="40" y="505" as="geometry" />
+        </mxCell>
+        <mxCell id="core-hdr" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#7c3aed;gradientColor=#8b5cf6;fontColor=#ffffff;fontSize=13;fontStyle=1;arcSize=10;" value="Core&lt;br&gt;expression-mind-map-core" vertex="1">
+          <mxGeometry height="32" width="1320" x="40" y="505" as="geometry" />
+        </mxCell>
+        <mxCell id="core-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c4b5fd;strokeWidth=1.5;shadow=1;arcSize=10;" value="&lt;b&gt;模型&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;ExpressionConfigInfo&lt;br&gt;ExpressionConfigTreeModel&lt;br&gt;ExpressionBaseRequest&lt;/font&gt;" vertex="1">
+          <mxGeometry height="42" width="230" x="55" y="543" as="geometry" />
+        </mxCell>
+        <mxCell id="core-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c4b5fd;strokeWidth=1.5;shadow=1;arcSize=10;" value="&lt;b&gt;接口 API&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;ExpressionService&lt;br&gt;ClientEngineInvokeService&lt;br&gt;RemoteExpressionConfigService&lt;/font&gt;" vertex="1">
+          <mxGeometry height="42" width="250" x="305" y="543" as="geometry" />
+        </mxCell>
+        <mxCell id="core-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c4b5fd;strokeWidth=1.5;shadow=1;arcSize=10;" value="&lt;b&gt;扩展接口&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;ExecutorPostProcessor&lt;br&gt;ExecutorFilter / ConfigExecutorIntercept&lt;br&gt;FunctionPostProcessor / FunctionFilter&lt;/font&gt;" vertex="1">
+          <mxGeometry height="42" width="290" x="575" y="543" as="geometry" />
+        </mxCell>
+        <mxCell id="core-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c4b5fd;strokeWidth=1.5;shadow=1;arcSize=10;" value="&lt;b&gt;枚举 &amp;amp; 常量&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;EngineCallType / ExpressionType&lt;br&gt;MetricType / LogEventEnum&lt;/font&gt;" vertex="1">
+          <mxGeometry height="42" width="230" x="885" y="543" as="geometry" />
+        </mxCell>
+        <mxCell id="core-5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c4b5fd;strokeWidth=1.5;shadow=1;arcSize=10;" value="&lt;b&gt;工具 &amp;amp; 依赖&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;Redisson / Hutool&lt;br&gt;Guava / Micrometer&lt;/font&gt;" vertex="1">
+          <mxGeometry height="42" width="205" x="1135" y="543" as="geometry" />
+        </mxCell>
+        <mxCell id="e-c-core" edge="1" parent="1" source="c-bg" style="rounded=1;strokeColor=#8b5cf6;strokeWidth=1.5;dashed=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.2;entryY=0;entryDx=0;entryDy=0;" target="core-bg" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="360" y="470" />
+              <mxPoint x="304" y="470" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-c-core-l" connectable="0" parent="e-c-core" style="edgeLabel;html=1;fontSize=9;fontColor=#7c3aed;" value="依赖" vertex="1">
+          <mxGeometry relative="1" x="-0.2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-s-core" edge="1" parent="1" source="s-bg" style="rounded=1;strokeColor=#8b5cf6;strokeWidth=1.5;dashed=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.8;entryY=0;entryDx=0;entryDy=0;" target="core-bg" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1030" y="495" />
+              <mxPoint x="1096" y="495" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-s-core-l" connectable="0" parent="e-s-core" style="edgeLabel;html=1;fontSize=9;fontColor=#7c3aed;" value="依赖" vertex="1">
+          <mxGeometry relative="1" x="-0.2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="i-bg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8fafc;strokeColor=#cbd5e1;strokeWidth=1;dashed=1;dashPattern=8 4;" value="" vertex="1">
+          <mxGeometry height="100" width="1320" x="40" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="i-hdr" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#475569;gradientColor=#64748b;fontColor=#ffffff;fontSize=14;fontStyle=1;arcSize=10;" value="基础设施层" vertex="1">
+          <mxGeometry height="30" width="1320" x="40" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="i-1" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#ffffff;strokeColor=#94a3b8;strokeWidth=1.5;shadow=1;fontColor=#1e293b;" value="&lt;b style=&quot;font-size:13px&quot;&gt;MySQL&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;MyBatis Plus 3.5.5&lt;br&gt;配置存储 / 追踪日志 (按月分表)&lt;br&gt;版本历史 / 用户认证&lt;/font&gt;" vertex="1">
+          <mxGeometry height="55" width="240" x="60" y="655" as="geometry" />
+        </mxCell>
+        <mxCell id="i-2" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#ffffff;strokeColor=#94a3b8;strokeWidth=1.5;shadow=1;fontColor=#1e293b;" value="&lt;b style=&quot;font-size:13px&quot;&gt;Redis&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;Redisson 分布式锁&lt;br&gt;配置缓存 / 会话管理&lt;br&gt;客户端直接读取配置&lt;/font&gt;" vertex="1">
+          <mxGeometry height="55" width="240" x="320" y="655" as="geometry" />
+        </mxCell>
+        <mxCell id="i-3" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#ffffff;strokeColor=#94a3b8;strokeWidth=1.5;shadow=1;fontColor=#1e293b;" value="&lt;b style=&quot;font-size:13px&quot;&gt;Nacos (可选)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;服务发现 / 配置管理&lt;br&gt;Spring Cloud Alibaba&lt;br&gt;调试时自动获取服务列表&lt;/font&gt;" vertex="1">
+          <mxGeometry height="55" width="240" x="580" y="655" as="geometry" />
+        </mxCell>
+        <mxCell id="i-4" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#ffffff;strokeColor=#94a3b8;strokeWidth=1.5;shadow=1;fontColor=#1e293b;" value="&lt;b style=&quot;font-size:13px&quot;&gt;Prometheus (可选)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size: 10px;&quot;&gt;Micrometer 指标采集&lt;br&gt;Actuator /actuator/prometheus&lt;br&gt;慢表达式 / 慢函数监控&lt;/font&gt;" vertex="1">
+          <mxGeometry height="55" width="240" x="840" y="655" as="geometry" />
+        </mxCell>
+        <mxCell id="i-5" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=10;fillColor=#eef2ff;strokeColor=#818cf8;strokeWidth=1.5;shadow=1;fontColor=#1e293b;" value="&lt;b style=&quot;font-size:13px&quot;&gt;模型厂商 (可选)&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#4338ca&quot; style=&quot;font-size: 10px;&quot;&gt;OpenAI 兼容 API&lt;br&gt;AI 表达式生成&lt;br&gt;多轮对话 / 提示词管理&lt;/font&gt;" vertex="1">
+          <mxGeometry height="55" width="240" x="1100" y="655" as="geometry" />
+        </mxCell>
+        <mxCell id="e-c-redis" edge="1" parent="1" source="c-bar" style="rounded=1;strokeColor=#ef4444;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="i-2" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="357" y="490" />
+              <mxPoint x="357" y="510" />
+              <mxPoint x="440" y="510" />
+              <mxPoint x="440" y="640" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-c-redis-l" connectable="0" parent="e-c-redis" style="edgeLabel;html=1;fontSize=9;fontColor=#ef4444;" value="直接读取配置" vertex="1">
+          <mxGeometry relative="1" x="-0.2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-s-mysql" edge="1" parent="1" source="s-bar" style="rounded=1;strokeColor=#475569;strokeWidth=1.5;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.7;entryY=0;entryDx=0;entryDy=0;" target="i-1" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="903" y="490" />
+              <mxPoint x="903" y="510" />
+              <mxPoint x="228" y="510" />
+              <mxPoint x="228" y="640" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-s-mysql-l" connectable="0" parent="e-s-mysql" style="edgeLabel;html=1;fontSize=9;fontColor=#475569;" value="CRUD" vertex="1">
+          <mxGeometry relative="1" x="-0.2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-s-redis" edge="1" parent="1" source="s-bar" style="rounded=1;strokeColor=#475569;strokeWidth=1.5;exitX=0.6;exitY=1;exitDx=0;exitDy=0;entryX=0.7;entryY=0;entryDx=0;entryDy=0;" target="i-2" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1090" y="490" />
+              <mxPoint x="1090" y="510" />
+              <mxPoint x="488" y="510" />
+              <mxPoint x="488" y="640" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-s-redis-l" connectable="0" parent="e-s-redis" style="edgeLabel;html=1;fontSize=9;fontColor=#475569;" value="缓存" vertex="1">
+          <mxGeometry relative="1" x="-0.1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-ai-llm" edge="1" parent="1" source="s-ai-2" style="rounded=1;strokeColor=#4338ca;strokeWidth=2;dashed=1;dashPattern=8 4;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="i-5" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1025" y="510" />
+              <mxPoint x="1220" y="510" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-ai-llm-l" connectable="0" parent="e-ai-llm" style="edgeLabel;html=1;fontSize=9;fontColor=#4338ca;fontStyle=1;labelBackgroundColor=#eef2ff;" value="OpenAI 兼容 API" vertex="1">
+          <mxGeometry relative="1" x="-0.1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="j-bg" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef2f2;strokeColor=#fecaca;strokeWidth=1;dashed=1;dashPattern=8 4;" value="" vertex="1">
+          <mxGeometry height="80" width="1320" x="40" y="745" as="geometry" />
+        </mxCell>
+        <mxCell id="j-hdr" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dc2626;fontColor=#ffffff;fontSize=13;fontStyle=1;arcSize=8;" value="JDK 适配层" vertex="1">
+          <mxGeometry height="80" width="70" x="40" y="745" as="geometry" />
+        </mxCell>
+        <mxCell id="j-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#fca5a5;strokeWidth=1.5;shadow=1;arcSize=10;" value="&lt;b&gt;expression-mind-map-jdk8&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;Java 8 | Spring Boot 2.7.18 | Spring Cloud 2021.0.9&lt;br&gt;构建: mvn clean install -Pjdk8 -Djava.version=8&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="580" x="120" y="755" as="geometry" />
+        </mxCell>
+        <mxCell id="j-1b" parent="1" style="rounded=1;fillColor=#dc2626;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="5" width="580" x="120" y="755" as="geometry" />
+        </mxCell>
+        <mxCell id="j-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#fca5a5;strokeWidth=1.5;shadow=1;arcSize=10;" value="&lt;b&gt;expression-mind-map-jdk17&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;Java 17 (默认) | Spring Boot 3.1.7 | Spring Cloud 2022.0.4&lt;br&gt;构建: mvn clean install (默认 Profile)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="620" x="720" y="755" as="geometry" />
+        </mxCell>
+        <mxCell id="j-2b" parent="1" style="rounded=1;fillColor=#dc2626;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="5" width="620" x="720" y="755" as="geometry" />
+        </mxCell>
+        <mxCell id="t-title" parent="1" style="text;html=1;fontSize=13;fontStyle=1;fontColor=#1e293b;align=left;" value="技术栈速查" vertex="1">
+          <mxGeometry height="25" width="120" x="40" y="845" as="geometry" />
+        </mxCell>
+        <mxCell id="t-box" parent="1" style="rounded=1;fillColor=#f8fafc;strokeColor=#e2e8f0;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="60" width="1320" x="40" y="870" as="geometry" />
+        </mxCell>
+        <mxCell id="t-col1" parent="1" style="text;html=1;fontSize=10;align=left;spacingLeft=8;" value="&lt;b&gt;后端&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:9px&quot;&gt;Spring Boot 3.1.7&lt;br&gt;Aviator 5.4.3&lt;br&gt;MyBatis Plus 3.5.5&lt;/font&gt;" vertex="1">
+          <mxGeometry height="55" width="160" x="50" y="872" as="geometry" />
+        </mxCell>
+        <mxCell id="t-col2" parent="1" style="text;html=1;fontSize=10;align=left;spacingLeft=8;" value="&lt;b&gt;前端&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:9px&quot;&gt;Layui 2.x&lt;br&gt;jsMind + draggable-node&lt;br&gt;Ace Editor&lt;/font&gt;" vertex="1">
+          <mxGeometry height="55" width="160" x="230" y="872" as="geometry" />
+        </mxCell>
+        <mxCell id="t-col3" parent="1" style="text;html=1;fontSize=10;align=left;spacingLeft=8;" value="&lt;b&gt;存储&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:9px&quot;&gt;MySQL 8.0&lt;br&gt;Redis + Redisson 3.24.2&lt;br&gt;按月分表&lt;/font&gt;" vertex="1">
+          <mxGeometry height="55" width="160" x="410" y="872" as="geometry" />
+        </mxCell>
+        <mxCell id="t-col4" parent="1" style="text;html=1;fontSize=10;align=left;spacingLeft=8;" value="&lt;b&gt;监控&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:9px&quot;&gt;Micrometer + Prometheus&lt;br&gt;Spring Boot Actuator&lt;br&gt;全链路 TraceID&lt;/font&gt;" vertex="1">
+          <mxGeometry height="55" width="180" x="590" y="872" as="geometry" />
+        </mxCell>
+        <mxCell id="t-col5" parent="1" style="text;html=1;fontSize=10;align=left;spacingLeft=8;" value="&lt;b&gt;服务发现&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:9px&quot;&gt;Nacos (可选)&lt;br&gt;Spring Cloud Alibaba&lt;br&gt;2022.0.0.0&lt;/font&gt;" vertex="1">
+          <mxGeometry height="55" width="170" x="790" y="872" as="geometry" />
+        </mxCell>
+        <mxCell id="t-col6" parent="1" style="text;html=1;fontSize=10;align=left;spacingLeft=8;" value="&lt;b&gt;工具库&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:9px&quot;&gt;Hutool 5.8.22&lt;br&gt;Guava 32.1.2&lt;br&gt;FastJSON 1.2.83&lt;/font&gt;" vertex="1">
+          <mxGeometry height="55" width="160" x="980" y="872" as="geometry" />
+        </mxCell>
+        <mxCell id="t-col7" parent="1" style="text;html=1;fontSize=10;align=left;spacingLeft=8;" value="&lt;b&gt;AI &amp;amp; 模板&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:9px&quot;&gt;智谱AI GLM-5.1&lt;br&gt;OpenAI 兼容 API&lt;br&gt;Freemarker&lt;/font&gt;" vertex="1">
+          <mxGeometry height="55" width="170" x="1160" y="872" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-title" parent="1" style="text;html=1;fontSize=13;fontStyle=1;fontColor=#1e293b;align=left;" value="模块依赖关系" vertex="1">
+          <mxGeometry height="25" width="150" x="40" y="945" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-box" parent="1" style="rounded=1;fillColor=#f8fafc;strokeColor=#e2e8f0;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="35" width="1320" x="40" y="970" as="geometry" />
+        </mxCell>
+        <mxCell id="dep-text" parent="1" style="text;html=1;fontSize=10;fontColor=#475569;align=center;" value="&lt;b&gt;server&lt;/b&gt; &amp;rarr; client-starter + jdk{8|17}        &lt;b&gt;client-starter&lt;/b&gt; &amp;rarr; core        &lt;b&gt;jdk8&lt;/b&gt; &amp;rarr; Spring Boot 2.7.18        &lt;b&gt;jdk17&lt;/b&gt; &amp;rarr; Spring Boot 3.1.7        &lt;b&gt;core&lt;/b&gt; &amp;rarr; Spring Boot + Redisson + Hutool" vertex="1">
+          <mxGeometry height="26" width="1300" x="50" y="974" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

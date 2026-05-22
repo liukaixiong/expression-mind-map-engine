@@ -35,6 +35,11 @@ public class ExpressionServerProperties {
      */
     private List<TableRule> tableRuleList;
 
+    /**
+     * ai表达式配置
+     */
+    private AiExpressionProperties ai;
+
     @Data
     public static class TableRule {
         /**

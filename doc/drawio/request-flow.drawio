@@ -1,0 +1,325 @@
+<mxfile host="Electron" agent="Claude Code">
+  <diagram id="request-flow" name="请求生命周期流程图">
+    <mxGraphModel dx="2518" dy="1297" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2000" pageHeight="1800" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;fontSize=22;fontStyle=1;fontColor=#1e293b;align=center;" value="表达式引擎 — 完整请求生命周期流程图" vertex="1">
+          <mxGeometry height="40" width="1000" x="250" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="L1-bg" parent="1" style="rounded=1;fillColor=#eef2ff;strokeColor=#c7d2fe;strokeWidth=1;dashed=1;dashPattern=8 4;" value="" vertex="1">
+          <mxGeometry height="90" width="1560" x="20" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="L1-hdr" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#6366f1;fontColor=#ffffff;fontSize=14;fontStyle=1;arcSize=8;" value="调用层" vertex="1">
+          <mxGeometry height="90" width="70" x="20" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="L1-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eef2ff;strokeColor=#6366f1;strokeWidth=2;shadow=1;arcSize=12;" value="&lt;b&gt;业务代码&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;应用服务调用表达式引擎&lt;/font&gt;" vertex="1">
+          <mxGeometry height="50" width="180" x="120" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="L1-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#bfdbfe;strokeWidth=1.5;shadow=1;arcSize=12;" value="&lt;b&gt;ClientEngineFactory&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;引擎工厂&lt;br&gt;invoke() 本地 | submit() 异步 | syncGetResult() 同步&lt;/font&gt;" vertex="1">
+          <mxGeometry height="65" width="240" x="370" y="92" as="geometry" />
+        </mxCell>
+        <mxCell id="L1-2-bar" parent="1" style="rounded=1;fillColor=#3b82f6;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="6" width="240" x="370" y="92" as="geometry" />
+        </mxCell>
+        <mxCell id="L1-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#bfdbfe;strokeWidth=1.5;shadow=1;arcSize=12;" value="&lt;b&gt;ClientEngineInvokeService&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;引擎调用服务接口&lt;br&gt;LOCAL | REMOTE_SYNC | REMOTE_ASYNC&lt;/font&gt;" vertex="1">
+          <mxGeometry height="65" width="280" x="670" y="92" as="geometry" />
+        </mxCell>
+        <mxCell id="L1-3-bar" parent="1" style="rounded=1;fillColor=#3b82f6;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="6" width="280" x="670" y="92" as="geometry" />
+        </mxCell>
+        <mxCell id="L1-note" parent="1" style="text;html=1;fontSize=10;align=center;" value="&lt;font color=&quot;#6366f1&quot; style=&quot;font-size:10px&quot;&gt;请求参数: serviceName | businessCode | executorCode | eventName | userId | traceId&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="450" x="1010" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="e-l1-1" edge="1" parent="1" source="L1-1" style="rounded=1;strokeColor=#6366f1;strokeWidth=1.5;" target="L1-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-l1-2" edge="1" parent="1" source="L1-2" style="rounded=1;strokeColor=#3b82f6;strokeWidth=1.5;" target="L1-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="L2-bg" parent="1" style="rounded=1;fillColor=#f0fdfa;strokeColor=#5eead4;strokeWidth=1;dashed=1;dashPattern=8 4;" value="" vertex="1">
+          <mxGeometry height="120" width="1560" x="20" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="L2-hdr" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0d9488;fontColor=#ffffff;fontSize=14;fontStyle=1;arcSize=8;" value="配置层" vertex="1">
+          <mxGeometry height="120" width="70" x="20" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="L2-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#99f6e4;strokeWidth=1.5;shadow=1;arcSize=12;" value="&lt;b&gt;ExpressionExecutorFactory&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;执行器工厂，获取引擎实例&lt;br&gt;getExpressionService(groupName)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="55" width="260" x="120" y="215" as="geometry" />
+        </mxCell>
+        <mxCell id="L2-1-bar" parent="1" style="rounded=1;fillColor=#14b8a6;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="6" width="260" x="120" y="215" as="geometry" />
+        </mxCell>
+        <mxCell id="L2-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#99f6e4;strokeWidth=1.5;shadow=1;arcSize=12;" value="&lt;b&gt;RemoteExpressionConfigService&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;远程配置服务接口&lt;br&gt;getConfigInfo(serviceName, businessCode, executorCode)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="310" x="440" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="L2-2-bar" parent="1" style="rounded=1;fillColor=#14b8a6;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="6" width="310" x="440" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="L2-3a" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#93c5fd;strokeWidth=1.5;shadow=1;arcSize=10;" value="&lt;b&gt;HTTP 实现&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:9px&quot;&gt;HttpExpressionConfigService&lt;br&gt;HTTP 请求服务端拉取配置&lt;/font&gt;" vertex="1">
+          <mxGeometry height="40" width="200" x="810" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="L2-3b" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff7ed;strokeColor=#fed7aa;strokeWidth=1.5;shadow=1;arcSize=10;" value="&lt;b&gt;Redis 实现&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:9px&quot;&gt;RedisExpressionConfigService&lt;br&gt;从 Redis 缓存读取配置&lt;/font&gt;" vertex="1">
+          <mxGeometry height="40" width="200" x="810" y="265" as="geometry" />
+        </mxCell>
+        <mxCell id="L2-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ecfdf5;strokeColor=#14b8a6;strokeWidth=2;shadow=1;arcSize=12;" value="&lt;b&gt;ExpressionConfigInfo&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#0d9488&quot; style=&quot;font-size:10px&quot;&gt;配置返回: 表达式树(configTreeModelList) + 变量定义(varDefinition) + 全局变量(globalVarConfig)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="50" width="460" x="1080" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="e-l2-1" edge="1" parent="1" source="L2-1" style="rounded=1;strokeColor=#14b8a6;strokeWidth=1.5;" target="L2-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-l2-2a" edge="1" parent="1" source="L2-2" style="rounded=1;strokeColor=#3b82f6;strokeWidth=1;" target="L2-3a">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-l2-2b" edge="1" parent="1" source="L2-2" style="rounded=1;strokeColor=#f97316;strokeWidth=1;dashed=1;" target="L2-3b">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-l2-3a" edge="1" parent="1" source="L2-3a" style="rounded=1;strokeColor=#14b8a6;strokeWidth=1.5;" target="L2-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-l2-3b" edge="1" parent="1" source="L2-3b" style="rounded=1;strokeColor=#14b8a6;strokeWidth=1;dashed=1;" target="L2-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-cross-1" edge="1" parent="1" source="L1-3" style="rounded=1;strokeColor=#3b82f6;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="L2-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="810" y="185" />
+              <mxPoint x="250" y="185" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-cross-1-l" connectable="0" parent="e-cross-1" style="edgeLabel;html=1;fontSize=9;fontColor=#0d9488;" value="获取引擎实例" vertex="1">
+          <mxGeometry relative="1" x="-0.2" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="L3-bg" parent="1" style="rounded=1;fillColor=#faf5ff;strokeColor=#c4b5fd;strokeWidth=1;dashed=1;dashPattern=8 4;" value="" vertex="1">
+          <mxGeometry height="90" width="1560" x="20" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="L3-hdr" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#7c3aed;fontColor=#ffffff;fontSize=14;fontStyle=1;arcSize=8;" value="数据层" vertex="1">
+          <mxGeometry height="90" width="70" x="20" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="L3-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c4b5fd;strokeWidth=1.5;shadow=1;arcSize=12;" value="&lt;b&gt;ClientExecutorController&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;POST /server/config/discovery&lt;br&gt;POST /server/executor/trace/submit&lt;/font&gt;" vertex="1">
+          <mxGeometry height="55" width="280" x="120" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="L3-1-bar" parent="1" style="rounded=1;fillColor=#7c3aed;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="6" width="280" x="120" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="L3-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c4b5fd;strokeWidth=1.5;shadow=1;arcSize=12;" value="&lt;b&gt;ExpressionExecutorConfigService&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;执行器配置查询，组装配置树&lt;br&gt;queryExecutorInfo(serviceName, businessCode, executorCode)&lt;/font&gt;" vertex="1">
+          <mxGeometry height="60" width="330" x="460" y="355" as="geometry" />
+        </mxCell>
+        <mxCell id="L3-2-bar" parent="1" style="rounded=1;fillColor=#7c3aed;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="6" width="330" x="460" y="355" as="geometry" />
+        </mxCell>
+        <mxCell id="L3-3" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#ffffff;strokeColor=#c4b5fd;strokeWidth=1.5;shadow=1;fontColor=#1e293b;" value="&lt;b&gt;MySQL + Redis&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:9px&quot;&gt;执行器信息 / 表达式配置 / 版本历史&lt;/font&gt;" vertex="1">
+          <mxGeometry height="55" width="200" x="850" y="355" as="geometry" />
+        </mxCell>
+        <mxCell id="e-l3-1" edge="1" parent="1" source="L3-1" style="rounded=1;strokeColor=#7c3aed;strokeWidth=1.5;" target="L3-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-l3-2" edge="1" parent="1" source="L3-2" style="rounded=1;strokeColor=#7c3aed;strokeWidth=1.5;" target="L3-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-cross-2" edge="1" parent="1" source="L2-3a" style="rounded=1;strokeColor=#7c3aed;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="L3-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="910" y="338" />
+              <mxPoint x="260" y="338" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-cross-2-l" connectable="0" parent="e-cross-2" style="edgeLabel;html=1;fontSize=9;fontColor=#7c3aed;" value="HTTP /server/config/discovery" vertex="1">
+          <mxGeometry relative="1" x="-0.15" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="L4-bg" parent="1" style="rounded=1;fillColor=#f0f9ff;strokeColor=#93c5fd;strokeWidth=1;dashed=1;dashPattern=8 4;" value="" vertex="1">
+          <mxGeometry height="70" width="1560" x="20" y="475" as="geometry" />
+        </mxCell>
+        <mxCell id="L4-hdr" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2563eb;fontColor=#ffffff;fontSize=14;fontStyle=1;arcSize=8;" value="执行层" vertex="1">
+          <mxGeometry height="70" width="70" x="20" y="475" as="geometry" />
+        </mxCell>
+        <mxCell id="L4-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eff6ff;strokeColor=#3b82f6;strokeWidth=2;shadow=1;arcSize=12;" value="&lt;b&gt;LocalEngineServiceImpl.executorExpression()&lt;/b&gt;&amp;nbsp;&amp;nbsp;&lt;font color=&quot;#2563eb&quot; style=&quot;font-size:10px&quot;&gt;本地表达式执行器 — 按优先级遍历表达式树: ACTION &amp;rarr; CONDITION &amp;rarr; TRIGGER &amp;rarr; CALLBACK，从左到右、从上到下&lt;/font&gt;" vertex="1">
+          <mxGeometry height="45" width="1100" x="120" y="487" as="geometry" />
+        </mxCell>
+        <mxCell id="e-cross-3" edge="1" parent="1" source="L2-4" style="rounded=1;strokeColor=#3b82f6;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.85;entryY=0;entryDx=0;entryDy=0;" target="L4-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1310" y="460" />
+              <mxPoint x="1055" y="460" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-cross-3-l" connectable="0" parent="e-cross-3" style="edgeLabel;html=1;fontSize=9;fontColor=#3b82f6;" value="配置就绪，开始执行" vertex="1">
+          <mxGeometry relative="1" x="-0.15" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="L5-bg" parent="1" style="rounded=1;fillColor=#fef2f2;strokeColor=#fecaca;strokeWidth=1;dashed=1;dashPattern=8 4;" value="" vertex="1">
+          <mxGeometry height="545" width="1560" x="20" y="575" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-hdr" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dc2626;fontColor=#ffffff;fontSize=14;fontStyle=1;arcSize=8;" value="扩展层" vertex="1">
+          <mxGeometry height="530" width="70" x="20" y="585" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-t1" parent="1" style="text;html=1;fontSize=13;fontStyle=1;fontColor=#dc2626;align=left;" value="执行器级扩展（整个执行器前后各执行一次）" vertex="1">
+          <mxGeometry height="25" width="420" x="120" y="585" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#fca5a5;strokeWidth=1.5;shadow=1;arcSize=10;align=left;spacingLeft=10;" value="&lt;b&gt;&lt;font color=&quot;#dc2626&quot;&gt;① ExpressionExecutorPostProcessor&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;方法: .beforeExecutor(envContext, request, configInfo)&lt;/font&gt;&lt;br&gt;&lt;font color=&quot;#2563eb&quot; style=&quot;font-size:9px&quot;&gt;用途: 变量配置注册 | 配置能力过滤(configurabilityMap) | 配置ID过滤&lt;/font&gt;" vertex="1">
+          <mxGeometry height="65" width="440" x="120" y="615" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-1-bar" parent="1" style="rounded=1;fillColor=#dc2626;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="6" width="440" x="120" y="615" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#fca5a5;strokeWidth=1.5;shadow=1;arcSize=10;align=left;spacingLeft=10;" value="&lt;b&gt;&lt;font color=&quot;#dc2626&quot;&gt;② ExpressionExecutorFilter&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;方法: .doExpressionFilter(env, configInfo, tree, request, chain)&lt;/font&gt;&lt;br&gt;&lt;font color=&quot;#2563eb&quot; style=&quot;font-size:9px&quot;&gt;用途: 自定义过滤逻辑 | 指标监控 | 责任链模式&lt;/font&gt;" vertex="1">
+          <mxGeometry height="55" width="380" x="620" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-2-bar" parent="1" style="rounded=1;fillColor=#dc2626;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="6" width="380" x="620" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="e-cross-4" edge="1" parent="1" source="L4-1" style="rounded=1;strokeColor=#dc2626;strokeWidth=1.5;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="L5-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="450" y="555" />
+              <mxPoint x="340" y="555" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e-l5-1to2" edge="1" parent="1" source="L5-1" style="rounded=1;strokeColor=#dc2626;strokeWidth=1.5;" target="L5-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-expr-bg" parent="1" style="rounded=1;fillColor=#fff7ed;strokeColor=#fed7aa;strokeWidth=1;dashed=1;dashPattern=5 3;" value="" vertex="1">
+          <mxGeometry height="230" width="1440" x="110" y="700" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-expr-label" parent="1" style="text;html=1;fontSize=11;fontStyle=1;fontColor=#ea580c;align=right;" value="⟲ 循环" vertex="1">
+          <mxGeometry height="20" width="100" x="1440" y="700" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-t2" parent="1" style="text;html=1;fontSize=13;fontStyle=1;fontColor=#ea580c;align=left;" value="表达式级扩展（循环遍历每条表达式）" vertex="1">
+          <mxGeometry height="25" width="350" x="120" y="705" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#fdba74;strokeWidth=1.5;shadow=1;arcSize=10;align=left;spacingLeft=10;" value="&lt;b&gt;&lt;font color=&quot;#ea580c&quot;&gt;③ ExpressionConfigExecutorIntercept&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;方法: .before(configTreeModel, request, envContext)&lt;/font&gt;&lt;br&gt;&lt;font color=&quot;#2563eb&quot; style=&quot;font-size:9px&quot;&gt;用途: 追踪日志采集 | 表达式前置处理&lt;/font&gt;" vertex="1">
+          <mxGeometry height="55" width="420" x="120" y="735" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-3-bar" parent="1" style="rounded=1;fillColor=#ea580c;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="6" width="420" x="120" y="735" as="geometry" />
+        </mxCell>
+        <mxCell id="e-l5-2to3" edge="1" parent="1" source="L5-2" style="rounded=1;strokeColor=#ea580c;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="L5-3">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="810" y="695" />
+              <mxPoint x="330" y="695" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="L5-fn-bg" parent="1" style="rounded=1;fillColor=#fefce8;strokeColor=#fde68a;strokeWidth=1;dashed=1;dashPattern=4 2;" value="" vertex="1">
+          <mxGeometry height="60" width="1420" x="120" y="800" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-fn-label" parent="1" style="text;html=1;fontSize=10;fontStyle=1;fontColor=#ca8a04;align=right;" value="⟲ 函数级循环" vertex="1">
+          <mxGeometry height="18" width="140" x="1390" y="800" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#fde68a;strokeWidth=1.5;shadow=1;arcSize=10;align=left;spacingLeft=8;" value="&lt;b&gt;④ FunctionPostProcessor&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:9px&quot;&gt;.functionBefore()&lt;br&gt;函数前置处理&lt;/font&gt;" vertex="1">
+          <mxGeometry height="48" width="270" x="130" y="808" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#fde68a;strokeWidth=1.5;shadow=1;arcSize=10;align=left;spacingLeft=8;" value="&lt;b&gt;⑤ FunctionFilter&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:9px&quot;&gt;.doFunctionFilter()&lt;br&gt;函数结果过滤链&lt;/font&gt;" vertex="1">
+          <mxGeometry height="48" width="250" x="440" y="808" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-fn" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dbeafe;strokeColor=#3b82f6;strokeWidth=1.5;shadow=1;arcSize=10;" value="&lt;b&gt;⑥ 函数执行&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:9px&quot;&gt;AbstractSimpleFunction&lt;br&gt;.processor()&lt;/font&gt;" vertex="1">
+          <mxGeometry height="48" width="200" x="730" y="808" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#fde68a;strokeWidth=1.5;shadow=1;arcSize=10;align=left;spacingLeft=8;" value="&lt;b&gt;⑦ FunctionPostProcessor&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:9px&quot;&gt;.afterFunction()&lt;br&gt;函数后置处理&lt;/font&gt;" vertex="1">
+          <mxGeometry height="48" width="270" x="970" y="808" as="geometry" />
+        </mxCell>
+        <mxCell id="e-l5-3to4" edge="1" parent="1" source="L5-3" style="rounded=1;strokeColor=#ca8a04;strokeWidth=1.5;" target="L5-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-l5-4to5" edge="1" parent="1" source="L5-4" style="rounded=1;strokeColor=#ca8a04;strokeWidth=1.5;" target="L5-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-l5-5tofn" edge="1" parent="1" source="L5-5" style="rounded=1;strokeColor=#ca8a04;strokeWidth=1.5;" target="L5-fn">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-l5-fnto6" edge="1" parent="1" source="L5-fn" style="rounded=1;strokeColor=#ca8a04;strokeWidth=1.5;" target="L5-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#fdba74;strokeWidth=1.5;shadow=1;arcSize=10;align=left;spacingLeft=10;" value="&lt;b&gt;&lt;font color=&quot;#ea580c&quot;&gt;⑧ ExpressionConfigExecutorIntercept&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;方法: .after(configTreeModel, request, envContext, result)&lt;br&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; .error(configTreeModel, request, envContext, exception)&lt;/font&gt;&lt;br&gt;&lt;font color=&quot;#2563eb&quot; style=&quot;font-size:9px&quot;&gt;用途: 表达式后置处理 | 异常捕获&lt;/font&gt;" vertex="1">
+          <mxGeometry height="75" width="480" x="120" y="875" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-8-bar" parent="1" style="rounded=1;fillColor=#ea580c;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="6" width="480" x="120" y="875" as="geometry" />
+        </mxCell>
+        <mxCell id="e-l5-6to8" edge="1" parent="1" source="L5-6" style="rounded=1;strokeColor=#ea580c;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="L5-8">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1105" y="870" />
+              <mxPoint x="360" y="870" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="L5-t4" parent="1" style="text;html=1;fontSize=13;fontStyle=1;fontColor=#94a3b8;align=left;" value="执行器级后置" vertex="1">
+          <mxGeometry height="25" width="200" x="120" y="945" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-9" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fef2f2;strokeColor=#fecaca;strokeWidth=1.5;shadow=1;arcSize=10;align=left;spacingLeft=10;" value="&lt;b&gt;&lt;font color=&quot;#64748b&quot;&gt;⑨ ExpressionExecutorPostProcessor&lt;/font&gt;&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;方法: .afterExecutor(envContext, request, configInfo)&lt;/font&gt;&lt;br&gt;&lt;font color=&quot;#2563eb&quot; style=&quot;font-size:9px&quot;&gt;用途: 执行器后置处理 | 资源清理 | 结果汇总&lt;/font&gt;" vertex="1">
+          <mxGeometry height="55" width="440" x="120" y="975" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-9-bar" parent="1" style="rounded=1;fillColor=#94a3b8;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="6" width="440" x="120" y="975" as="geometry" />
+        </mxCell>
+        <mxCell id="e-l5-8to9" edge="1" parent="1" source="L5-8" style="rounded=1;strokeColor=#94a3b8;strokeWidth=1.5;" target="L5-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-t5" parent="1" style="text;html=1;fontSize=13;fontStyle=1;fontColor=#0d9488;align=left;" value="追踪日志提交" vertex="1">
+          <mxGeometry height="25" width="200" x="120" y="1040" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-10" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#99f6e4;strokeWidth=1.5;shadow=1;arcSize=10;align=left;spacingLeft=10;" value="&lt;b&gt;追踪采集&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;收集 ExpressionExecutorResultDTO&lt;br&gt;执行结果 + 调用链 + 耗时统计&lt;/font&gt;" vertex="1">
+          <mxGeometry height="45" width="270" x="120" y="1065" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-10-bar" parent="1" style="rounded=1;fillColor=#14b8a6;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="6" width="270" x="120" y="1065" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#99f6e4;strokeWidth=1.5;shadow=1;arcSize=10;align=left;spacingLeft=10;" value="&lt;b&gt;HTTP 提交&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;/server/executor/trace/submit&lt;/font&gt;" vertex="1">
+          <mxGeometry height="45" width="230" x="440" y="1065" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-11-bar" parent="1" style="rounded=1;fillColor=#14b8a6;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="6" width="230" x="440" y="1065" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-12" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#c4b5fd;strokeWidth=1.5;shadow=1;arcSize=10;align=left;spacingLeft=10;" value="&lt;b&gt;存储追踪日志&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:10px&quot;&gt;写入 MySQL (按月分表)&lt;br&gt;trace_log_index / trace_log_info&lt;/font&gt;" vertex="1">
+          <mxGeometry height="45" width="250" x="720" y="1065" as="geometry" />
+        </mxCell>
+        <mxCell id="L5-12-bar" parent="1" style="rounded=1;fillColor=#7c3aed;strokeColor=none;" value="" vertex="1">
+          <mxGeometry height="6" width="250" x="720" y="1065" as="geometry" />
+        </mxCell>
+        <mxCell id="e-l5-10to11" edge="1" parent="1" source="L5-10" style="rounded=1;strokeColor=#14b8a6;strokeWidth=1.5;" target="L5-11">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e-l5-11to12" edge="1" parent="1" source="L5-11" style="rounded=1;strokeColor=#7c3aed;strokeWidth=1.5;" target="L5-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="fn-title" parent="1" style="text;html=1;fontSize=13;fontStyle=1;fontColor=#1e293b;align=left;" value="内置函数速查" vertex="1">
+          <mxGeometry height="25" width="120" x="120" y="1120" as="geometry" />
+        </mxCell>
+        <mxCell id="fn-box" parent="1" style="rounded=1;fillColor=#f8fafc;strokeColor=#e2e8f0;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="90" width="1100" x="120" y="1150" as="geometry" />
+        </mxCell>
+        <mxCell id="fn-col1" parent="1" style="text;html=1;fontSize=10;align=left;spacingLeft=8;" value="&lt;b&gt;流程控制&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:9px&quot;&gt;fn_in_end 结束分支&lt;br&gt;fn_force_end 强制终止&lt;br&gt;fn_return 返回上层&lt;br&gt;fn_redirect 跳转分支&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="200" x="130" y="1155" as="geometry" />
+        </mxCell>
+        <mxCell id="fn-col2" parent="1" style="text;html=1;fontSize=10;align=left;spacingLeft=8;" value="&lt;b&gt;环境变量&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:9px&quot;&gt;fn_put_value 设置变量&lt;br&gt;fn_get_value 获取变量&lt;br&gt;fn_put_branch_value 分支变量&lt;br&gt;fn_env_invoke_method 反射调用&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="200" x="350" y="1155" as="geometry" />
+        </mxCell>
+        <mxCell id="fn-col3" parent="1" style="text;html=1;fontSize=10;align=left;spacingLeft=8;" value="&lt;b&gt;调试工具&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:9px&quot;&gt;debug_body 打印请求体&lt;br&gt;debug_object 打印对象&lt;br&gt;debug_log 调试日志&lt;/font&gt;" vertex="1">
+          <mxGeometry height="70" width="180" x="570" y="1155" as="geometry" />
+        </mxCell>
+        <mxCell id="fn-col4" parent="1" style="text;html=1;fontSize=10;align=left;spacingLeft=8;" value="&lt;b&gt;系统工具&lt;/b&gt;&lt;br&gt;&lt;font color=&quot;#64748b&quot; style=&quot;font-size:9px&quot;&gt;fn_sys_date_hour_range 小时范围&lt;br&gt;fn_sys_date_day_range 日期范围&lt;br&gt;fn_object_is_not_null 非空判断&lt;br&gt;fn_str_to_json 字符串转JSON&lt;/font&gt;" vertex="1">
+          <mxGeometry height="80" width="220" x="770" y="1155" as="geometry" />
+        </mxCell>
+        <mxCell id="lc-title" parent="1" style="text;html=1;fontSize=13;fontStyle=1;fontColor=#1e293b;align=left;" value="生命周期时序总结" vertex="1">
+          <mxGeometry height="25" width="200" x="120" y="1250" as="geometry" />
+        </mxCell>
+        <mxCell id="lc-bar" parent="1" style="rounded=1;fillColor=#f1f5f9;strokeColor=#cbd5e1;strokeWidth=1;" value="" vertex="1">
+          <mxGeometry height="35" width="1380" x="120" y="1280" as="geometry" />
+        </mxCell>
+        <mxCell id="lc-text" parent="1" style="text;html=1;fontSize=11;align=center;verticalAlign=middle;" value="&lt;font color=&quot;#6366f1&quot;&gt;调用&lt;/font&gt; &amp;rarr; &lt;font color=&quot;#0d9488&quot;&gt;配置获取&lt;/font&gt; &amp;rarr; &lt;font color=&quot;#2563eb&quot;&gt;执行&lt;/font&gt; &amp;rarr; &lt;font color=&quot;#dc2626&quot;&gt;① beforeExecutor&lt;/font&gt; &amp;rarr; &lt;font color=&quot;#dc2626&quot;&gt;② ExecutorFilter&lt;/font&gt; &amp;rarr; &lt;font color=&quot;#ea580c&quot;&gt;③ 表达式.before&lt;/font&gt; &amp;rarr; &lt;font color=&quot;#ca8a04&quot;&gt;④⑤⑥⑦ 函数执行&lt;/font&gt; &amp;rarr; &lt;font color=&quot;#ea580c&quot;&gt;⑧ 表达式.after&lt;/font&gt; &amp;rarr; &lt;font color=&quot;#64748b&quot;&gt;⑨ afterExecutor&lt;/font&gt; &amp;rarr; &lt;font color=&quot;#0d9488&quot;&gt;追踪提交&lt;/font&gt;" vertex="1">
+          <mxGeometry height="30" width="1360" x="130" y="1282" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

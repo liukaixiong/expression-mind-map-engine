@@ -72,6 +72,20 @@ spring:
         - tableName: expression_trace_log_info
           tableSplitRule: month
           max-save-number: 2
+#      ai:
+#        enabled: true
+#        prompt-source: CLASSPATH
+#        # GLM 5
+#        api-url: https://open.bigmodel.cn/api/coding/paas/v4/chat/completions
+#        api-key: xxxx
+#        model: glm-5.1
+#        max-tokens: 10240
+#        temperature: 0.3
+#        connect-timeout: 10000
+#        read-timeout: 300000
+#        max-trace-samples: 3
+#        max-conversation-turns: 10
+
 mybatis-plus:
   mapper-locations: mapper/**/*.xml
   #  需要SQL日志时开启

@@ -47,6 +47,8 @@ public enum BaseFunctionDescEnum implements ExpressFunctionDocumentLoader {
     OBJECT_IS_NOT_NULL("base_util", "fn_object_is_not_null", "判断值是否为空,允许传递多个值,请传递变量", new String[]{"值1", "值2"}, "true || false", "fn_object_is_not_null(a1,a2)"),
     OBJECT_STR_TO_JSON("base_util", "fn_str_to_json", "字符串转json对象", new String[]{"json字符串"}, "true || false", "fn_str_to_json(jsonStr)"),
     LIST_STREAM_MAP("base_util", "fn_list_stream_map", "集合转换", new String[]{"集合对象","转换数值"}, "true || false", "fn_list_stream_map(list,lambda(x)-> xxx end)"),
+    BLACKLIST("base_list", "fn_blacklist", "黑名单操作: 默认查询值是否存在，支持add新增、del删除", new String[]{"名单组", "名单key", "名单值", "操作类型: 可选add/del，默认查询"}, "true || false", "fn_blacklist('risk','ip','192.168.1.1')"),
+    WHITELIST("base_list", "fn_whitelist", "白名单操作: 默认查询值是否存在，支持add新增、del删除", new String[]{"名单组", "名单key", "名单值", "操作类型: 可选add/del，默认查询"}, "true || false", "fn_whitelist('trusted','user','admin')"),
 
     ;
     private final FunctionApiModel functionApiModel;

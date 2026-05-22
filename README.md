@@ -12,19 +12,19 @@ typora-copy-images-to: doc\images\v1
 
 ### 系统架构
 
-<img src="doc/drawio/system-architecture.svg" alt="系统架构图" style="max-width: 100%; height: auto;" />
+<img src="doc/drawio/system-architecture.svg" alt="系统架构图" style="max-width: 100%; height: auto; zoom: 50%;" />
 
 系统采用**配置端与执行端分离**架构：服务端提供规则编排 Web UI，客户端 SDK 嵌入业务应用执行表达式规则。支持 HTTP 直连和 Redis 配置同步两种模式，可选集成 Nacos 注册中心。
 
 ### 功能架构
 
-<img src="doc/drawio/functional-architecture-cn.svg" alt="功能架构图" style="max-width: 100%; height: auto;" />
+<img src="doc/drawio/functional-architecture-cn.svg" alt="功能架构图" style="max-width: 100%; height: auto; zoom: 50%;" />
 
-系统涵盖 **10 大功能模块**：执行器管理、规则配置与编辑、追踪与监控、导入导出、版本管理、调试与测试、智能提示与文档、登录鉴权、仪表盘统计、客户端 SDK。
+系统涵盖 **11 大功能模块**：执行器管理、规则配置与编辑、追踪与监控、导入导出、版本管理、调试与测试、智能提示与文档、登录鉴权、仪表盘统计、客户端 SDK、AI 表达式生成。
 
 ### 请求流程
 
-<img src="doc/drawio/request-flow.svg" alt="请求流程图" style="max-width: 100%; height: auto;" />
+<img src="doc/drawio/request-flow.svg" alt="请求流程图" style="max-width: 100%; height: auto; zoom: 50%;" />
 
 请求从调用层进入，经过配置加载、数据准备、表达式树遍历执行，每一层均提供对应的扩展点接口。
 
@@ -37,6 +37,7 @@ typora-copy-images-to: doc\images\v1
 - **全链路追踪**：执行过程可视化追踪，精准定位规则执行情况
 - **跨服务联动**：支持注册中心/IP 直连，配置与执行分离部署
 - **灵活扩展**：自定义函数、动态变量、流程管控（break/return/分支跳转）
+- **AI 辅助生成**：自然语言描述即生成 Aviator 表达式，支持多轮对话、上下文自动注入、多模型切换（GLM/OpenAI/Ollama/DeepSeek）
 - **版本管理**：表达式变更历史追踪、版本回溯对比，安全可控
 - **客户端调试**：服务端直连客户端调试，真实环境验证规则逻辑
 - **双版本兼容**：JDK8 + SpringBoot 2.x / JDK17 + SpringBoot 3.x 全适配
@@ -53,6 +54,7 @@ typora-copy-images-to: doc\images\v1
 | 原子能力沉淀 | 日期开关、分布式锁、分支缓存、异步执行、黑白名单、消息推送等 |
 | 智能参数处理 | 数据格式统一、异常参数拦截、上下文变量运算 |
 | 全流程监控 | 执行链路追踪、调试日志实时查看、规则版本对比 |
+| AI 辅助编排 | 自然语言生成/修改表达式，自动注入函数变量上下文，支持多轮对话 |
 
 ---
 
@@ -81,7 +83,27 @@ mvn spring-boot:run
 
 - 规则配置页：`http://localhost:20888/template/executor-list.html`
 - 追踪日志页：`http://localhost:20888/template/trace-list.html`
+- 提示词管理页：`http://localhost:20888/template/ai-prompt-list.html`
 - 登录页：`http://localhost:20888/template/login.html`
+
+### AI 表达式生成（可选）
+
+> 详见 [服务端文档 - AI 表达式生成](./expression-mind-map-server/README.md#ai-表达式生成)
+
+在 `application.yml` 中配置 LLM 即可通过自然语言生成/修改表达式：
+
+```yaml
+spring:
+  expression:
+    server:
+      ai:
+        enabled: true
+        api-url: https://open.bigmodel.cn/api/paas/v4/chat/completions
+        api-key: "your-api-key"
+        model: glm-5.1
+```
+
+兼容 OpenAI / Ollama / DeepSeek 等任何 OpenAI API 格式的模型服务。
 
 ### 客户端接入
 
@@ -104,85 +126,47 @@ spring.plugin.express:
 
 ### 规则编排
 
-![image-20260420103446499](doc/images/v1/image-20260420103446499.png)
+| 功能 | 预览 |
+|------|------|
+| 思维导图编排 | <img src="doc/images/v1/mindmap-rule-edit.png" width="300" /> |
+| 执行器管理 | <img src="doc/images/v1/executor-list.png" width="300" /> |
+| 执行器详情 | <img src="doc/images/v1/executor-detail-edit.png" width="300" /> |
+| 导入/导出规则 | <img src="doc/images/v1/rule-import-export.png" width="300" /> |
+| 操作表达式分支 | <img src="doc/images/v1/branch-node-operation.png" width="300" /> |
+| 编辑业务逻辑表达式 | <img src="doc/images/v1/expression-edit-form.png" width="300" /> |
+| 智能检索（函数/变量搜索即用） | <img src="doc/images/v1/smart-search-fn-hint.png" width="300" /> |
+| AI  助手 | <img src="doc/images/v1/ai-assistant-welcome.png" width="300" /> |
+| 函数变量检索 | <img src="doc/images/fn-var-search-list.png" width="300" /> |
+| 函数详情 | <img src="doc/images/fn-detail-view.png" width="300" /> |
+| 最近改动过的分支 | <img src="doc/images/branch-recent-changed.png" width="300" /> |
+| 最近未命中过的分支 | <img src="doc/images/branch-not-hit.png" width="300" /> |
+| 表达式历史版本 | <img src="doc/images/v1/expression-version-history.png" width="300" /> |
 
-**执行器管理**
-
-![image-20260420103609365](doc/images/v1/image-20260420103609365.png)
-
-![image-20260420103808215](doc/images/v1/image-20260420103808215.png)
-
-- `Tab键`秒建子节点 | 思维导图式拖拽编排
-
-**支持导入/导出规则（团队协作神器）**
-
-![image-20260420104458254](doc/images/v1/image-20260420104458254.png)
-
-**操作表达式分支**
-
-![image-20260420104647427](doc/images/v1/image-20260420104647427.png)
-
-**编辑业务逻辑表达式**
-
-![image-20260420104910154](doc/images/v1/image-20260420104910154.png)
-
-**智能检索：客户端编写的函数和变量，搜索即用**
-
-![image-20260126155452409](doc/images/image-20260126155452409.png)
-
-函数变量检索:
-
-![image-20250926164851693](doc/images/image-20250926164851693.png)
-
-![image-20250310142133613](doc/images/image-20250310142133613.png)
-
-**最近改动过的分支**
-
-![image-20250926170300056](doc/images/image-20250926170300056.png)
-
-**最近没有命中过的分支**
-
-![image-20250928134648434](doc/images/image-20250928134648434.png)
-
-**查看表达式历史版本**
-
-![image-20260420105056090](doc/images/v1/image-20260420105056090.png)
+> `Tab键`秒建子节点 | 思维导图式拖拽编排
 
 ### 执行优先级
 
-```text
-1、从左到右
-  行为(确定动作) → 条件(确定规则) → 触发(目标触发) → 回调(通知场景)
-
-2、从上到下
-  上层 → 全局变量初始化（数据准备）
-  中层 → 核心业务逻辑（主战场）
-  下层 → 通用回调处理（善后大师）
-```
+| 方向 | 层级 | 职责 |
+|------|------|------|
+| **从左到右** | 行为 → 条件 → 触发 → 回调 | 确定动作 → 确定规则 → 目标触发 → 通知场景 |
+| **从上到下** | 上层 → 中层 → 下层 | 数据准备 → 核心业务逻辑 → 通用回调处理 |
 
 ### 链路追踪
 
 > 访问 `http://localhost:20888/template/trace-list.html`，实时查看执行日志 + 参数快照（带 traceID 精准定位）
 
-- 追踪列表
-
-![image-20250310142537115](doc/images/image-20250310142537115.png)
-
-- 追踪详情
-
-![image-20250310143025315](doc/images/image-20250310143025315.png)
-
-- 请求上下文样本参数
-
-![image-20250310145013080](doc/images/image-20250310145013080.png)
-
-- 表达式远程验证调用
-
-![image-20260420110420045](doc/images/v1/image-20260420110420045.png)
+| 功能 | 预览 |
+|------|------|
+| 追踪列表 | <img src="doc/images/trace-list.png" width="300" /> |
+| 追踪详情 | <img src="doc/images/trace-detail.png" width="300" /> |
+| 请求上下文样本参数 | <img src="doc/images/trace-context-params.png" width="300" /> |
+| 表达式远程验证调用 | <img src="doc/images/v1/remote-verify-config.png" width="300" /> |
 
 ### 业务仪表盘
 
-![image-20260420105625544](doc/images/v1/image-20260420105625544.png)
+| 功能 | 预览 |
+|------|------|
+| 执行器统计仪表盘 | <img src="doc/images/v1/dashboard-monitor.png" width="300" /> |
 
 ---
 
@@ -269,6 +253,10 @@ public class MyVariable extends AbstractExpressionVariableContextProcessor {
 > **总结就是它一看就懂，一用就会。**
 >
 > **如果你遇到任何复杂的场景不知道咋设计不妨用它来试一试。**
+
+## 联系方式
+
+<img src="doc/images/v1/wechat-img.png" alt="image-20260522105033936" style="zoom: 25%;" />
 
 ## 技术致谢
 

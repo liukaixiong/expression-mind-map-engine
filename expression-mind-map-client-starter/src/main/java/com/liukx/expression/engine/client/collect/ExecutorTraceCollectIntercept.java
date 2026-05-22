@@ -65,18 +65,15 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
         }
 
         ThreadUtil.newSingleExecutor().execute(() -> {
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    final List<ExpressionExecutorResultDTO> resultList = ExpressionResultLogCollect.getInstance().pollBatch(10);
-                    if (!CollectionUtil.isEmpty(resultList)) {
-                        remoteHttpService.call(ExpressionConstants.ENGINE_SERVER_ID, ExpressionConstants.SERVER_EXECUTOR_TRACE_SUBMIT_PATH, resultList, Object.class);
-                    } else {
-                        ThreadUtil.sleep(50);
-                    }
+                    final List<ExpressionExecutorResultDTO> resultList = ExpressionResultLogCollect.getInstance().takeBatch(10);
+                    remoteHttpService.call(ExpressionConstants.ENGINE_SERVER_ID, ExpressionConstants.SERVER_EXECUTOR_TRACE_SUBMIT_PATH, resultList, Object.class);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
                 } catch (Exception e) {
                     log.error("执行器日志提交失败", e);
-                } finally {
-                    ThreadUtil.sleep(5);
                 }
             }
         });

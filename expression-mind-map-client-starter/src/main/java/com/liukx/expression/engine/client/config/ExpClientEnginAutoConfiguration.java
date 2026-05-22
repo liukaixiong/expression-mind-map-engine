@@ -2,6 +2,8 @@ package com.liukx.expression.engine.client.config;
 
 import com.liukx.expression.engine.client.api.ClientEngineInvokeService;
 import com.liukx.expression.engine.client.api.ExpressionConfigExecutorIntercept;
+import com.liukx.expression.engine.client.api.ListCheckService;
+import com.liukx.expression.engine.client.api.RedisListCheckService;
 import com.liukx.expression.engine.client.api.RemoteExpressionConfigService;
 import com.liukx.expression.engine.client.api.config.ExpressionConfigCallManager;
 import com.liukx.expression.engine.client.api.config.HttpCacheExpressionConfigService;
@@ -118,6 +120,13 @@ public class ExpClientEnginAutoConfiguration {
     @ConditionalOnBean(RedissonClient.class)
     public RedissonLockExpressionConfigurabilityProcessor redissonLockExpressionConfig(RedissonClient redissonClient) {
         return new RedissonLockExpressionConfigurabilityProcessor(redissonClient);
+    }
+
+    @Bean
+    @ConditionalOnBean(RedisTemplate.class)
+    @ConditionalOnMissingBean(ListCheckService.class)
+    public ListCheckService redisListCheckService(RedisTemplate<Object, Object> redisTemplate) {
+        return new RedisListCheckService(redisTemplate);
     }
 
 

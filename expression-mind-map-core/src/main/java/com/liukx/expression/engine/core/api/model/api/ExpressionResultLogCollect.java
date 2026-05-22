@@ -31,5 +31,18 @@ public class ExpressionResultLogCollect {
         return resultList;
     }
 
+    /**
+     * 阻塞式批量获取，直到队列有数据才返回，避免空轮询浪费 CPU
+     *
+     * @param size 最大批量大小
+     * @return 至少包含一条数据的列表
+     * @throws InterruptedException 线程被中断时抛出，用于优雅退出
+     */
+    public List<ExpressionExecutorResultDTO> takeBatch(int size) throws InterruptedException {
+        List<ExpressionExecutorResultDTO> resultList = new ArrayList<>();
+        resultList.add(dataQueue.take());
+        dataQueue.drainTo(resultList, size - 1);
+        return resultList;
+    }
 
 }

@@ -17,8 +17,8 @@ public enum EnginCacheKeyEnums {
     EXPRESSION_VAR_TYPE_KEY("expression_var_type", null),
     EXPRESSION_LOCK("expression_lock", null),
     GLOBAL_VARIABLE_CONFIG("global_variable_config", null),
-
-
+    AI_PROMPT("ai_prompt", null),
+    WHITE_BLACK_LIST("white_balck_list", null),
     ;
 
     private final String prefix;

@@ -1,6 +1,7 @@
 package com.liukx.expression.engine.server.config;
 
 import cn.hutool.extra.spring.SpringUtil;
+import com.liukx.expression.engine.server.config.props.AiExpressionProperties;
 import com.liukx.expression.engine.server.config.props.ExpressionServerProperties;
 import com.liukx.expression.engine.server.constants.BaseConstants;
 import com.liukx.expression.engine.server.handler.LoginHandler;
@@ -23,7 +24,7 @@ import org.springframework.web.servlet.resource.VersionResourceResolver;
  * @email liuhx@elab-plus.com
  **/
 @Configuration
-@EnableConfigurationProperties(value = {ExpressionServerProperties.class})
+@EnableConfigurationProperties(value = {ExpressionServerProperties.class, AiExpressionProperties.class})
 @EnableWebMvc
 @ComponentScan(basePackages = {"com.liukx.expression.engine.server.controller"})
 @Import({SpringUtil.class})

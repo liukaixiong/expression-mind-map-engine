@@ -16,8 +16,7 @@
             --formula-purple: #8b5cf6;
         }
 
-        /* body的基础样式已由bubble-animation.css提供，这里只添加登录页特有的overflow */
-        body.bubble-bg {
+        body {
             overflow: hidden !important;
             /* 使用 flexbox 让表单完全居中 */
             display: -webkit-box !important;
@@ -145,7 +144,7 @@
         }
     </style>
 </head>
-<body class="bubble-bg">
+<body>
 <!-- 登录表单 -->
 <div class="engine-container">
     <form class="layui-form" id="loginForm">

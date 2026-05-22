@@ -25,7 +25,7 @@ import java.util.Map;
 @RequestMapping("/api")
 public class ApiController implements InitializingBean {
 
-    private Map<String, List<DefaultDataRender>> dataMap = new HashMap<>();
+    private final Map<String, List<DefaultDataRender>> dataMap = new HashMap<>();
 
     @ApiOperation("后端枚举常量")
     @GetMapping("/enumList")
