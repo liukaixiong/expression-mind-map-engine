@@ -256,7 +256,7 @@ public class MyVariable extends AbstractExpressionVariableContextProcessor {
 
 ## 联系方式
 
-<img src="doc/images/v1/wechat-img.png" alt="image-20260522105033936" style="zoom: 25%;" />
+<img src="doc/images/v1/wechat-img.png" width="200" />
 
 ## 技术致谢
 
