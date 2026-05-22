@@ -10,8 +10,8 @@ import com.liukx.expression.engine.server.model.dto.response.RestResult;
 import com.liukx.expression.engine.server.service.ExpressionExecutorConfigService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import jakarta.annotation.Resource;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.http.HttpEntity;
@@ -41,13 +41,13 @@ import java.util.stream.Collectors;
 @RequestMapping(BaseConstants.BASE_PATH + "/debug")
 public class DebugController {
 
-    @Resource
+    @Autowired
     private DiscoveryClient discoveryClient;
 
-    @Resource
+    @Autowired
     private RestTemplate restTemplate;
 
-    @Resource
+    @Autowired
     private ExpressionExecutorConfigService executorConfigService;
 
     /**
