@@ -236,11 +236,13 @@ public class MyVariable extends AbstractExpressionVariableContextProcessor {
 
 ---
 
-## 性能调优建议
+## 实践建议
 
-- 高频规则预加载到 Redis
-- 复杂表达式拆分为原子函数，高效运用本地缓存
-- 支持异步并行执行
+- 函数和变量都可作为基础能力
+- 原子函数粒度越小,可复用性越大
+- 全局变量可接入配置中心或者Redis读取
+- 规则配置可以按照思维导图方式拆解业务逻辑
+- 如果有不懂的地方,可以追问AI助手
 
 ---
 
@@ -255,7 +257,7 @@ public class MyVariable extends AbstractExpressionVariableContextProcessor {
 > **如果你遇到任何复杂的场景不知道咋设计不妨用它来试一试。**
 
 ## 联系方式
-
+> 有任何问题,可以联系我.
 <img src="doc/images/v1/wechat-img.png" width="200" />
 
 ## 技术致谢
