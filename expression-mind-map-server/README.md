@@ -133,6 +133,14 @@ public class ElasticsearchTraceStorageService implements TraceLogStorageService 
 
 通过 LLM 将自然语言描述转化为 Aviator 表达式，支持多轮对话、自动注入函数/变量/执行样本上下文。
 
+- 关于提示词：
+
+默认的系统提示词模版: [ai-system-prompt.md](src/main/resources/ai-system-prompt.md)
+> 这个可直接在提示词管理页面中添加，可自行优化。
+
+**服务的提示词模版: 可以基于自己的服务特性创建一些常用的使用方式和最佳实践，然后添加到提示词服务管理中即可生效。**
+
+
 ### 启用配置
 
 ```yaml
