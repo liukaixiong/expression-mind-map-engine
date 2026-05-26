@@ -27,15 +27,32 @@
 
 4. 启动类: `BootApplication`
 
+## 案例使用
 
+⚙️[服务端启动](../expression-mind-map-server/README.md)
+
+1、下载代码
+
+2、找到: `com.liukx.expression.engine.ClientServer#executorDemoExample`
+
+```java
+/**
+     * 演示示例:
+     * 1、启动服务端【注意redis要连接上喔~具体配置=> src/test/resources/application.yml】
+     * 2、<a href="http://localhost:20888/template/executor-list.html">进入页面</a>
+     * 3、导入规则：demo_example.json
+     * 4、执行该用例
+     * 5、<a href="http://localhost:20888/template/trace-list.html">查看追踪结果</a>
+     *
+     * @throws Exception
+     */
+@Test
+public void executorDemoExample() throws Exception {
+    // 直接去代码中看吧...
+}
+```
 
 ## 服务端拓展点
-
-> 由于从内部独立出来花费比较长时间，有些代码写法需要优化，请见谅。
->
-> 文档我也会尽量补充，有问题可直接联系本人即可。
->
-> 后续计划将持久层再优化下，Mysql不适合日志存储。
 
 ### 1、配置类
 
