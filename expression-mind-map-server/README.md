@@ -40,7 +40,7 @@
      * 演示示例:
      * 1、启动服务端【注意redis要连接上喔~具体配置=> src/test/resources/application.yml】
      * 2、<a href="http://localhost:20888/template/executor-list.html">进入页面</a>
-     * 3、导入规则：demo_example.json
+     * 3、导入规则：demo_example.json,以及下面的所有.json的规则都是简单的案例配置
      * 4、执行该用例
      * 5、<a href="http://localhost:20888/template/trace-list.html">查看追踪结果</a>
      *
