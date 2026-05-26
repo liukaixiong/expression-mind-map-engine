@@ -246,6 +246,15 @@ public class MyVariable extends AbstractExpressionVariableContextProcessor {
 
 ---
 
+## 项目地址
+
+| 平台 | 地址 |
+|------|------|
+| GitHub | https://github.com/liukaixiong/expression-mind-map-engine |
+| Gitee | https://gitee.com/liukaixiong/expression-mind-map-engine |
+
+---
+
 ## 关于项目
 
 工作很多年了，复杂场景的设计模式各种套用始终不尽如人意，设计来设计去把自己设计进去了。
