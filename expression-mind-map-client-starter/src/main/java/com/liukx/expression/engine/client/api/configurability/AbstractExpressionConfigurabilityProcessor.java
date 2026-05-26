@@ -2,7 +2,7 @@ package com.liukx.expression.engine.client.api.configurability;
 
 import com.liukx.expression.engine.client.api.ExpressionExecutorFilter;
 import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
-import com.liukx.expression.engine.client.enums.ExpressionCoxnfigurabilitySwitchEnum;
+import com.liukx.expression.engine.client.enums.ExpressionConfigurabilitySwitchEnum;
 import com.liukx.expression.engine.client.helper.ConfigurabilityHelper;
 import com.liukx.expression.engine.client.process.ExpressionFilterChain;
 import com.liukx.expression.engine.core.api.model.ExpressionBaseRequest;
@@ -43,5 +43,5 @@ public abstract class AbstractExpressionConfigurabilityProcessor implements Expr
         }
     }
 
-    public abstract ExpressionCoxnfigurabilitySwitchEnum configurabilityKey();
+    public abstract ExpressionConfigurabilitySwitchEnum configurabilityKey();
 }

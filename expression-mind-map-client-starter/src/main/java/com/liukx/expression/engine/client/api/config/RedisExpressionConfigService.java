@@ -2,7 +2,7 @@ package com.liukx.expression.engine.client.api.config;
 
 import com.liukx.expression.engine.client.api.RemoteExpressionConfigService;
 import com.liukx.expression.engine.client.enums.EnginCacheKeyEnums;
-import com.liukx.expression.engine.client.enums.ExecutorCoxnfigurabilitySwitchEnum;
+import com.liukx.expression.engine.client.enums.ExecutorConfigurabilitySwitchEnum;
 import com.liukx.expression.engine.client.enums.ExpressionConfigCallEnum;
 import com.liukx.expression.engine.client.helper.ConfigurabilityHelper;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigInfo;
@@ -60,7 +60,7 @@ public class RedisExpressionConfigService implements RemoteExpressionConfigServi
      */
     private void injectGlobalVarConfig(ExpressionConfigInfo expressionConfigInfo) {
         if (expressionConfigInfo != null) {
-            if (ConfigurabilityHelper.isEnableExecutorConfigurability(expressionConfigInfo.getConfigurabilityMap(), ExecutorCoxnfigurabilitySwitchEnum.enableGlobalVar)) {
+            if (ConfigurabilityHelper.isEnableExecutorConfigurability(expressionConfigInfo.getConfigurabilityMap(), ExecutorConfigurabilitySwitchEnum.enableGlobalVar)) {
                 String redisKey = EnginCacheKeyEnums.GLOBAL_VARIABLE_CONFIG.generateKey();
                 Object config = redisTemplate.opsForValue().get(redisKey);
                 if (config != null) {

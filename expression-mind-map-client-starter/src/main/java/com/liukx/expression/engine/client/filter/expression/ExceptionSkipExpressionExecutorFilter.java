@@ -3,7 +3,7 @@ package com.liukx.expression.engine.client.filter.expression;
 import com.liukx.expression.engine.client.api.ExpressionConfigExecutorIntercept;
 import com.liukx.expression.engine.client.api.ExpressionExecutorFilter;
 import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
-import com.liukx.expression.engine.client.enums.ExpressionCoxnfigurabilitySwitchEnum;
+import com.liukx.expression.engine.client.enums.ExpressionConfigurabilitySwitchEnum;
 import com.liukx.expression.engine.client.helper.ConfigurabilityHelper;
 import com.liukx.expression.engine.client.process.ExpressionFilterChain;
 import com.liukx.expression.engine.core.api.model.ExpressionBaseRequest;
@@ -32,7 +32,7 @@ public class ExceptionSkipExpressionExecutorFilter implements ExpressionExecutor
 
     @Override
     public ExpressionContextResult doExpressionFilter(ExpressionEnvContext env, ExpressionConfigInfo configInfo, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request, ExpressionFilterChain chain) {
-        if (ConfigurabilityHelper.isEnableConfigurability(configTreeModel, ExpressionCoxnfigurabilitySwitchEnum.enableExceptionSkip)) {
+        if (ConfigurabilityHelper.isEnableConfigurability(configTreeModel, ExpressionConfigurabilitySwitchEnum.enableExceptionSkip)) {
             try {
                 return chain.doFilter(env, configInfo, configTreeModel, request);
             } catch (Exception e) {

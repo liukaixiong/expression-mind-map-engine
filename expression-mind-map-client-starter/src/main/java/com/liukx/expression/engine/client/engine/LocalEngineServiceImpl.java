@@ -7,7 +7,7 @@ import com.liukx.expression.engine.client.api.*;
 import com.liukx.expression.engine.client.api.config.ExpressionConfigCallManager;
 import com.liukx.expression.engine.client.enums.ContextKeyConstant;
 import com.liukx.expression.engine.client.enums.EngineCallType;
-import com.liukx.expression.engine.client.enums.ExpressionCoxnfigurabilitySwitchEnum;
+import com.liukx.expression.engine.client.enums.ExpressionConfigurabilitySwitchEnum;
 import com.liukx.expression.engine.client.enums.FlowControlEnum;
 import com.liukx.expression.engine.client.factory.ExpressionExecutorFactory;
 import com.liukx.expression.engine.client.helper.ConfigurabilityHelper;
@@ -303,7 +303,7 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
                     if (expressionConfigTreeModel != null) {
                         expressionProcessor(baseRequest, envContext, configInfo, expressionConfigTreeModel, expressionService);
                     }
-                } else if (ConfigurabilityHelper.isEnableExpressionConfigurability(treeModel.getConfigurabilityMap(), ExpressionCoxnfigurabilitySwitchEnum.enableNodeAsync)) {
+                } else if (ConfigurabilityHelper.isEnableExpressionConfigurability(treeModel.getConfigurabilityMap(), ExpressionConfigurabilitySwitchEnum.enableNodeAsync)) {
                     // 启用子分支的异步能力，这里需要注意的是：1、当前一级子分支的逻辑需要互不干扰启用才会有意义,如果你的逻辑是有依赖的，那么请不要启用异步能力。
                     // 如果使用了fn_in_end,类似 break \ continue 等等, 会导致并发出错.请慎重!
                     if (!(envContext.getSourceMap() instanceof ConcurrentHashMap)) {

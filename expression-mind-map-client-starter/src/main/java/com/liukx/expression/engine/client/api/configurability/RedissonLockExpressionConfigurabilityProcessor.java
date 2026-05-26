@@ -3,7 +3,7 @@ package com.liukx.expression.engine.client.api.configurability;
 import com.liukx.expression.engine.client.api.ExpressionExecutorFilter;
 import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
 import com.liukx.expression.engine.client.enums.EnginCacheKeyEnums;
-import com.liukx.expression.engine.client.enums.ExpressionCoxnfigurabilitySwitchEnum;
+import com.liukx.expression.engine.client.enums.ExpressionConfigurabilitySwitchEnum;
 import com.liukx.expression.engine.client.helper.ConfigurabilityHelper;
 import com.liukx.expression.engine.client.log.LogEventEnum;
 import com.liukx.expression.engine.client.log.LogHelper;
@@ -32,7 +32,7 @@ public class RedissonLockExpressionConfigurabilityProcessor implements Expressio
 
     @Override
     public ExpressionContextResult doExpressionFilter(ExpressionEnvContext env, ExpressionConfigInfo configInfo, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest baseRequest, ExpressionFilterChain chain) {
-        if (ConfigurabilityHelper.isEnableExpressionConfigurability(configTreeModel.getConfigurabilityMap(), ExpressionCoxnfigurabilitySwitchEnum.enableGlobalLock)) {
+        if (ConfigurabilityHelper.isEnableExpressionConfigurability(configTreeModel.getConfigurabilityMap(), ExpressionConfigurabilitySwitchEnum.enableGlobalLock)) {
             final Map<String, Object> branchResult = env.getBranchResult(configTreeModel.getExpressionId());
             // 设置锁的key
             final String customerLockKey = branchResult.getOrDefault("_lockKey", configTreeModel.getExpressionId() + ":" + baseRequest.getUserId()).toString();

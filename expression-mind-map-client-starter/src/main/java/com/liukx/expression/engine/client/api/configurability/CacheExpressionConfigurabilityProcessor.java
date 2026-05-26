@@ -2,7 +2,7 @@ package com.liukx.expression.engine.client.api.configurability;
 
 import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
 import com.liukx.expression.engine.client.enums.EnginCacheKeyEnums;
-import com.liukx.expression.engine.client.enums.ExpressionCoxnfigurabilitySwitchEnum;
+import com.liukx.expression.engine.client.enums.ExpressionConfigurabilitySwitchEnum;
 import com.liukx.expression.engine.client.log.LogEventEnum;
 import com.liukx.expression.engine.client.log.LogHelper;
 import com.liukx.expression.engine.client.process.ExpressionFilterChain;
@@ -87,7 +87,7 @@ public class CacheExpressionConfigurabilityProcessor extends AbstractExpressionC
     }
 
     @Override
-    public ExpressionCoxnfigurabilitySwitchEnum configurabilityKey() {
-        return ExpressionCoxnfigurabilitySwitchEnum.enableCache;
+    public ExpressionConfigurabilitySwitchEnum configurabilityKey() {
+        return ExpressionConfigurabilitySwitchEnum.enableCache;
     }
 }
