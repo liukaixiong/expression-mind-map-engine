@@ -20,4 +20,7 @@ import org.apache.ibatis.annotations.Select;
 public interface ExpressionTraceLogIndexMapper extends BaseMapper<ExpressionTraceLogIndex> {
     @Select("SELECT * FROM ${tableName} ${ew.customSqlSegment}")
     Page<ExpressionTraceLogIndex> selectPageByTable(Page<ExpressionTraceLogIndex> page, @Param("tableName") String tableName,@Param("ew") LambdaQueryWrapper<ExpressionTraceLogIndex> wrapper);
+
+    @Select("SELECT * FROM ${tableName} ${ew.customSqlSegment}")
+    ExpressionTraceLogIndex selectByTable(@Param("tableName") String tableName, @Param("ew") LambdaQueryWrapper<ExpressionTraceLogIndex> wrapper);
 }

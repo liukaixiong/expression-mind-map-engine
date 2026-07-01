@@ -1,5 +1,6 @@
 package com.liukx.expression.engine.server.controller;
 
+import com.liukx.expression.engine.core.model.ExpressionUser;
 import com.liukx.expression.engine.jdk.utils.ServletUtil;
 import com.liukx.expression.engine.server.constants.BaseConstants;
 import com.liukx.expression.engine.server.model.dto.request.LoginModel;
@@ -38,15 +39,18 @@ public class IndexController {
     @ApiOperation("登录接口")
     @PostMapping("/login")
     public RestResult<Object> executor(@RequestBody LoginModel loginModel) {
-        final boolean result = loginService.login(loginModel);
-        logger.info(" username :{},password :{} , result:{}", loginModel.getUsername(), loginModel.getPassword(), result);
-        if (result) {
+        ExpressionUser user = loginService.authenticate(loginModel);
+        logger.info("username :{}, result:{}", loginModel.getUsername(), user != null);
+        if (user != null) {
             final String token = tokenService.tokenCreated(loginModel);
+
             Map<String, Object> tokenMap = new HashMap<>();
             int timeOut = 1;
             tokenMap.put("tokenName", BaseConstants.TOKEN_NAME);
             tokenMap.put("tokenValue", token);
             tokenMap.put("tokenTimeoutDay", timeOut);
+            tokenMap.put("userId", user.getUserId());
+            tokenMap.put("username", user.getUsername());
             ServletUtil.setCookie(BaseConstants.TOKEN_NAME, token, (int) TimeUnit.SECONDS.toDays(timeOut));
             return RestResult.ok(tokenMap);
         }

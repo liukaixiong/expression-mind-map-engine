@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
+
 /**
  * <p>
  * 前端控制器
@@ -40,8 +42,10 @@ public class ExecutorTraceController {
 
     @ApiOperation("查询单个追踪链路")
     @PostMapping("/info")
-    public RestResult<ExpressionTraceInfoDTO> findExecutorList(@RequestParam("id") Long id) {
-        final ExpressionTraceInfoDTO info = traceLogIndexService.getTraceInfoList(id);
+    public RestResult<ExpressionTraceInfoDTO> findExecutorList(@RequestParam("id") Long id,
+                                                               @RequestParam(value = "created", required = false) Long created) {
+        Date createdDate = (created != null) ? new Date(created) : null;
+        final ExpressionTraceInfoDTO info = traceLogIndexService.getTraceInfoList(id, createdDate);
         return RestResult.ok(info);
     }
 

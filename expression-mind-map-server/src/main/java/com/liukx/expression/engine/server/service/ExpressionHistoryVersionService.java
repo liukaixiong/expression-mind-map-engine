@@ -21,9 +21,9 @@ public interface ExpressionHistoryVersionService extends IService<ExpressionHist
      *
      * @param expression  表达式配置
      * @param changeType  变更类型: CREATE-创建, UPDATE-更新, DELETE-删除
-     * @param operator    操作人
+     * @implNote 操作人统一从 token 上下文获取，禁止由调用方传入，杜绝篡改
      */
-    void saveHistory(ExpressionExecutorInfoConfig expression, String changeType, String operator);
+    void saveHistory(ExpressionExecutorInfoConfig expression, String changeType);
 
     /**
      * 获取表达式历史版本列表

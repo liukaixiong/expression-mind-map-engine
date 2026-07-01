@@ -53,3 +53,4 @@ Backup of *.doc*
 *.~vsd*
 
 !/config.txt
+!/doc/wenzhang/

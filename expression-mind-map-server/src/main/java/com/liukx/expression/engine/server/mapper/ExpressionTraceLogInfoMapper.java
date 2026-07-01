@@ -22,4 +22,7 @@ public interface ExpressionTraceLogInfoMapper extends BaseMapper<ExpressionTrace
     @Select("SELECT * FROM ${tableName} ${ew.customSqlSegment}")
     List<ExpressionTraceLogInfo> selectPageByTable(@Param("tableName") String tableName, @Param("ew") LambdaQueryWrapper<ExpressionTraceLogInfo> wrapper);
 
+    @Select("SELECT * FROM ${tableName} ${ew.customSqlSegment}")
+    List<ExpressionTraceLogInfo> selectListByTable(@Param("tableName") String tableName, @Param("ew") LambdaQueryWrapper<ExpressionTraceLogInfo> wrapper);
+
 }

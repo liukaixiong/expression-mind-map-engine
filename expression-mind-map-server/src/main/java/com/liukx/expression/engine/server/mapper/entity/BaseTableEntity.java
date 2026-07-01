@@ -1,5 +1,6 @@
 package com.liukx.expression.engine.server.mapper.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
@@ -26,19 +27,19 @@ public class BaseTableEntity {
     private Integer isDeleted;
 
 
-    @TableField("created")
+    @TableField(value = "created", fill = FieldFill.INSERT)
     private Date created;
 
 
-    @TableField("creator")
+    @TableField(value = "creator", fill = FieldFill.INSERT)
     private String creator;
 
 
-    @TableField("updated")
+    @TableField(value = "updated", fill = FieldFill.INSERT_UPDATE)
     private Date updated;
 
 
-    @TableField("updater")
+    @TableField(value = "updater", fill = FieldFill.INSERT_UPDATE)
     private String updater;
 
 }

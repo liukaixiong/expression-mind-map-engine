@@ -2,6 +2,7 @@ package com.liukx.expression.engine.server.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.liukx.expression.engine.core.model.ExpressionUserContext;
 import com.liukx.expression.engine.server.mapper.ExpressionHistoryVersionMapper;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorInfoConfig;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionHistoryVersion;
@@ -27,7 +28,7 @@ public class ExpressionHistoryVersionServiceImpl extends ServiceImpl<ExpressionH
     private final Logger LOG = LoggerFactory.getLogger(ExpressionHistoryVersionServiceImpl.class);
 
     @Override
-    public void saveHistory(ExpressionExecutorInfoConfig expression, String changeType, String operator) {
+    public void saveHistory(ExpressionExecutorInfoConfig expression, String changeType) {
         if (expression == null || expression.getId() == null) {
             LOG.warn("表达式为空或id为空，无法保存历史版本");
             return;
@@ -36,6 +37,9 @@ public class ExpressionHistoryVersionServiceImpl extends ServiceImpl<ExpressionH
         // 获取当前表达式最新版本号
         Integer maxVersionNo = baseMapper.selectMaxVersionNo(expression.getId());
         int nextVersionNo = (maxVersionNo == null ? 0 : maxVersionNo) + 1;
+
+        // 操作人统一从 token 上下文获取（未登录兜底 system），禁止由调用方传入
+        String operator = ExpressionUserContext.currentUsernameOrSystem();
 
         // 创建历史版本记录
         ExpressionHistoryVersion historyVersion = new ExpressionHistoryVersion();

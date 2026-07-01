@@ -11,6 +11,7 @@ import com.liukx.expression.engine.server.service.ExpressionTraceLogInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -39,6 +40,20 @@ public class ExpressionTraceLogInfoServiceImpl extends ServiceImpl<ExpressionTra
         }
 
         return list;
+    }
+
+    @Override
+    public List<ExpressionTraceLogInfo> getInfoListByTraceLogId(Long traceLogId, Date created) {
+        if (created == null) {
+            return getInfoListByTraceLogId(traceLogId);
+        }
+        final String infoTable = tableManager.getTableNameByDate(ExpressionTraceLogInfo.class, created);
+        if (infoTable == null) {
+            return Collections.emptyList();
+        }
+        LambdaQueryWrapper<ExpressionTraceLogInfo> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(ExpressionTraceLogInfo::getTraceLogId, traceLogId);
+        return getBaseMapper().selectListByTable(infoTable, wrapper);
     }
 
     @Override

@@ -139,6 +139,8 @@ public class DefaultMysqlTraceLogStorageService extends ServiceImpl<ExpressionTr
                 .eq(StringUtils.isNotEmpty(queryRequest.getTraceId()), ExpressionTraceLogIndex::getTraceId, queryRequest.getTraceId())
                 .eq(queryRequest.getUserId() != null, ExpressionTraceLogIndex::getUserId, queryRequest.getUserId())
                 .eq(queryRequest.getExecutorId() != null, ExpressionTraceLogIndex::getExecutorId, queryRequest.getExecutorId())
+                .ge(queryRequest.getStartDate() != null, ExpressionTraceLogIndex::getCreated, queryRequest.getStartDate())
+                .le(queryRequest.getEndDate() != null, ExpressionTraceLogIndex::getCreated, queryRequest.getEndDate())
                 .orderByDesc(ExpressionTraceLogIndex::getId);
 
         final Page<ExpressionTraceLogIndex> expressionTraceLogIndexPage = getBaseMapper().selectPage(page, wrapper);
@@ -168,15 +170,41 @@ public class DefaultMysqlTraceLogStorageService extends ServiceImpl<ExpressionTr
 
     @Override
     public ExpressionTraceInfoDTO getTraceInfo(Long id) {
-        final ExpressionTraceLogIndex traceLogIndex = getById(id);
-        if (traceLogIndex != null) {
-            List<ExpressionTraceLogInfo> traceLogInfos = traceLogInfoService.getInfoListByTraceLogId(id);
-            ExpressionTraceInfoDTO expressionTraceInfoDTO = new ExpressionTraceInfoDTO();
-            BeanUtils.copyProperties(traceLogIndex, expressionTraceInfoDTO);
-            expressionTraceInfoDTO.setTraceLogInfoList(traceLogInfos);
-            return expressionTraceInfoDTO;
+        return getTraceInfo(id, null);
+    }
+
+    @Override
+    public ExpressionTraceInfoDTO getTraceInfo(Long id, Date created) {
+        Date actualCreated = created;
+        ExpressionTraceLogIndex index;
+
+        if (actualCreated != null) {
+            // 常态路径：按 created 定位 index 月表
+            String indexTable = tableManager.getTableNameByDate(ExpressionTraceLogIndex.class, actualCreated);
+            if (indexTable != null) {
+                LambdaQueryWrapper<ExpressionTraceLogIndex> w = new LambdaQueryWrapper<>();
+                w.eq(ExpressionTraceLogIndex::getId, id);
+                index = getBaseMapper().selectByTable(indexTable, w);
+            } else {
+                index = null;
+            }
+        } else {
+            // 兜底路径：查 index 活跃表拿 created
+            index = getById(id);
+            actualCreated = (index != null) ? index.getCreated() : null;
         }
-        return null;
+
+        if (index == null) {
+            return null;
+        }
+
+        // 按 created 精确定位 info 日表（日表不存在返回空列表，符合 D6）
+        List<ExpressionTraceLogInfo> traceLogInfos = traceLogInfoService.getInfoListByTraceLogId(index.getId(), actualCreated);
+
+        ExpressionTraceInfoDTO expressionTraceInfoDTO = new ExpressionTraceInfoDTO();
+        BeanUtils.copyProperties(index, expressionTraceInfoDTO);
+        expressionTraceInfoDTO.setTraceLogInfoList(traceLogInfos);
+        return expressionTraceInfoDTO;
     }
 
     @Override
@@ -191,6 +219,11 @@ public class DefaultMysqlTraceLogStorageService extends ServiceImpl<ExpressionTr
     @Override
     public List<ExpressionTraceLogInfo> getInfoListByTraceLogId(Long traceLogId) {
         return traceLogInfoService.getInfoListByTraceLogId(traceLogId);
+    }
+
+    @Override
+    public List<ExpressionTraceLogInfo> getInfoListByTraceLogId(Long traceLogId, Date created) {
+        return traceLogInfoService.getInfoListByTraceLogId(traceLogId, created);
     }
 
     @Override

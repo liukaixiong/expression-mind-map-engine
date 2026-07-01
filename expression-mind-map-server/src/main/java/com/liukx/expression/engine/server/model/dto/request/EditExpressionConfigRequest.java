@@ -50,9 +50,4 @@ public class EditExpressionConfigRequest implements Serializable {
 
     //    @ApiModelProperty("优先级顺序")
     private Integer priorityOrder;
-    /**
-     * 更新人
-     */
-//    @Schema(description = "更新人")
-    private String updateBy;
 }

@@ -38,6 +38,7 @@ typora-copy-images-to: doc\images\v1
 - **跨服务联动**：支持注册中心/IP 直连，配置与执行分离部署
 - **灵活扩展**：自定义函数、动态变量、流程管控（break/return/分支跳转）
 - **AI 辅助生成**：自然语言描述即生成 Aviator 表达式，支持多轮对话、上下文自动注入、多模型切换（GLM/OpenAI/Ollama/DeepSeek）
+- **多用户协作**：支持配置文件多账号登录，操作记录按操作人区分；登录过期自动回跳原页面
 - **版本管理**：表达式变更历史追踪、版本回溯对比，安全可控
 - **客户端调试**：服务端直连客户端调试，真实环境验证规则逻辑
 - **双版本兼容**：JDK8 + SpringBoot 2.x / JDK17 + SpringBoot 3.x 全适配
@@ -120,27 +121,50 @@ spring.plugin.express:
   inject-type-package: com.xxx.service
 ```
 
+### 登录鉴权
+
+> 详见 [服务端文档 - 配置类](./expression-mind-map-server/README.md#1配置类)
+
+服务端默认开启登录鉴权，支持**单账号、多用户、两者并存**三种模式：
+
+```yaml
+spring:
+  expression:
+    server:
+      enable-login: true
+      username: admin          # 单账号（与 users 并存）
+      password: admin@123
+      token-secret: change-me  # token 签名密钥
+      users:                   # 多用户列表（可选）
+        - username: alice
+          password: alice@123
+          userId: u_alice
+```
+
+- 多用户模式下，配置的每个人都能登录，操作记录按 `userId` 区分操作人（创建人/更新人自动填充）；
+- 登录态过期后会自动跳转登录页，并在登录成功后**回到过期前的页面**。
+
 ---
 
 ## 界面预览
 
 ### 规则编排
 
-| 功能 | 预览 |
-|------|------|
-| 思维导图编排 | <img src="doc/images/v1/mindmap-rule-edit.png" width="300" /> |
-| 执行器管理 | <img src="doc/images/v1/executor-list.png" width="300" /> |
-| 执行器详情 | <img src="doc/images/v1/executor-detail-edit.png" width="300" /> |
-| 导入/导出规则 | <img src="doc/images/v1/rule-import-export.png" width="300" /> |
-| 操作表达式分支 | <img src="doc/images/v1/branch-node-operation.png" width="300" /> |
-| 编辑业务逻辑表达式 | <img src="doc/images/v1/expression-edit-form.png" width="300" /> |
-| 智能检索（函数/变量搜索即用） | <img src="doc/images/v1/smart-search-fn-hint.png" width="300" /> |
-| AI  助手 | <img src="doc/images/v1/ai-assistant-welcome.png" width="300" /> |
-| 函数变量检索 | <img src="doc/images/fn-var-search-list.png" width="300" /> |
-| 函数详情 | <img src="doc/images/fn-detail-view.png" width="300" /> |
-| 最近改动过的分支 | <img src="doc/images/branch-recent-changed.png" width="300" /> |
-| 最近未命中过的分支 | <img src="doc/images/branch-not-hit.png" width="300" /> |
-| 表达式历史版本 | <img src="doc/images/v1/expression-version-history.png" width="300" /> |
+| 功能              | 预览                                                                     |
+|-----------------|------------------------------------------------------------------------|
+| 登录页面            | <img src="doc/images/v1/login.png" width="300" />                      |
+| 执行器管理           | <img src="doc/images/v1/executor-list.png" width="300" />              |
+| 执行器详情           | <img src="doc/images/v1/executor-detail-edit.png" width="300" />       |
+| 导入/导出规则         | <img src="doc/images/v1/rule-import-export.png" width="300" />         |
+| 操作表达式分支         | <img src="doc/images/v1/branch-node-operation.png" width="300" />      |
+| 编辑业务逻辑表达式       | <img src="doc/images/v1/expression-edit-form.png" width="300" />       |
+| 智能检索（函数/变量搜索即用） | <img src="doc/images/v1/smart-search-fn-hint.png" width="300" />       |
+| AI  助手          | <img src="doc/images/v1/ai-assistant-welcome.png" width="300" />       |
+| 函数变量检索          | <img src="doc/images/fn-var-search-list.png" width="300" />            |
+| 函数详情            | <img src="doc/images/fn-detail-view.png" width="300" />                |
+| 最近改动过的分支        | <img src="doc/images/branch-recent-changed.png" width="300" />         |
+| 最近未命中过的分支       | <img src="doc/images/branch-not-hit.png" width="300" />                |
+| 表达式历史版本         | <img src="doc/images/v1/expression-version-history.png" width="300" /> |
 
 > `Tab键`秒建子节点 | 思维导图式拖拽编排
 

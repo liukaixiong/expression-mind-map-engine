@@ -56,21 +56,52 @@ public void executorDemoExample() throws Exception {
 
 ### 1、配置类
 
+#### 登录鉴权
+
 ```yaml
 spring:
   expression:
     server:
-      enable-login: true # 是否开启登录
-      username: admin	 # 用户名
-      password: 1234	 # 密码
+      enable-login: true  # 是否开启登录
+      username: admin     # 单账号用户名（与 users 并存，见下）
+      password: admin@123 # 单账号密码
+      # token 签名密钥，缺省时回退到 apiKey，再缺省回退内置默认值；生产环境务必显式配置
+      token-secret: change-me-in-production
+      # 多用户列表（可选）。配置后可与单账号并存：登录时优先匹配 users，未命中再回退单账号
+      users:
+        - username: alice
+          password: alice@123
+          userId: u_alice   # 可选，缺省时用 username 作为身份标识
+        - username: bob
+          password: bob@123
+          userId: u_bob
 ```
+
+- **单账号模式**：仅配置 `username`/`password`，所有操作归属该账号。
+- **多用户模式**：配置 `users` 列表，支持多人登录，操作记录（创建人/更新人）按 `userId` 区分操作人。
+- **并存模式**：同时配置 `users` 和单账号时，两者都可用——登录优先匹配 `users`，未命中再校验单账号。便于在保留管理员账号的同时开放多人协作。
+- **Token**：默认实现采用无状态签名格式 `{userId}.{expireAt}.{sign}`（`sign = md5(userId + expireAt + tokenSecret)`），支持多用户反解析、防伪造、可过期（默认 1 天，与登录 Cookie 过期一致）。更换 `token-secret` 或删除用户后，已签发的旧 token 会失效，需重新登录。
+
+> ⚠️ YAML 缩进：`users` 列表中每个项的 `password`/`userId` 必须与同项的 `username` 对齐（`- ` 占两格，字段从第 3 列起）。缩进错位会导致字段解析为 null、登录静默失败。配置项 key 大小写不敏感（`Password`/`password` 均可）。
+
+#### 登录过期回跳
+
+登录态过期后会自动跳转登录页，并在登录成功后**回到过期前的页面**（而非固定回首页），规则配置页等带参数的页面也能正确恢复：
+
+- 页面请求过期 → 由 `LoginHandler` 重定向到登录页，并携带原始地址作为 `redirect` 参数；
+- Ajax 请求过期（返回 401）→ 由前端 `Utils.js` 统一拦截，跳转带 `redirect` 的登录页；
+- 登录成功 → 校验 `redirect` 为站内相对路径后回跳，防开放重定向。
+
+> 本地 / 测试环境若使用 HTTP，登录 Cookie 的 `Secure` 标志会自动跟随请求协议（仅 HTTPS 下启用），避免 HTTP 下浏览器丢弃 Cookie 导致无法登录。
 
 ### 2、关键类
 
 | 名称                         | 作用                         | 默认实现类                       | 默认实现作用                                                 |
 | ---------------------------- | ---------------------------- | -------------------------------- | ------------------------------------------------------------ |
-| IExpressionLoginService      | 登录鉴权                     | ExpressionLoginServiceImpl       | 从配置中获取用户名密码进行验证，可以新写一个实现来替代该接口 |
-| IExpressionTokenService      | token生成器                  | ExpressionMd5TokenServiceImpl    | 默认是基于MD5生成的，如果对此要求比较高，可以替换该接口即可  |
+| IExpressionLoginService      | 登录鉴权                     | ExpressionLoginServiceImpl       | 从配置校验用户名密码。优先匹配 `users` 列表，未命中回退单账号 `username`/`password`，支持多用户并存 |
+| IExpressionTokenService      | token生成器                  | ExpressionMd5TokenServiceImpl    | 无状态签名 token `{userId}.{expireAt}.{sign}`，可反解析出操作人、防伪造、可过期。可替换为 JWT 等实现 |
+| IdentityExtractor            | 身份提取策略                 | CookieIdentityExtractor / HeaderIdentityExtractor / ApiKeyIdentityExtractor | 按优先级从 Cookie（控制台登录）、Header、API Key 中提取用户身份，支持扩展自定义来源 |
+| AutoFillMetaObjectHandler    | MyBatis Plus 自动填充        | AutoFillMetaObjectHandler        | 插入/更新时自动填充 `created`/`updated`/`creator`/`updater`/`createBy`/`updateBy`，操作人取自当前登录用户上下文 |
 | TraceLogStorageService       | 追踪日志存储                 | DefaultMysqlTraceLogStorageService | 默认存储到 MySQL（含按月分表），可替换为 ES、ClickHouse 等  |
 | ClientExecutorController     | 客户端与服务端交互的路由入口 |                                  |                                                              |
 | ExecutorManagerController    | 执行器增删改入口             |                                  |                                                              |

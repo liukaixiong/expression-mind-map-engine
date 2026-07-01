@@ -109,6 +109,7 @@
     let expressionId = requestParam.expressionId;
     let executorCode = requestParam.executorCode;
     let traceLogId = requestParam.traceLogId;
+    let created = requestParam.created; // 追踪记录创建时间（毫秒），用于按日期路由 info 日表
     let enableEditable = traceLogId === undefined;
     let executorDescription = requestParam.executorDescription;
     let api_expression_list = final_const.api_path.expression_list;
@@ -517,6 +518,7 @@
         engineUtils.requestPost(api_expression_list, {
             "executorId": executorId,
             "traceLogId": traceLogId,
+            "traceLogCreated": created,
             "missStartDate": global_full_miss_start_date,
             "id": expressionId
         }, function (response) {
@@ -532,7 +534,9 @@
     }
 
     function findRequestBodyContext() {
-        engineUtils.requestPost(api_trace_object + "?id=" + traceLogId, {}, function (response) {
+        // 透传 created（毫秒），按日期路由 info 日表
+        var createdParam = created ? "&created=" + created : "";
+        engineUtils.requestPost(api_trace_object + "?id=" + traceLogId + createdParam, {}, function (response) {
             if (response.code === 200) {
                 var formatJson = {};
                 formatJson["上下文变量"] = JSON.parse(response.data.envBody);
@@ -664,8 +668,16 @@
             "      <td>" + node.data.expressionDescription + "</td>\n" +
             "    </tr>\n" +
             "    <tr>\n" +
+            "      <td>创建人</td>\n" +
+            "      <td>" + (node.data.createBy || '') + "</td>\n" +
+            "    </tr>\n" +
+            "    <tr>\n" +
             "      <td>创建时间</td>\n" +
             "      <td>" + (node.data.createTime || '') + "</td>\n" +
+            "    </tr>\n" +
+            "    <tr>\n" +
+            "      <td>修改人</td>\n" +
+            "      <td>" + (node.data.updateBy || '') + "</td>\n" +
             "    </tr>\n" +
             "    <tr>\n" +
             "      <td>修改时间</td>\n" +
@@ -1013,8 +1025,6 @@
         });
     }
 
-
-    // ==================== 远程调试功能 ====================
 
     // 全局变量存储调试相关数据
     let debugNacosServices = [];
