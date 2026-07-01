@@ -176,6 +176,20 @@
     layui.use(['form', 'layer'], function () {
         const form = layui.form;
         const layer = layui.layer;
+
+        /**
+         * 计算登录成功后的跳转地址：
+         * 优先使用 redirect 参数（登录过期前所在的页面），校验为站内相对路径后采用，否则回首页。
+         */
+        function resolveRedirectTarget() {
+            const redirect = engineUtils.getRequestParams()['redirect'];
+            // 必须是站内相对路径（以 / 开头且非协议/双斜杠），防止开放重定向
+            if (redirect && redirect.charAt(0) === '/' && redirect.charAt(1) !== '/') {
+                return redirect;
+            }
+            return final_const.template_path.index;
+        }
+
         // 表单提交事件
         form.on('submit(login)', function (data) {
             engineUtils.requestPost(api_login, data.field, function (response) {
@@ -183,7 +197,7 @@
                     let data = response.data;
                     // 写入Cookie
                     setCookie(data['tokenName'], data['tokenValue'], data['tokenTimeoutDay']);
-                    location.href = final_const.template_path.index;
+                    location.href = resolveRedirectTarget();
                 } else {
                     layer.alert(response.message);
                 }

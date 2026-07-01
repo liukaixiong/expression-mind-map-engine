@@ -40,13 +40,33 @@ public class ExpressionScheduledJob {
         for (ExpressionServerProperties.TableRule tableInfo : tableNameList) {
             // 执行原子性表轮转操作
             final String tableName = tableInfo.getTableName();
-            final String tableArchiveName = manager.tableArchiveByMonth(tableName);
+            final String tableArchiveName = manager.tableArchive(tableName);
             if (StringUtils.isNotEmpty(tableArchiveName)) {
                 logger.info("归档表成功:{}", tableArchiveName);
             }
             // 同时清理掉过期的归档表
             manager.clearExpiredTableName(tableName);
 //        }
+        }
+    }
+
+    /**
+     * 每天凌晨 0 点执行表归档任务（处理按天拆分的表，如 expression_trace_log_info）
+     */
+    @Scheduled(cron = "0 0 0 * * ?")
+    @Transactional
+    public void executeDailyTableArchive() {
+        logger.info("开始执行每日表归档任务...");
+        final Set<ExpressionServerProperties.TableRule> tableNameList = manager.getTableNameList(TableSplitRule.day);
+
+        for (ExpressionServerProperties.TableRule tableInfo : tableNameList) {
+            final String tableName = tableInfo.getTableName();
+            final String tableArchiveName = manager.tableArchive(tableName);
+            if (StringUtils.isNotEmpty(tableArchiveName)) {
+                logger.info("每日归档表成功:{}", tableArchiveName);
+            }
+            // 同时清理掉过期的归档表
+            manager.clearExpiredTableName(tableName);
         }
     }
 }

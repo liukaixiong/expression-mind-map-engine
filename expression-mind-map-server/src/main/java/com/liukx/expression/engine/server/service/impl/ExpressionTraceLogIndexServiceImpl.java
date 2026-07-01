@@ -64,7 +64,12 @@ public class ExpressionTraceLogIndexServiceImpl extends ServiceImpl<ExpressionTr
 
     @Override
     public ExpressionTraceInfoDTO getTraceInfoList(Long id) {
-        return traceLogStorageService.getTraceInfo(id);
+        return getTraceInfoList(id, null);
+    }
+
+    @Override
+    public ExpressionTraceInfoDTO getTraceInfoList(Long id, java.util.Date created) {
+        return traceLogStorageService.getTraceInfo(id, created);
     }
 
     @Override

@@ -60,10 +60,4 @@ public class AddExpressionConfigRequest implements Serializable {
     //    @ApiModelProperty("优先级顺序")
     private Integer priorityOrder;
 
-    /**
-     * 创建人
-     */
-//    @ApiModelProperty("创建人")
-    private String createBy;
-
 }

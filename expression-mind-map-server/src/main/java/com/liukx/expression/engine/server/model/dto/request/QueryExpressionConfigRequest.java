@@ -21,6 +21,11 @@ public class QueryExpressionConfigRequest implements Serializable {
 
     //    @Schema(description = "追踪日志编号")
     private Long traceLogId;
+
+    /**
+     * 追踪日志的创建时间（毫秒时间戳，按 created 路由 info 日级分表用）
+     */
+    private Date traceLogCreated;
     /**
      * 表达式描述
      */

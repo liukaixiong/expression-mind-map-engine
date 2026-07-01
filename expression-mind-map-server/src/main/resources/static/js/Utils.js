@@ -6,6 +6,20 @@
  */
 let engineUtils = function () {
 
+    /**
+     * 统一处理 ajax 401（未登录/登录过期）：跳转登录页并携带当前页地址，便于登录后回跳。
+     * 同一次会话内只跳一次，避免并发请求重复跳转。
+     */
+    let redirectingToLogin = false;
+    function redirectToLogin() {
+        if (redirectingToLogin) {
+            return;
+        }
+        redirectingToLogin = true;
+        let current = location.pathname + location.search + location.hash;
+        location.href = '/template/login.html?redirect=' + encodeURIComponent(current);
+    }
+
     let requestPost = function post(url, data, callback) {
         let $ = layui.$;
         $.ajax({
@@ -24,6 +38,11 @@ let engineUtils = function () {
                 }
             },
             error: function (xhr, status, error) {
+                // 登录过期统一跳转登录页
+                if (xhr.status === 401) {
+                    redirectToLogin();
+                    return;
+                }
                 // 请求失败时的回调函数
                 console.error(error);
             }
@@ -50,6 +69,11 @@ let engineUtils = function () {
                 callback(response);
             },
             error: function (xhr, status, error) {
+                // 登录过期统一跳转登录页，否则静默回调 null
+                if (xhr.status === 401) {
+                    redirectToLogin();
+                    return;
+                }
                 // 请求失败时传递 null 给回调
                 callback(null);
             }
@@ -73,6 +97,11 @@ let engineUtils = function () {
                 callback(response);
             },
             error: function (xhr, status, error) {
+                // 登录过期统一跳转登录页，否则静默回调 null
+                if (xhr.status === 401) {
+                    redirectToLogin();
+                    return;
+                }
                 // 请求失败时传递 null 给回调
                 callback(null);
             }

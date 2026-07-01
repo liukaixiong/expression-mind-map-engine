@@ -31,4 +31,22 @@ public abstract class AbstractLoginHandler implements HandlerInterceptor {
     protected String getRequestURI(Object request) {
         return ((HttpServletRequest) request).getRequestURI();
     }
+
+    protected void sendUnauthorized(Object response) throws IOException {
+        HttpServletResponse resp = (HttpServletResponse) response;
+        resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        resp.setContentType("application/json;charset=UTF-8");
+        resp.getWriter().write("{\"code\":401,\"message\":\"未登录或登录已过期\"}");
+    }
+
+    public void afterCompletion0(Object request, Object response, Object handler, Exception ex)
+            throws Exception {
+        // 默认空实现，子类可重写
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+            throws Exception {
+        afterCompletion0(request, response, handler, ex);
+    }
 }

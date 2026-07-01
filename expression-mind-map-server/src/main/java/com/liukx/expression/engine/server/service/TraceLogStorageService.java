@@ -45,6 +45,15 @@ public interface TraceLogStorageService {
     ExpressionTraceInfoDTO getTraceInfo(Long id);
 
     /**
+     * 查询追踪日志详情（索引+明细），按 created 精确路由 info 日表。
+     *
+     * @param id      追踪日志索引主键
+     * @param created 记录创建时间（为空时内部查 index 活跃表补取）
+     * @return 追踪日志详情，不存在返回 null
+     */
+    ExpressionTraceInfoDTO getTraceInfo(Long id, Date created);
+
+    /**
      * 获取表达式最近一次成功执行的样本请求体
      *
      * @param expressionId 表达式配置编号
@@ -59,6 +68,15 @@ public interface TraceLogStorageService {
      * @return 明细列表
      */
     List<ExpressionTraceLogInfo> getInfoListByTraceLogId(Long traceLogId);
+
+    /**
+     * 查询追踪日志明细列表（按 created 路由 info 日表）
+     *
+     * @param traceLogId 追踪日志索引主键
+     * @param created    记录创建时间；为空时回退到无 created 重载
+     * @return 明细列表
+     */
+    List<ExpressionTraceLogInfo> getInfoListByTraceLogId(Long traceLogId, Date created);
 
     /**
      * 判断表达式在指定日期之后是否有成功执行的记录

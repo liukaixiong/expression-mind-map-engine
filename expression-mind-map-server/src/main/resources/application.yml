@@ -63,15 +63,26 @@ spring:
   expression:
     server:
       enable-login: true
+      # 单账号模式（向后兼容）。配置了 users 后，下面两项将被忽略。
       username: admin
       password: admin@123
+      # 多用户模式（可选）：配置后可多人登录，操作记录中按 userId 区分操作人。建议nacos配置
+      #      users:
+      #        - username: admin
+      #          password: admin@123
+      #          userId: u_admin
+      #        - username: alice
+      #          password: alice@123
+      #          userId: u_alice
+      # Token 签名密钥（生产环境务必显式配置，避免被猜到；缺省时回退到 apiKey）
+      #      token-secret: change-me-in-production
       table-rule-list:
         - tableName: expression_trace_log_index
           tableSplitRule: month
           max-save-number: 2
         - tableName: expression_trace_log_info
-          tableSplitRule: month
-          max-save-number: 2
+          tableSplitRule: day
+          max-save-number: 30
 #      ai:
 #        enabled: true
 #        prompt-source: CLASSPATH

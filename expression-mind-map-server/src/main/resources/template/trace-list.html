@@ -62,6 +62,12 @@
                 <input class="layui-input" code="text" name="traceId" value=""/>
             </div>
         </div>
+        <div class="layui-col-md3">
+            <label class="layui-form-label">日期范围</label>
+            <div class="layui-input-block">
+                <input class="layui-input" id="trace-date-range" placeholder="选择日期范围" readonly/>
+            </div>
+        </div>
     </div>
     <div class="layui-row" style="margin-top: 16px;">
         <div class="layui-col-xs12" style="text-align: center;">
@@ -135,6 +141,25 @@
         },
         page: true
     });
+    // 日期范围（追踪日志按 created 过滤）
+    var globalStartDate = null;
+    var globalEndDate = null;
+    laydate.render({
+        elem: '#trace-date-range',
+        type: 'date',
+        range: true,
+        done: function (value) {
+            if (value) {
+                var parts = value.split(' - ');
+                globalStartDate = parts[0] ? new Date(parts[0]).getTime() : null;
+                // 截止日期取当天 23:59:59，保证包含当天数据
+                globalEndDate = parts[1] ? new Date(parts[1] + ' 23:59:59').getTime() : null;
+            } else {
+                globalStartDate = null;
+                globalEndDate = null;
+            }
+        }
+    });
     // 日期
     laydate.render({
         elem: '.demo-table-search-date'
@@ -142,6 +167,8 @@
     // 搜索提交
     form.on('submit(executor-table-search)', function (data) {
         var field = data.field; // 获得表单字段
+        field.startDate = globalStartDate;
+        field.endDate = globalEndDate;
         // 执行搜索重载
         table.reload('ID-table-executor-search', {
             page: {
@@ -160,8 +187,10 @@
         if (obj.event === 'btn-edit') {
             open_form(obj.data.id);
         } else if (obj.event === 'btn-config-rule') {
+            // 透传 created（毫秒），供详情/思维导图页按日期路由 info 日表
+            var createdParam = data.created ? '&&created=' + data.created : '';
             util.openWin({
-                url: expression_rule_config + '?traceLogId=' + data.id + '&&executorId=' + data.executorId + "&&executorCode=" + data.executorCode + "&&executorDescription=" + data.executorName
+                url: expression_rule_config + '?traceLogId=' + data.id + '&&executorId=' + data.executorId + "&&executorCode=" + data.executorCode + "&&executorDescription=" + data.executorName + createdParam
             });
         }
     });

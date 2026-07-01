@@ -26,6 +26,15 @@ public interface ExpressionTraceLogIndexService extends IService<ExpressionTrace
     ExpressionTraceInfoDTO getTraceInfoList(Long id);
 
     /**
+     * 查询追踪详情（按 created 路由 info 日表）
+     *
+     * @param id      追踪日志索引主键
+     * @param created 记录创建时间；为空时内部补取
+     * @return 追踪日志详情
+     */
+    ExpressionTraceInfoDTO getTraceInfoList(Long id, java.util.Date created);
+
+    /**
      * 配置编号
      *
      * @param expressionId 表达式编号

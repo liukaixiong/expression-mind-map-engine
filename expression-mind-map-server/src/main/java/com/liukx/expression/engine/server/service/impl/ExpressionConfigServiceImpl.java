@@ -12,13 +12,13 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.liukx.expression.engine.core.enums.ExpressionTypeEnum;
+import com.liukx.expression.engine.core.model.ExpressionUserContext;
 import com.liukx.expression.engine.server.constants.enums.ErrorEnum;
 import com.liukx.expression.engine.server.constants.enums.ResponseCodeEnum;
 import com.liukx.expression.engine.server.event.ExecutorConfigRefreshEvent;
 import com.liukx.expression.engine.server.exception.Throws;
 import com.liukx.expression.engine.server.mapper.ExpressionConfigMapper;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorInfoConfig;
-import com.liukx.expression.engine.server.mapper.entity.ExpressionHistoryVersion;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionTraceLogInfo;
 import com.liukx.expression.engine.server.model.dto.request.*;
 import com.liukx.expression.engine.server.model.dto.response.ExpressionExecutorDetailConfigDTO;
@@ -98,7 +98,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         RestResult<ExpressionExecutorDetailConfigDTO> result = new RestResult<>();
         if (addSuccess) {
             // 保存历史版本
-            expressionHistoryVersionService.saveHistory(expressionExecutorDetailConfig, "CREATE", request.getCreateBy());
+            expressionHistoryVersionService.saveHistory(expressionExecutorDetailConfig, "CREATE");
 
             ExpressionExecutorDetailConfigDTO nodeDTO = new ExpressionExecutorDetailConfigDTO();
             BeanUtil.copyProperties(expressionExecutorDetailConfig, nodeDTO, CopyOptions.create().setIgnoreError(true).setIgnoreNullValue(true));
@@ -160,7 +160,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         if (updateSuccess) {
             // 保存历史版本 - 先获取更新后的完整数据
             ExpressionExecutorInfoConfig updatedConfig = this.getById(editRequest.getId());
-            expressionHistoryVersionService.saveHistory(updatedConfig, "UPDATE", editRequest.getUpdateBy());
+            expressionHistoryVersionService.saveHistory(updatedConfig, "UPDATE");
         }
 
         ExpressionExecutorDetailConfigDTO expressionExecutorDetailConfigDTO = new ExpressionExecutorDetailConfigDTO();
@@ -175,6 +175,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
 
     @Override
     public boolean updateById(ExpressionExecutorInfoConfig importRootInfo, boolean refreshEvent) {
+        importRootInfo.setUpdateTime(LocalDateTime.now());
         final boolean result = super.updateById(importRootInfo);
         if (result && refreshEvent) {
             Long executorId = importRootInfo.getExecutorId();
@@ -196,6 +197,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
 
     @Override
     public boolean save(ExpressionExecutorInfoConfig infoConfig, boolean refreshEvent) {
+        infoConfig.setCreateTime(LocalDateTime.now());
         final boolean save = super.save(infoConfig);
         if (refreshEvent) {
             refreshConfigPost(infoConfig.getExecutorId());
@@ -229,7 +231,8 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
             final Long traceLogId = queryRequest.getTraceLogId();
             // 如果涵盖追踪编号,那么获取对应的追踪信息绑定到数据中
             if (traceLogId != null) {
-                final List<ExpressionTraceLogInfo> infoListByTraceLogId = traceLogStorageService.getInfoListByTraceLogId(traceLogId);
+                // info 按日级分表后，按 created 路由 info 日表（created 由前端从列表行透传）
+                final List<ExpressionTraceLogInfo> infoListByTraceLogId = traceLogStorageService.getInfoListByTraceLogId(traceLogId, queryRequest.getTraceLogCreated());
                 if (CollectionUtil.isNotEmpty(infoListByTraceLogId)) {
                     traceConfigMap = infoListByTraceLogId.stream().collect(Collectors.groupingBy(ExpressionTraceLogInfo::getExpressionConfigId));
                 }
@@ -277,7 +280,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         final ExpressionExecutorInfoConfig detailConfig = getOne(queryWrapper, false);
         LOG.info("批量删除id集合: {} ", idSet);
 
-        LambdaUpdateWrapper<ExpressionExecutorInfoConfig> updateWrapper = new LambdaUpdateWrapper<ExpressionExecutorInfoConfig>().set(ExpressionExecutorInfoConfig::getUpdateBy, delRequest.getUpdateBy()).set(ExpressionExecutorInfoConfig::getDeleted, true).set(ExpressionExecutorInfoConfig::getUpdateTime, LocalDateTime.now()).in(ExpressionExecutorInfoConfig::getId, idSet);
+        LambdaUpdateWrapper<ExpressionExecutorInfoConfig> updateWrapper = new LambdaUpdateWrapper<ExpressionExecutorInfoConfig>().set(ExpressionExecutorInfoConfig::getUpdateBy, ExpressionUserContext.currentUsernameOrSystem()).set(ExpressionExecutorInfoConfig::getDeleted, true).set(ExpressionExecutorInfoConfig::getUpdateTime, LocalDateTime.now()).in(ExpressionExecutorInfoConfig::getId, idSet);
         final RestResult<?> restResult = ServiceCommonUtil.batchDelete(delRequest, "找不到相关记录，不用执行删除操作", getBaseMapper(), queryWrapper, updateWrapper);
 
         if (restResult.isOk()) {
@@ -285,7 +288,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
             if (CollectionUtil.isNotEmpty(idSet)) {
                 List<ExpressionExecutorInfoConfig> expressionsToDelete = this.listByIds(idSet);
                 for (ExpressionExecutorInfoConfig expression : expressionsToDelete) {
-                    expressionHistoryVersionService.saveHistory(expression, "DELETE", delRequest.getUpdateBy());
+                    expressionHistoryVersionService.saveHistory(expression, "DELETE");
                 }
             }
 

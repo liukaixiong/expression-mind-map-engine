@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.liukx.expression.engine.core.model.ExpressionUserContext;
 import com.liukx.expression.engine.server.constants.enums.ErrorEnum;
 import com.liukx.expression.engine.server.mapper.ExpressionGlobalTraceLogMapper;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionGlobalTraceLog;
@@ -92,7 +93,7 @@ public class ExpressionGlobalTraceLogServiceImpl extends ServiceImpl<ExpressionG
         delRequest.getIdList().stream().filter(Objects::nonNull).forEach(idSet::add);
         LambdaQueryWrapper<ExpressionGlobalTraceLog> queryWrapper = new LambdaQueryWrapper<ExpressionGlobalTraceLog>().in(ExpressionGlobalTraceLog::getId, idSet)
                 .eq(ExpressionGlobalTraceLog::getDeleted, 0);
-        LambdaUpdateWrapper<ExpressionGlobalTraceLog> updateWrapper = new LambdaUpdateWrapper<ExpressionGlobalTraceLog>().set(ExpressionGlobalTraceLog::getUpdateBy, delRequest.getUpdateBy())
+        LambdaUpdateWrapper<ExpressionGlobalTraceLog> updateWrapper = new LambdaUpdateWrapper<ExpressionGlobalTraceLog>().set(ExpressionGlobalTraceLog::getUpdateBy, ExpressionUserContext.currentUsernameOrSystem())
                 .set(ExpressionGlobalTraceLog::getDeleted, 1)
                 .set(ExpressionGlobalTraceLog::getUpdateTime, LocalDateTime.now())
                 .in(ExpressionGlobalTraceLog::getId, idSet);

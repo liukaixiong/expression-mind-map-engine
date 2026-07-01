@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
+import java.util.Date;
 
 @EqualsAndHashCode(callSuper = true)
 //@Tag(name = "查询表达式")
@@ -36,5 +37,11 @@ public class QueryExpressionTraceRequest extends PageQuery implements Serializab
 
     //    @Schema(description = "追踪编号")
     private String traceId;
+
+    //    @Schema(description = "起始日期")
+    private Date startDate;
+
+    //    @Schema(description = "截止日期")
+    private Date endDate;
 
 }

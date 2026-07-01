@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.liukx.expression.engine.client.enums.EnginCacheKeyEnums;
+import com.liukx.expression.engine.core.model.ExpressionUserContext;
 import com.liukx.expression.engine.core.utils.Jsons;
 import com.liukx.expression.engine.server.constants.BaseConstants;
 import com.liukx.expression.engine.server.constants.enums.ErrorEnum;
@@ -163,7 +164,7 @@ public class ExpressionExecutorConfigServiceImpl extends ServiceImpl<ExpressionE
         delRequest.getIdList().stream().filter(Objects::nonNull).forEach(idSet::add);
         LambdaQueryWrapper<ExpressionExecutorBaseInfo> queryWrapper = new LambdaQueryWrapper<ExpressionExecutorBaseInfo>().in(ExpressionExecutorBaseInfo::getId, idSet)
                 .eq(ExpressionExecutorBaseInfo::getDeleted, false);
-        LambdaUpdateWrapper<ExpressionExecutorBaseInfo> updateWrapper = new LambdaUpdateWrapper<ExpressionExecutorBaseInfo>().set(ExpressionExecutorBaseInfo::getUpdateBy, delRequest.getUpdateBy())
+        LambdaUpdateWrapper<ExpressionExecutorBaseInfo> updateWrapper = new LambdaUpdateWrapper<ExpressionExecutorBaseInfo>().set(ExpressionExecutorBaseInfo::getUpdateBy, ExpressionUserContext.currentUsernameOrSystem())
                 .set(ExpressionExecutorBaseInfo::getDeleted, true)
                 .set(ExpressionExecutorBaseInfo::getUpdateTime, LocalDateTime.now())
                 .in(ExpressionExecutorBaseInfo::getId, idSet);
