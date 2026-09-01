@@ -148,3 +148,7 @@ Schema at `script/expression_mysql.sql`. 5 tables:
 - Redis is used for config caching and distributed locks (via Redisson)
 - Version management uses `${revision}` property with flatten-maven-plugin
 - JDK compatibility: default is JDK 17 + Spring Boot 3.1.7; use `-Pjdk8` for JDK 8 + Spring Boot 2.7.18
+
+## Agent Skills
+
+- `.agents/skills/expression-branch-planner/` — 在表达式控制台按业务提示规划并创建规则分支树(分析现有树 → 规划 → 确认 → 建节点 → 验证)。涉及"规划分支/配置规则逻辑/分析规则树"时先读该 SKILL.md。
