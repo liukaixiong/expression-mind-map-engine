@@ -44,7 +44,7 @@ public abstract class AbstractExpressionVariableContextProcessor implements Expr
     @Override
     public Object invoke(String name, ContextTemplateRequest cache) {
         final Object processor = processor(name, cache.getRequest(), cache.getEnvContext());
-        final ExpressionEnvContext expressionEnvContext = new ExpressionEnvContext(cache.getEnvContext());
+        final ExpressionEnvContext expressionEnvContext = ExpressionEnvContext.of(cache.getEnvContext());
         LogHelper.trace(expressionEnvContext, cache.getRequest(), LogEventEnum.VARIABLE_CALL, "add var put context {} = {}", name, processor);
         return processor;
     }

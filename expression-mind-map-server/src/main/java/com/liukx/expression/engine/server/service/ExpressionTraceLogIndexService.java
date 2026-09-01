@@ -1,17 +1,17 @@
 package com.liukx.expression.engine.server.service;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.liukx.expression.engine.core.api.model.api.ExpressionExecutorResultDTO;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionTraceLogIndex;
 import com.liukx.expression.engine.server.model.dto.request.QueryExpressionTraceRequest;
 import com.liukx.expression.engine.server.model.dto.response.ExpressionTraceInfoDTO;
+import com.liukx.expression.engine.server.model.dto.response.TraceLogPageResult;
 
 import java.util.List;
 
 /**
  * <p>
- *  服务类
+ * 服务类
  * </p>
  *
  * @author liukx
@@ -21,7 +21,7 @@ public interface ExpressionTraceLogIndexService extends IService<ExpressionTrace
 
     boolean addTraceLog(List<ExpressionExecutorResultDTO> request);
 
-    Page<ExpressionTraceLogIndex> queryExpressionTraceLogList(QueryExpressionTraceRequest queryRequest);
+    TraceLogPageResult<ExpressionTraceLogIndex> queryExpressionTraceLogList(QueryExpressionTraceRequest queryRequest);
 
     ExpressionTraceInfoDTO getTraceInfoList(Long id);
 
@@ -32,4 +32,5 @@ public interface ExpressionTraceLogIndexService extends IService<ExpressionTrace
      * @return
      */
     ExpressionTraceLogIndex getExpressionSampleBody(Long expressionId);
+
 }

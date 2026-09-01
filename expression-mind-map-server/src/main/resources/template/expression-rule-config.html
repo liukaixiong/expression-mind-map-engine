@@ -3,19 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <title>表达式规则配置页面</title>
-    <link href="https://unpkg.com/jsmind@0.8.5/style/jsmind.css" rel="stylesheet" type="text/css"/>
-    <script src="https://unpkg.com/jsmind@0.8.5/es6/jsmind.js" type="text/javascript"></script>
-    <script src="https://unpkg.com/jsmind@0.8.5/es6/jsmind.draggable-node.js" type="text/javascript"></script>
-    <link href="//unpkg.com/layui@2.9.14/dist/css/layui.css" rel="stylesheet">
-    <script src="//unpkg.com/layui@2.9.14/dist/layui.js"></script>
+    <link href="/js/cdn/jsmind/jsmind.css" rel="stylesheet" type="text/css"/>
+    <link href="/css/jsmind-3d.css" rel="stylesheet" type="text/css"/>
+    <script src="/js/cdn/jsmind/jsmind.js" type="text/javascript"></script>
+    <script src="/js/cdn/jsmind/jsmind.draggable-node.js" type="text/javascript"></script>
+    <link href="/js/cdn/layui/css/layui.css" rel="stylesheet">
+    <script src="/js/cdn/layui/layui.js"></script>
     <script src="/js/cdn/jsmind/jsmind.menu.js"></script>
-
+    <script src="/js/cdn/clipboard.min.js"></script>
     <script src="/js/cdn/jquery-3.3.1.min.js"></script>
     <script src="/js/cdn/json-viewer/jquery.json-viewer.js"></script>
     <link href="/js/cdn/json-viewer/jquery.json-viewer.css" type="text/css" rel="stylesheet">
+    <!-- CodeMirror JSON Editor -->
+<!--    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css">-->
+    <!--    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css">-->
+    <!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>-->
+    <!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>-->
 
     <script src="/js/Utils.js"></script>
     <script src="/js/engine-const.js"></script>
+    <script src="/js/cdn/ace/ace.min.js"></script>
+    <script src="/js/cdn/ace/mode-json.min.js"></script>
+    <script src="/js/cdn/ace/ext-language_tools.min.js"></script>
 </head>
 <body>
 <div class="layui-btn-sm">
@@ -24,7 +33,17 @@
         <button class="layui-btn" onclick="btnEventClick('collapse')" type="button">收缩</button>
         <button class="layui-btn" onclick="btnBoost()" type="button">放大</button>
         <button class="layui-btn" id="history-version-date" type="button">
-            <i class="layui-icon layui-icon-time"></i><span id="history-date-id">日期版本筛选</span>
+            <i class="layui-icon layui-icon-time"></i><span id="history-date-id">修改日期版本筛选</span>
+        </button>
+        <button class="layui-btn" id="miss-version-date" type="button">
+            <i class="layui-icon layui-icon-time"></i><span id="miss-date-id">未命中日期版本筛选</span>
+        </button>
+        <button class="layui-btn" id="help-document-list" type="button">
+            <i class="layui-icon"></i><span id="help-document" onclick="renderHelpDocument()">帮助文档列表</span>
+        </button>
+
+        <button class="layui-btn" id="debug-expression-btn" type="button">
+            <i class="layui-icon layui-icon-engine"></i><span>调试</span>
         </button>
 
         <button class="layui-btn" id="find-request-body-context-btn" onclick="findRequestBodyContext()" type="button">
@@ -34,27 +53,60 @@
 
     </div>
     <div class="layui-col-md3">
-        <div class="layui-input-group" style="width: 500px">
-            <input class="layui-input" id="expression-search-context-id" placeholder="搜索表达式内容" type="text">
-            <div class="layui-input-split layui-input-suffix" onclick="searchContext()" style="cursor: pointer;">
-                <i class="layui-icon layui-icon-search"></i>
+        <form class="layui-form" onsubmit="searchContext(); return false;">
+            <div class="layui-input-group" style="width: 500px">
+                <input class="layui-input" id="expression-search-context-id" placeholder="搜索表达式内容" type="text">
+                <div class="layui-input-split layui-input-suffix" onclick="searchContext()" style="cursor: pointer;">
+                    <i class="layui-icon layui-icon-search"></i>
+                </div>
             </div>
-        </div>
+        </form>
     </div>
 </div>
+<div id="table-help-document-page-div">
+    <form class="layui-form layui-row layui-col-space16">
+        <div class="layui-col-md4">
+            <div class="layui-input-wrap">
+                <label>
+                    <input class="layui-input" lay-affix="clear" name="groupName" placeholder="业务组" type="text">
+                </label>
+            </div>
+        </div>
 
-<div id="jsmind_container" style="width: 2000px;height: 1000px"></div>
+        <div class="layui-col-md4">
+            <div class="layui-input-wrap">
+                <label>
+                    <input class="layui-input" lay-affix="clear" name="name" placeholder="名称"
+                           type="text">
+                </label>
+            </div>
+        </div>
 
+        <div class="layui-btn-container layui-col-xs12">
+            <button class="layui-btn" lay-filter="executor-table-search" lay-submit>Search</button>
+            <button class="layui-btn layui-btn-primary" type="reset">Clear</button>
+        </div>
+    </form>
+    <table id="ID-table-help-document-page"></table>
+</div>
+
+
+<div id="jsmind_container" style="width: 2000px; height: 3000px"></div>
 <div id="view"></div>
 
 <pre id="json-renderer"></pre>
+
 </body>
 
 <script type="text/javascript">
     var layer = layui.layer;
+    var table = layui.table;
+    var form = layui.form;
+    var layer_util = layui.util;
     var laydate = layui.laydate;
     let requestParam = engineUtils.getRequestParams();
     let executorId = requestParam.executorId;
+    let expressionId = requestParam.expressionId;
     let executorCode = requestParam.executorCode;
     let traceLogId = requestParam.traceLogId;
     let enableEditable = traceLogId === undefined;
@@ -62,34 +114,153 @@
     let api_expression_list = final_const.api_path.expression_list;
     let api_trace_object = final_const.api_path.trace_object;
     let api_expression_form = final_const.template_path.expression_form;
-
+    let api_expression_rule_config = final_const.template_path.expression_rule_config;
     let api_expression_del = final_const.api_path.expression_del;
+    let api_expression_import_node = final_const.api_path.expression_import_node;
     let api_expression_edit_parent = final_const.api_path.expression_edit_parent;
     let api_expression_copy_node = final_const.api_path.expression_copy_node;
+    let api_executor_doc_search_list = final_const.api_path.executor_doc_search_list;
+
+    let div_id_table_search = "executor-table-search";
+    let div_id_table_page = "ID-table-help-document-page";
+    let div_id_table = "table-help-document-page-div";
+
+    // 获取样本值
+    let api_trace_sample_object = final_const.api_path.trace_sample_object;
     let global_copy_node_id = -1;
+    let global_mind_config_mode = 'full';
     /**
      * 记录当前日期版本筛选
      */
     let global_full_history_start_date;
+    let global_full_miss_start_date;
+
+    $("#" + div_id_table).hide();
 
     if (enableEditable) {
         $("#find-request-body-context-btn").remove();
+    } else {
+        $("#help-document-list").remove();
     }
 
-    laydate.render({
-        elem: '#history-version-date',
-        shade: 0.5,
-        done: function (value, date, endDate) {
-            if (value) {
-                global_full_history_start_date = value;
-                $("#history-date-id").html(value);
-            } else {
-                $("#history-date-id").html("日期版本筛选");
-                global_full_history_start_date = undefined;
-            }
-            reloadMind();
-        }
+    renderDateComponents("history-version-date", function (value, date, endDate) {
+        global_full_history_start_date = value;
     });
+
+    renderDateComponents("miss-version-date", function (value, date, endDate) {
+        global_full_miss_start_date = value;
+    });
+
+    // 检测是否为移动设备
+    function isMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
+    // 移动端调整容器尺寸，预留工具栏空间
+    if (!isMobile()) {
+        $("#jsmind_container").css({
+            'height': 'calc(100vh - 10px)',  // 预留工具栏高度
+            'width': '100%',
+            'position': 'relative',
+            'overflow': 'hidden'
+        });
+    } else {
+        $("#jsmind_container").css({
+            'height': '5000px',
+            'width': '3000px'
+        });
+    }
+
+    function renderDateComponents(htmlId, fun) {
+        let dateHtmlId = "#" + htmlId
+        laydate.render({
+            elem: dateHtmlId,
+            shade: 0.5,
+            max: 0,
+            done: function (value, date, endDate) {
+                if (value) {
+                    $(dateHtmlId).html(value);
+                } else {
+                    $(dateHtmlId).html("请选择日期");
+                }
+                fun(value, date, endDate);
+                reloadMind();
+            }
+        });
+    }
+
+    // 创建渲染实例
+    table.render({
+        elem: '#' + div_id_table_page,
+        url: api_executor_doc_search_list + "?executorId=" + executorId, // 此处为静态模拟数据，实际使用时需换成真实接口
+        page: { // 支持传入 laypage 组件的所有参数（某些参数除外，如：jump/elem） - 详见文档 : https://layui.dev/docs/2/laypage/#api
+            layout: ['limit'], // 自定义分页布局：总数、上一页、页码、下一页、每页条数、跳转
+            limits: [10, 30, 50, 100]
+        },
+        response: {
+            statusCode: 200 // 重新规定成功的状态码为 200，table 组件默认为 0
+        },
+        parseData: function (res) {
+            return {
+                "code": res.code, //解析接口状态
+                "msg": res.message, //解析提示文本
+                "count": Array.isArray(res.data) ? res.data.length : 0, //解析数据长度
+                "data": res.data //解析数据列表
+            };
+        },
+        cols: [[
+            {field: 'groupName', width: 150, title: '组', sort: true},
+            {field: 'serviceName', width: 200, title: '服务名'},
+            {field: 'name', width: 300, title: '名称', sort: true},
+            {field: 'type', width: 80, title: '类型'},
+            {field: 'params', width: 500, title: '参数'},
+            {field: 'describe', width: 400, title: '描述', sort: true},
+            {field: 'example', width: 300, title: '示例', sort: true}
+        ]]
+    });
+
+    // 搜索提交
+    form.on('submit(' + div_id_table_search + ')', function (data) {
+        var field = data.field; // 获得表单字段
+        // 执行搜索重载
+        table.reload(div_id_table_page, {
+            page: {
+                curr: 1 // 重新从第 1 页开始
+            },
+            where: field // 搜索的字段
+        });
+        //layer.msg('搜索成功<br>此处为静态模拟数据，实际使用时换成真实接口即可');
+        return false; // 阻止默认 form 跳转
+    });
+
+    function renderHelpDocument() {
+        const $container = $("#" + div_id_table);
+        // 优化：直接读取 display 属性，避免 :visible 触发同步布局
+        const isVisible = $container.css('display') !== 'none';
+
+        if (isVisible) {
+            // 如果当前可见，则隐藏并移除事件监听
+            $container.hide();
+            $(document).off('click.helpDocument');
+        } else {
+            // 如果当前隐藏，则显示并添加点击外部自动隐藏的事件监听
+            $container.show();
+
+            // 延迟添加事件监听，避免当前点击触发隐藏
+            setTimeout(function() {
+                $(document).on('click.helpDocument', function(e) {
+                    // 检查点击是否在容器外部
+                    if (!$(e.target).closest('#' + div_id_table).length &&
+                        !$(e.target).closest('#help-document-list').length) {
+                        $container.hide();
+                        $(document).off('click.helpDocument');
+                    }
+                });
+            }, 100);
+        }
+    }
+
+
     // https://hizzgdev.github.io/jsmind/developer.html
     var options = {                    // options 将在下一章中详细介绍
         container: 'jsmind_container', // [必选] 容器的ID，或者为容器的对象
@@ -101,14 +272,13 @@
             cousin_space: 0            // 相邻节点的子节点之间的额外的垂直间距
         },                             // [可选] 主题
         log_level: 'info',             // 布局模式
-        mode: 'side',
+        mode: global_mind_config_mode,
         shortcut: {
             enable: true,               // 是否启用快捷键
             handles: {
                 'dosomething': function (jm, e) {
                     // do something...
                     console.log("dosomething--->>", jm, e);
-                    debugger;
                 },
                 'ecs_close': function (jm, e) {
                     // 关闭所有弹出层
@@ -198,12 +368,124 @@
                 callback: function (node) {
                     openAddHtml(node.parent);
                 }
-            }, {
-                target: 'delete', text: '删除规则节点',
-                callback: function (node) {
-                    //  mindRemoveNode(node.id);
+            }
+                , {
+                    target: 'delete', text: '删除规则节点',
+                    callback: function (node) {
+                        mindRemoveNode(node.id);
+                    }
                 }
-            }],  //这是完整的功能列表
+                , {
+                    target: 'showNode', text: '聚焦节点', isDepNode: true,
+                    callback: function (node) {
+                        // 打开一个 url
+                        layer_util.openWin({
+                            url: api_expression_rule_config + "?executorId=" + executorId + "&&expressionId=" + node.id + "&&executorCode=" + node.data.expressionCode + "&&executorDescription=" + node.data.expressionTitle,
+                        });
+                    }
+                }, {
+                    target: 'copyNode', text: '复制节点成json', isDepNode: true,
+                    callback: function (node) {
+                        // 递归构建扁平化的节点数据列表
+                        function buildNodeDataList(node, isIncludeChildren) {
+                            const nodeList = [];
+                            // 添加当前节点数据到列表
+                            let nodeData = node.data;
+                            nodeData.id = node.id;
+                            nodeData.parentId = node.parent.id;
+                            nodeList.push(nodeData || {});
+                            // 如果有子节点，则递归处理每个子节点
+                            if (isIncludeChildren && node.children && Array.isArray(node.children)) {
+                                node.children.forEach(childNode => {
+                                    // 递归获取子节点数据并合并到当前列表中
+                                    const childList = buildNodeDataList(childNode, isIncludeChildren);
+                                    nodeList.push(...childList);
+                                });
+                            }
+                            return nodeList;
+                        }
+
+                        function copyNode(isIncludeChildren) {
+                            let nodeInfo = {};
+                            nodeInfo['executorId'] = executorId;
+                            let nodeList = buildNodeDataList(node, isIncludeChildren);
+                            nodeInfo['nodeList'] = nodeList;
+                            const jsonStr = JSON.stringify(nodeInfo, null, 2);
+                            copyTextToClipboard(jsonStr);
+                            layer.msg("成功复制[" + node.data.expressionTitle + "] => [" + nodeList.length + "]个节点!", {icon: 1});
+                        }
+
+                        if (node.children && node.children.length > 0) {
+                            layer.confirm("检测到有多节点,请确认复制类型?", {
+                                btn: ['当前节点', '包含子节点', '取消'],
+                                btnAlign: 'c',
+                                skin: 'class-layer-demo-custom'
+                            }, function (index, layero, that) {
+                                copyNode(false)
+                                return false;
+                            }, function (index, layero, that) {
+                                copyNode(true)
+                                return false;
+                            });
+                        } else {
+                            copyNode(false);
+                        }
+                    }
+                }
+                , {
+                    target: 'pasteNode', text: '粘贴json成节点', isDepNode: true,
+                    callback: function (node) {
+                        // 调用函数获取内容
+                        readClipboardText().then(content => {
+                            // 使用 content 进行后续操作
+                            console.log('获取到的内容:', content);
+                            let requestBody = {};
+                            try {
+                                requestBody = JSON.parse(content);
+                                if (!requestBody.nodeList) {
+                                    layer.msg("复制内容不符合节点导入格式!", {icon: 0});
+                                    return;
+                                }
+                            } catch (e) {
+                                layer.msg('复制内容不符合节点导入格式', {icon: 0});
+                                return;
+                            }
+
+                            requestBody['executorId'] = executorId;
+                            requestBody['expressionId'] = node.id;
+
+                            function importHttpProcessor(requestBody) {
+                                engineUtils.requestPost(api_expression_import_node, requestBody, function (response) {
+                                    // 请求成功时的回调函数
+                                    if (response.code === 200) {
+                                        layer.msg('导入成功', {icon: 1, time: 2000}, function () {
+                                            reloadMind();
+                                        })
+                                    } else {
+                                        layer.alert(response.message);
+                                    }
+                                })
+                            }
+
+                            layer.confirm('是否将复制内容转换成节点[共' + requestBody.nodeList.length + '个]并添加到[' + (node.isroot ? "根节点" : node.data.expressionTitle) + ']节点上？', {
+                                icon: 3,
+                                btn: ['新增', '覆盖', '关闭']
+                            }, function () {
+                                // 新增处理
+                                requestBody["override"] = false;
+                                importHttpProcessor(requestBody);
+                            }, function () {
+                                // 覆盖处理
+                                requestBody["override"] = true;
+                                importHttpProcessor(requestBody);
+                            }, function () {
+                                // 关闭处理
+                                reloadMind();
+                            });
+                        });
+                    }
+                }
+            ],  //这是完整的功能列表
         },
         view: {
             engine: 'canvas',   // 思维导图各节点之间线条的绘制引擎
@@ -234,7 +516,9 @@
     function reloadMind() {
         engineUtils.requestPost(api_expression_list, {
             "executorId": executorId,
-            "traceLogId": traceLogId
+            "traceLogId": traceLogId,
+            "missStartDate": global_full_miss_start_date,
+            "id": expressionId
         }, function (response) {
             // 请求成功时的回调函数
             if (response.code === 200) {
@@ -250,7 +534,12 @@
     function findRequestBodyContext() {
         engineUtils.requestPost(api_trace_object + "?id=" + traceLogId, {}, function (response) {
             if (response.code === 200) {
-                showJson(response.data.envBody);
+                var formatJson = {};
+                formatJson["上下文变量"] = JSON.parse(response.data.envBody);
+                formatJson["追踪数据编号"] = response.data.traceId;
+                formatJson["用户编号"] = response.data.userId;
+                formatJson["唯一编号"] = response.data.unionId;
+                showJson(JSON.stringify(formatJson));
             } else {
                 layer.msg(response.message);
             }
@@ -312,7 +601,9 @@
             engineUtils.requestPost(api_expression_del, data, function (response) {
                 // 请求成功时的回调函数
                 if (response.code === 200) {
-                    layer.msg("删除成功!");
+                    layer.msg("删除成功!", {icon: 1}, function () {
+                        reloadMind();
+                    });
                 } else {
                     layer.alert(response.message);
                 }
@@ -361,7 +652,7 @@
             "      <td>" + node.data.expressionCode + "</td>\n" +
             "    </tr>\n" +
             "    <tr>\n" +
-            "      <td>表达式编码</td>\n" +
+            "      <td>表达式标题</td>\n" +
             "      <td>" + node.data.expressionTitle + "</td>\n" +
             "    </tr>\n" +
             "    <tr>\n" +
@@ -371,6 +662,14 @@
             "    <tr>\n" +
             "      <td>表达式描述</td>\n" +
             "      <td>" + node.data.expressionDescription + "</td>\n" +
+            "    </tr>\n" +
+            "    <tr>\n" +
+            "      <td>创建时间</td>\n" +
+            "      <td>" + (node.data.createTime || '') + "</td>\n" +
+            "    </tr>\n" +
+            "    <tr>\n" +
+            "      <td>修改时间</td>\n" +
+            "      <td>" + (node.data.updateTime || '') + "</td>\n" +
             "    </tr>\n" + traceHtml +
             "  </tbody>\n" +
             "</table>";
@@ -461,13 +760,18 @@
             // 一旦追踪发现出现异常
             if (expressionTraceLogInfo && expressionTraceLogInfo.expressionResult === -1) {
                 bgColor = '#f74871'
+            } else if (expressionTraceLogInfo && expressionTraceLogInfo.expressionResult === 0) {
+                item['expanded'] = false;
+            }
+        } else {
+            if (!enableEditable) {
+                item['expanded'] = false;
             }
         }
 
         // 如果是删除了的节点,那么样式需要突出显示
         let icon = "";
         if (item.expressionStatus !== 1) {
-            debugger;
             icon = "layui-icon-clear";
             bgColor = "#e2e2e2";
             topicText = "<s>" + topicText + "</s>";
@@ -485,6 +789,12 @@
                 item['foreground-color'] = '#ff5722';
                 topicText = topicText + "<br/>【" + dateTime + "】";
             }
+        } else if (global_full_miss_start_date) {
+            if (item.lastMissed === null || item.lastMissed) {
+                item['foreground-color'] = '#ff5722';
+                topicText = topicText + "<br/>【" + global_full_miss_start_date + "之后未命中】 ";
+            }
+
         } else {
             /**
              * 锁所表达式内容会触发的值
@@ -492,9 +802,14 @@
              */
             let searchContext = $("#expression-search-context-id").val();
             if (searchContext !== '') {
-                if (item.expressionContent.includes(searchContext)) {
-                    item['foreground-color'] = '#f3004b';
-                    topicText = topicText + "<br/>【" + item.expressionContent + "】";
+                let searchFieldList = [item.expressionContent, item.expressionCode, item.expressionTitle, item.expressionDescription];
+                for (let i = 0; i < searchFieldList.length; i++) {
+                    const value = searchFieldList[i];
+                    if (value && value.includes(searchContext)) {
+                        item['foreground-color'] = '#f3004b';
+                        topicText = topicText + "<br/>【" + value + "】";
+                        break;
+                    }
                 }
             }
         }
@@ -503,14 +818,25 @@
 
     function convertMindData(data) {
         var treeNode = [];
+        // 统计节点数量
+        var totalCount = data.length;
+        // 创建根节点 topic，包含数量徽章
+        var rootTopic = "<div style='display: flex; align-items: center; gap: 8px;'>" +
+            "<span>【" + executorCode + "】 " + executorDescription + "</span>" +
+            "<span style='background: rgba(255, 255, 255, 0.3); color: #fff; padding: 2px 10px; " +
+            "border-radius: 12px; font-size: 14px; font-weight: bold; " +
+            "box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3);'>" +
+            totalCount + "</span>" +
+            "</div>";
+
         treeNode.push({
-            "id": '0',
+            "id": expressionId || '0',
             "isroot": true,
-            "topic": "【" + executorCode + "】 " + executorDescription,
+            "topic": rootTopic,
             "expanded": true,
             "background-color": "#4669EA",
             "executorId": executorId,
-            "parentid": 0
+            "parentid": '0'
         });
         data.forEach(function (item) {
             convertMindNodeData(item);
@@ -533,7 +859,18 @@
     function btnEventClick(type) {
         let currentNode = jm.get_selected_node();
         if (type === 'collapse') {
-            jm.collapse_node(currentNode)
+            if (currentNode) {
+                // 有选中节点，收缩该节点
+                jm.collapse_node(currentNode);
+            } else {
+                // 没有选中节点，收缩所有一级分支（根节点的直接子节点）
+                let rootNode = jm.get_node(expressionId || '0');
+                if (rootNode && rootNode.children) {
+                    rootNode.children.forEach(function(child) {
+                        jm.collapse_node(child);
+                    });
+                }
+            }
         } else if ('expand') {
             if (currentNode) {
                 jm.expand_node(currentNode);
@@ -550,8 +887,92 @@
         reloadMind();
     }
 
+    /**
+     * 复制文本到剪切板
+     * @param text  文本值
+     * @returns {Promise<void>}
+     */
+    async function copyTextToClipboard(text) {
+        try {
+            // 创建临时按钮元素
+            const tempButton = document.createElement('button');
+            tempButton.style.position = 'fixed';
+            tempButton.style.left = '-9999px';
+            tempButton.style.zIndex = '-1000';
+            document.body.appendChild(tempButton);
+
+            // 初始化 ClipboardJS 实例
+            const clipboard = new ClipboardJS(tempButton, {
+                text: function (trigger) {
+                    return text;
+                }
+            });
+
+            // 设置成功和错误回调
+            clipboard.on('success', function (e) {
+                console.log('JSON 复制成功');
+                // 清理资源
+                document.body.removeChild(tempButton);
+                clipboard.destroy();
+            });
+
+            clipboard.on('error', function (e) {
+                console.error('JSON 复制失败:', e);
+                // 清理资源
+                document.body.removeChild(tempButton);
+                clipboard.destroy();
+            });
+
+            // 触发复制操作
+            tempButton.click();
+            // await navigator.clipboard.writeText(text);
+        } catch (err) {
+            console.error('复制失败: ', err);
+        }
+    }
+
+    /**
+     * 读取剪贴板
+     * @returns {Promise<null|string>}
+     */
+    async function readClipboardText() {
+        try {
+            // 使用 Promise 包装 layer.prompt
+            return new Promise((resolve, reject) => {
+                layer.prompt({
+                    title: '请输入复制的分支json格式',
+                    formType: 2,
+                    maxlength: 50000,
+                    area: ['520px', '320px'], // 设置弹窗大小
+                    success: function (layero, index) {
+                        // 精确控制文本框尺寸
+                        layero.find('textarea').css({
+                            'width': '480px',
+                            'height': '520px',
+                            'resize': 'both'
+                        });
+                    }
+                }, function (value, index, elem) {
+                    if (value === '') {
+                        elem.focus();
+                        // 可以选择拒绝 Promise 或解析为 null
+                        resolve(null);
+                        return;
+                    }
+                    // 关闭 prompt
+                    layer.close(index);
+                    // 解析 Promise，返回用户输入的值
+                    resolve(value);
+                });
+            });
+        } catch (err) {
+            console.error('读取剪贴板失败: ', err);
+            return null;
+        }
+    }
 
     function readerMind(data) {
+
         var mind = convertMindData(data);
 
         jm.show(mind);
@@ -592,6 +1013,346 @@
         });
     }
 
+
+    // ==================== 远程调试功能 ====================
+
+    // 全局变量存储调试相关数据
+    let debugNacosServices = [];
+
+    // 调试面板初始化
+    function initDebugPanel() {
+        if ($('#debug-panel-container').length > 0) {
+            return;
+        }
+
+        const debugPanelHtml = `
+            <div id="debug-panel-container" style="display:none;padding:20px;">
+                <form class="layui-form" lay-filter="debugForm">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">服务名</label>
+                        <div class="layui-input-block" style="position:relative;">
+                            <input type="text" name="serviceName" id="debug-service-name" placeholder="请输入服务名"
+                                   class="layui-input" lay-verify="required" autocomplete="off">
+                            <ul id="debug-service-suggestions" class="debug-suggestions-list" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e6e6e6;max-height:200px;overflow-y:auto;z-index:9999;box-shadow:0 2px 4px rgba(0,0,0,.12);list-style:none;padding:0;margin:0;"></ul>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">服务地址</label>
+                        <div class="layui-input-block">
+                            <div class="layui-row layui-col-space5">
+                                <div class="layui-col-xs7">
+                                    <input type="text" name="serviceAddress" id="debug-service-address-input" placeholder="可选,手动输入HTTP地址" class="layui-input">
+                                </div>
+                                <div class="layui-col-xs5">
+                                    <select name="serviceAddressSelect" id="debug-service-address-select" lay-filter="debugServiceAddress">
+                                        <option value="">选择实例</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">Token</label>
+                        <div class="layui-input-block">
+                            <input type="password" name="token" placeholder="请输入调试Token"
+                                   class="layui-input" lay-verify="required">
+                        </div>
+                    </div>
+                    <div class="layui-form-item layui-form-text">
+                        <label class="layui-form-label">表达式</label>
+                        <div class="layui-input-block">
+                            <textarea id="debug-expression-textarea" placeholder="请输入表达式，如: fn_get_value('userId') > 100"
+                                      class="layui-textarea" style="min-height:120px;font-family:'Monaco','Menlo','Ubuntu Mono','Consolas',monospace;font-size:14px;"></textarea>
+                            <input type="hidden" name="expression" id="debug-expression-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item layui-form-text">
+                        <label class="layui-form-label">上下文参数</label>
+                        <div class="layui-input-block">
+                            <div style="margin-bottom:5px;">
+                                <button type="button" class="layui-btn layui-btn-xs" id="debug-json-format-btn"><i class="layui-icon layui-icon-screen-full"></i> 格式化</button>
+                                <button type="button" class="layui-btn layui-btn-xs layui-btn-primary" id="debug-json-compress-btn"><i class="layui-icon layui-icon-shrink-right"></i> 压缩</button>
+                            </div>
+                            <div id="debug-context-editor" style="width:100%;height:250px;border:1px solid #e6e6e6;border-radius:2px;"></div>
+                            <textarea id="debug-context-textarea" style="display:none;"></textarea>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <div class="layui-input-block">
+                            <button class="layui-btn" lay-submit lay-filter="debugSubmit">执行调试</button>
+                            <button type="reset" class="layui-btn layui-btn-primary" id="debug-reset-btn">重置</button>
+                        </div>
+                    </div>
+                </form>
+                <div id="debug-result-container" style="margin-top:20px;display:none;">
+                    <fieldset class="layui-elem-field">
+                        <legend>调试结果</legend>
+                        <div class="layui-field-box">
+                            <pre id="debug-result-json" style="background:#f8f8f8;padding:10px;border-radius:4px;overflow-x:auto;"></pre>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <style>
+                .debug-suggestions-list li {
+                    padding: 8px 12px;
+                    cursor: pointer;
+                    border-bottom: 1px solid #f0f0f0;
+                }
+                .debug-suggestions-list li:hover {
+                    background-color: #f0f0f0;
+                }
+                .debug-suggestions-list li:last-child {
+                    border-bottom: none;
+                }
+            </style>
+        `;
+
+        $('body').append(debugPanelHtml);
+        form.render(null, 'debugForm');
+
+        // 监听表达式输入框变化
+        $('#debug-expression-textarea').on('input', function() {
+            $('#debug-expression-input').val($(this).val());
+        });
+
+        // 初始化Ace JSON编辑器
+        initDebugContextEditor();
+
+        // 服务名自动完成
+        initServiceAutocomplete();
+    }
+
+    // Ace JSON编辑器实例
+    let debugContextAceEditor = null;
+
+    // 初始化上下文参数JSON编辑器
+    function initDebugContextEditor() {
+        debugContextAceEditor = ace.edit('debug-context-editor');
+        debugContextAceEditor.setTheme('ace/theme/chrome');
+        debugContextAceEditor.session.setMode('ace/mode/json');
+        debugContextAceEditor.setOptions({
+            fontSize: '14px',
+            showPrintMargin: false,
+            wrap: true,
+            autoScrollEditorIntoView: true,
+            tabSize: 2
+        });
+        debugContextAceEditor.setValue('{\n  \n}', -1);
+        debugContextAceEditor.clearSelection();
+
+        // 同步内容到隐藏的textarea
+        debugContextAceEditor.session.on('change', function() {
+            $('#debug-context-textarea').val(debugContextAceEditor.getValue());
+        });
+
+        // 格式化按钮
+        $('#debug-json-format-btn').on('click', function() {
+            try {
+                const val = debugContextAceEditor.getValue().trim();
+                if (val === '') return;
+                const parsed = JSON.parse(val);
+                debugContextAceEditor.setValue(JSON.stringify(parsed, null, 2), -1);
+                debugContextAceEditor.clearSelection();
+                layer.msg('格式化成功', {icon: 1, time: 1000});
+            } catch (e) {
+                layer.msg('JSON格式错误: ' + e.message, {icon: 2});
+            }
+        });
+
+        // 压缩按钮
+        $('#debug-json-compress-btn').on('click', function() {
+            try {
+                const val = debugContextAceEditor.getValue().trim();
+                if (val === '') return;
+                const parsed = JSON.parse(val);
+                debugContextAceEditor.setValue(JSON.stringify(parsed), -1);
+                debugContextAceEditor.clearSelection();
+                layer.msg('压缩成功', {icon: 1, time: 1000});
+            } catch (e) {
+                layer.msg('JSON格式错误: ' + e.message, {icon: 2});
+            }
+        });
+    }
+
+    // 初始化服务名自动完成
+    function initServiceAutocomplete() {
+        const serviceNameInput = $('#debug-service-name');
+        const suggestionsList = $('#debug-service-suggestions');
+
+        // 加载Nacos服务列表
+        loadNacosServices();
+
+        serviceNameInput.on('input', function() {
+            const value = $(this).val().toLowerCase();
+            if (value.length === 0) {
+                suggestionsList.hide();
+                return;
+            }
+
+            const filtered = debugNacosServices.filter(s => s.name.toLowerCase().indexOf(value) !== -1);
+            if (filtered.length > 0) {
+                suggestionsList.html(filtered.map(s => `<li data-service="${s.name}">${s.name} <span style="color:#999;font-size:12px;">(${s.instanceCount || 0} 实例)</span></li>`).join(''));
+                suggestionsList.show();
+            } else {
+                suggestionsList.hide();
+            }
+        });
+
+        // 点击建议项
+        suggestionsList.on('click', 'li', function() {
+            const serviceName = $(this).data('service');
+            serviceNameInput.val(serviceName);
+            suggestionsList.hide();
+            // 更新服务实例下拉框
+            updateServiceInstances(serviceName);
+        });
+
+        // 点击其他地方隐藏建议
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.layui-input-block').length) {
+                suggestionsList.hide();
+            }
+        });
+    }
+
+    // 加载Nacos服务列表
+    function loadNacosServices() {
+        engineUtils.requestPost(final_const.api_path.debug_nacos_services, {}, function(response) {
+            if (response.code === 200 && response.data) {
+                debugNacosServices = response.data;
+            }
+        });
+    }
+
+    // 更新服务实例下拉框
+    function updateServiceInstances(serviceName) {
+        const service = debugNacosServices.find(s => s.name === serviceName);
+        const select = $('#debug-service-address-select');
+        select.html('<option value="">选择实例</option>');
+
+        if (service && service.instances && service.instances.length > 0) {
+            service.instances.forEach(instance => {
+                select.append(`<option value="${instance.url}">${instance.host}:${instance.port}</option>`);
+            });
+        }
+        form.render('select');
+    }
+
+    // 获取执行器信息
+    function fetchExecutorInfo() {
+        if (!executorId || executorId === '0') {
+            return;
+        }
+
+        engineUtils.requestPost(final_const.api_path.debug_executor_info+"?executorId="+executorId, {}, function(response) {
+            if (response.code === 200 && response.data) {
+                const data = response.data;
+                // 设置服务名
+                if (data.serviceName) {
+                    $('#debug-service-name').val(data.serviceName);
+                    updateServiceInstances(data.serviceName);
+                }
+            }
+        });
+    }
+
+    // 打开调试面板
+    function openDebugPanel() {
+        initDebugPanel();
+
+        // 获取执行器信息
+        fetchExecutorInfo();
+
+        layer.open({
+            type: 1,
+            title: '表达式远程调试',
+            offset: 'r',
+            anim: 'slideLeft',
+            area: ['600px', '100%'],
+            shade: 0.1,
+            shadeClose: true,
+            content: $('#debug-panel-container').show()
+        });
+    }
+
+    // 执行调试
+    function executeDebug(formData) {
+        // 从textarea获取表达式和上下文
+        const expression = $('#debug-expression-textarea').val();
+        if (!expression || expression.trim() === '') {
+            layer.msg('请输入表达式');
+            return;
+        }
+
+        let context;
+        try {
+            const contextJson = $('#debug-context-textarea').val();
+            if (contextJson.trim() === '') {
+                context = {};
+            } else {
+                context = JSON.parse(contextJson);
+            }
+        } catch (e) {
+            layer.msg('上下文参数JSON格式错误: ' + e.message);
+            return;
+        }
+
+        // 获取服务地址（直接使用输入框的值，下拉框只是辅助填充）
+        const serviceAddress = $('#debug-service-address-input').val() || '';
+
+        const request = {
+            serviceName: formData.serviceName,
+            serviceAddress: serviceAddress,
+            token: formData.token,
+            expression: expression,
+            context: context
+        };
+
+        engineUtils.requestPost(final_const.api_path.debug_execute, request, function(response) {
+            if (response.code === 200) {
+                const result = response.data;
+                const formatResult = {
+                    '执行结果': result.result,
+                    '使用的函数': result.functionNameList || [],
+                    '使用的变量': result.variableNameList || [],
+                    '执行时间(ms)': result.executionTime,
+                    '错误信息': result.errorMessage || '无'
+                };
+                $('#debug-result-json').text(JSON.stringify(formatResult, null, 2));
+                $('#debug-result-container').show();
+            } else {
+                layer.msg('调试失败: ' + response.message);
+            }
+        });
+    }
+
+    // 表单监听
+    form.on('submit(debugSubmit)', function(data) {
+        executeDebug(data.field);
+        return false;
+    });
+
+    // 下拉框选择时自动填充到输入框
+    form.on('select(debugServiceAddress)', function(data) {
+        if (data.value) {
+            $('#debug-service-address-input').val(data.value);
+        }
+    });
+
+    // 重置按钮
+    $('#debug-reset-btn').on('click', function() {
+        $('#debug-expression-textarea').val('');
+        $('#debug-context-textarea').val('');
+        if (debugContextAceEditor) {
+            debugContextAceEditor.setValue('{\n  \n}', -1);
+            debugContextAceEditor.clearSelection();
+        }
+        $('#debug-result-container').hide();
+    });
+
+    // 按钮点击事件
+    $('#debug-expression-btn').on('click', openDebugPanel);
 
 </script>
 </html>

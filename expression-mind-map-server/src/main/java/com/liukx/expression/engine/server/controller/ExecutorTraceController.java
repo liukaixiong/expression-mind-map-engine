@@ -1,12 +1,12 @@
 package com.liukx.expression.engine.server.controller;
 
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.liukx.expression.engine.server.constants.BaseConstants;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionTraceLogIndex;
 import com.liukx.expression.engine.server.model.dto.request.QueryExpressionTraceRequest;
 import com.liukx.expression.engine.server.model.dto.response.ExpressionTraceInfoDTO;
 import com.liukx.expression.engine.server.model.dto.response.RestResult;
+import com.liukx.expression.engine.server.model.dto.response.TraceLogPageResult;
 import com.liukx.expression.engine.server.service.ExpressionTraceLogIndexService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -33,8 +33,8 @@ public class ExecutorTraceController {
 
     @ApiOperation("查询追踪日志列表")
     @PostMapping("/list")
-    public RestResult<Page<ExpressionTraceLogIndex>> findExecutorList(@RequestBody QueryExpressionTraceRequest queryRequest) {
-        Page<ExpressionTraceLogIndex> page = traceLogIndexService.queryExpressionTraceLogList(queryRequest);
+    public RestResult<TraceLogPageResult<ExpressionTraceLogIndex>> findExecutorList(@RequestBody QueryExpressionTraceRequest queryRequest) {
+        TraceLogPageResult<ExpressionTraceLogIndex> page = traceLogIndexService.queryExpressionTraceLogList(queryRequest);
         return RestResult.ok(page);
     }
 

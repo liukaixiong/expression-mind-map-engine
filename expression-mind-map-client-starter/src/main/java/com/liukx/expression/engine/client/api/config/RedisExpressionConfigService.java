@@ -2,7 +2,9 @@ package com.liukx.expression.engine.client.api.config;
 
 import com.liukx.expression.engine.client.api.RemoteExpressionConfigService;
 import com.liukx.expression.engine.client.enums.EnginCacheKeyEnums;
+import com.liukx.expression.engine.client.enums.ExecutorConfigurabilitySwitchEnum;
 import com.liukx.expression.engine.client.enums.ExpressionConfigCallEnum;
+import com.liukx.expression.engine.client.helper.ConfigurabilityHelper;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigInfo;
 import com.liukx.expression.engine.core.utils.Jsons;
 import org.slf4j.Logger;
@@ -24,7 +26,7 @@ public class RedisExpressionConfigService implements RemoteExpressionConfigServi
     private final Logger log = LoggerFactory.getLogger(RedisExpressionConfigService.class);
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private RedisTemplate<Object, Object> redisTemplate;
 
     @Override
     public String configKey() {
@@ -37,7 +39,9 @@ public class RedisExpressionConfigService implements RemoteExpressionConfigServi
         log.debug("get cache key : {} ", cacheKey);
         Object configInfoObject = redisTemplate.opsForValue().get(cacheKey);
         if (configInfoObject != null) {
-            return Jsons.parseObject(configInfoObject.toString(), ExpressionConfigInfo.class);
+            final ExpressionConfigInfo expressionConfigInfo = Jsons.parseObject(configInfoObject.toString(), ExpressionConfigInfo.class);
+            injectGlobalVarConfig(expressionConfigInfo);
+            return expressionConfigInfo;
         }
         return null;
     }
@@ -46,6 +50,23 @@ public class RedisExpressionConfigService implements RemoteExpressionConfigServi
         String cacheKey = EnginCacheKeyEnums.EXECUTOR_REFRESH_KEY.generateKey(serviceName, businessCode, executorCode);
         if (expressionConfigInfo != null) {
             redisTemplate.opsForValue().set(cacheKey, Objects.requireNonNull(Jsons.toJsonString(expressionConfigInfo)));
+        }
+    }
+
+    /**
+     * 注入全局的变量配置
+     *
+     * @param expressionConfigInfo 表达缓存对象
+     */
+    private void injectGlobalVarConfig(ExpressionConfigInfo expressionConfigInfo) {
+        if (expressionConfigInfo != null) {
+            if (ConfigurabilityHelper.isEnableExecutorConfigurability(expressionConfigInfo.getConfigurabilityMap(), ExecutorConfigurabilitySwitchEnum.enableGlobalVar)) {
+                String redisKey = EnginCacheKeyEnums.GLOBAL_VARIABLE_CONFIG.generateKey();
+                Object config = redisTemplate.opsForValue().get(redisKey);
+                if (config != null) {
+                    expressionConfigInfo.setGlobalVarConfig(config.toString());
+                }
+            }
         }
     }
 }

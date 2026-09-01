@@ -18,15 +18,15 @@ import com.liukx.expression.engine.server.event.ExecutorConfigRefreshEvent;
 import com.liukx.expression.engine.server.exception.Throws;
 import com.liukx.expression.engine.server.mapper.ExpressionConfigMapper;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorInfoConfig;
+import com.liukx.expression.engine.server.mapper.entity.ExpressionHistoryVersion;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionTraceLogInfo;
-import com.liukx.expression.engine.server.model.dto.request.AddExpressionConfigRequest;
-import com.liukx.expression.engine.server.model.dto.request.DeleteByIdListRequest;
-import com.liukx.expression.engine.server.model.dto.request.EditExpressionConfigRequest;
-import com.liukx.expression.engine.server.model.dto.request.QueryExpressionConfigRequest;
+import com.liukx.expression.engine.server.model.dto.request.*;
 import com.liukx.expression.engine.server.model.dto.response.ExpressionExecutorDetailConfigDTO;
 import com.liukx.expression.engine.server.model.dto.response.RestResult;
 import com.liukx.expression.engine.server.service.ExpressionConfigService;
-import com.liukx.expression.engine.server.service.ExpressionTraceLogInfoService;
+import com.liukx.expression.engine.server.service.ExpressionHistoryVersionService;
+import com.liukx.expression.engine.server.service.TraceLogStorageService;
+import com.liukx.expression.engine.server.service.impl.syncData.ExpressionConfigSyncDataServiceImpl;
 import com.liukx.expression.engine.server.util.ExpressionUtils;
 import com.liukx.expression.engine.server.util.ServiceCommonUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +34,8 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -58,7 +60,13 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
     private ApplicationEventPublisher eventPublisher;
 
     @Autowired
-    private ExpressionTraceLogInfoService traceLogInfoService;
+    private TraceLogStorageService traceLogStorageService;
+
+    @Autowired
+    private ExpressionConfigSyncDataServiceImpl expressionConfigSyncDataService;
+
+    @Autowired
+    private ExpressionHistoryVersionService expressionHistoryVersionService;
 
     private static List<ExpressionExecutorDetailConfigDTO> convertExpressionExecutorDetailConfigDTO(List<ExpressionExecutorInfoConfig> expressionExecutorDetailConfigs) {
         return expressionExecutorDetailConfigs.stream().map(config -> Convert.convert(ExpressionExecutorDetailConfigDTO.class, config)).collect(Collectors.toList());
@@ -87,12 +95,11 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         boolean addSuccess = this.save(expressionExecutorDetailConfig);
         LOG.debug("add config expression result : {} , {} , {}", addSuccess, expressionExecutorDetailConfig.getExpressionCode(), expressionExecutorDetailConfig.getId());
 
-        if (addSuccess) {
-            refreshConfigPost(expressionExecutorDetailConfig.getExecutorId());
-        }
-
         RestResult<ExpressionExecutorDetailConfigDTO> result = new RestResult<>();
         if (addSuccess) {
+            // 保存历史版本
+            expressionHistoryVersionService.saveHistory(expressionExecutorDetailConfig, "CREATE", request.getCreateBy());
+
             ExpressionExecutorDetailConfigDTO nodeDTO = new ExpressionExecutorDetailConfigDTO();
             BeanUtil.copyProperties(expressionExecutorDetailConfig, nodeDTO, CopyOptions.create().setIgnoreError(true).setIgnoreNullValue(true));
             result.setCode(ResponseCodeEnum.E_200.getCode());
@@ -107,6 +114,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
 
     /**
      * 校验表达式格式是否有效
+     *
      * @param expressionContent 表达式内容
      */
     private void validExpressionValid(String expressionContent) {
@@ -116,12 +124,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
 
     private void checkExpressionCodeUnion(Long executorId, Long id, String expressionCode) {
         //表达式编码必须唯一
-        LambdaQueryChainWrapper<ExpressionExecutorInfoConfig> lambdaQuery = lambdaQuery()
-                .eq(ExpressionExecutorInfoConfig::getExecutorId, executorId)
-                .eq(ExpressionExecutorInfoConfig::getExpressionCode, expressionCode)
-                .eq(ExpressionExecutorInfoConfig::getDeleted, false)
-                .orderByAsc(ExpressionExecutorInfoConfig::getId)
-                .last("limit 1");
+        LambdaQueryChainWrapper<ExpressionExecutorInfoConfig> lambdaQuery = lambdaQuery().eq(ExpressionExecutorInfoConfig::getExecutorId, executorId).eq(ExpressionExecutorInfoConfig::getExpressionCode, expressionCode).eq(ExpressionExecutorInfoConfig::getDeleted, false).orderByAsc(ExpressionExecutorInfoConfig::getId).last("limit 1");
         ExpressionExecutorInfoConfig existOne = lambdaQuery.one();
 
         Throws.check((id == null && existOne != null) || (existOne != null && !existOne.getId().equals(id)), ErrorEnum.REPEATED_EXPRESSION_ADD.message());
@@ -155,7 +158,9 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         boolean updateSuccess = this.updateById(nodeConfig);
 
         if (updateSuccess) {
-            refreshConfigPost(existOne.getExecutorId());
+            // 保存历史版本 - 先获取更新后的完整数据
+            ExpressionExecutorInfoConfig updatedConfig = this.getById(editRequest.getId());
+            expressionHistoryVersionService.saveHistory(updatedConfig, "UPDATE", editRequest.getUpdateBy());
         }
 
         ExpressionExecutorDetailConfigDTO expressionExecutorDetailConfigDTO = new ExpressionExecutorDetailConfigDTO();
@@ -163,7 +168,44 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         return updateSuccess ? RestResult.ok(expressionExecutorDetailConfigDTO) : RestResult.failed("数据更新到数据库失败");
     }
 
+    @Override
+    public boolean updateById(ExpressionExecutorInfoConfig entity) {
+        return updateById(entity, true);
+    }
+
+    @Override
+    public boolean updateById(ExpressionExecutorInfoConfig importRootInfo, boolean refreshEvent) {
+        final boolean result = super.updateById(importRootInfo);
+        if (result && refreshEvent) {
+            Long executorId = importRootInfo.getExecutorId();
+            if (executorId == null) {
+                final ExpressionExecutorInfoConfig config = getById(importRootInfo.getId());
+                if (config.getExecutorId() != null) {
+                    executorId = config.getExecutorId();
+                }
+            }
+            refreshConfigPost(executorId);
+        }
+        return result;
+    }
+
+    @Override
+    public boolean save(ExpressionExecutorInfoConfig entity) {
+        return save(entity, true);
+    }
+
+    @Override
+    public boolean save(ExpressionExecutorInfoConfig infoConfig, boolean refreshEvent) {
+        final boolean save = super.save(infoConfig);
+        if (refreshEvent) {
+            refreshConfigPost(infoConfig.getExecutorId());
+        }
+        return save;
+    }
+
+
     private void refreshConfigPost(Long executorId) {
+        Throws.nullError(executorId, "执行器编号不能为空,无法刷新缓存!");
         this.eventPublisher.publishEvent(new ExecutorConfigRefreshEvent(executorId));
     }
 
@@ -171,9 +213,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
     public RestResult<List<ExpressionExecutorDetailConfigDTO>> queryExpression(QueryExpressionConfigRequest queryRequest) {
         Throws.nullError(queryRequest.getExecutorId(), "executorId");
         List<ExpressionExecutorDetailConfigDTO> dtoList = new ArrayList<>();
-//        if (queryRequest.getParentId() == null) {
-//            queryRequest.setParentId(BaseConstants.BASE_ROOT_ID);
-//        }
+
         LambdaQueryChainWrapper<ExpressionExecutorInfoConfig> lambdaQuery = lambdaQuery().eq(ExpressionExecutorInfoConfig::getDeleted, 0);
         lambdaQuery.eq(ExpressionExecutorInfoConfig::getExecutorId, queryRequest.getExecutorId());
         lambdaQuery.eq(queryRequest.getParentId() != null, ExpressionExecutorInfoConfig::getParentId, queryRequest.getParentId());
@@ -181,7 +221,7 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         lambdaQuery.eq(queryRequest.getExpressionStatus() != null, ExpressionExecutorInfoConfig::getExpressionStatus, queryRequest.getExpressionStatus());
         lambdaQuery.like(StringUtils.isNotBlank(queryRequest.getExpressionContent()), ExpressionExecutorInfoConfig::getExpressionContent, queryRequest.getExpressionContent());
         lambdaQuery.like(StringUtils.isNotBlank(queryRequest.getExpressionDescription()), ExpressionExecutorInfoConfig::getExpressionDescription, queryRequest.getExpressionDescription());
-        lambdaQuery.orderByDesc(List.of(ExpressionExecutorInfoConfig::getExpressionStatus, ExpressionExecutorInfoConfig::getPriorityOrder)).orderByAsc(ExpressionExecutorInfoConfig::getId);
+        lambdaQuery.orderByDesc(Arrays.asList(ExpressionExecutorInfoConfig::getExpressionStatus, ExpressionExecutorInfoConfig::getPriorityOrder)).orderByAsc(ExpressionExecutorInfoConfig::getId);
         List<ExpressionExecutorInfoConfig> expressionExecutorDetailConfigList = lambdaQuery.list();
 
         if (CollectionUtil.isNotEmpty(expressionExecutorDetailConfigList)) {
@@ -189,17 +229,35 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
             final Long traceLogId = queryRequest.getTraceLogId();
             // 如果涵盖追踪编号,那么获取对应的追踪信息绑定到数据中
             if (traceLogId != null) {
-                final List<ExpressionTraceLogInfo> infoListByTraceLogId = traceLogInfoService.getInfoListByTraceLogId(traceLogId);
+                final List<ExpressionTraceLogInfo> infoListByTraceLogId = traceLogStorageService.getInfoListByTraceLogId(traceLogId);
                 if (CollectionUtil.isNotEmpty(infoListByTraceLogId)) {
                     traceConfigMap = infoListByTraceLogId.stream().collect(Collectors.groupingBy(ExpressionTraceLogInfo::getExpressionConfigId));
                 }
             }
             Map<Long, List<ExpressionTraceLogInfo>> finalTraceConfigMap = traceConfigMap;
+            Set<Long> missTraceId = new HashSet<>();
+
             expressionExecutorDetailConfigList.forEach(expressionExecutorDetailConfig -> {
                 ExpressionExecutorDetailConfigDTO expressionExecutorDetailConfigDTO = new ExpressionExecutorDetailConfigDTO();
                 BeanUtil.copyProperties(expressionExecutorDetailConfig, expressionExecutorDetailConfigDTO);
+                Long expressionId = expressionExecutorDetailConfigDTO.getId();
                 // 绑定追踪日志
-                expressionExecutorDetailConfigDTO.setTraceLogInfos(finalTraceConfigMap.get(expressionExecutorDetailConfigDTO.getId()));
+                expressionExecutorDetailConfigDTO.setTraceLogInfos(finalTraceConfigMap.get(expressionId));
+
+                // 获取最近未命中的节点信息
+                if (queryRequest.getMissStartDate() != null && expressionExecutorDetailConfigDTO.getExpressionStatus() == 1) {
+                    if (missTraceId.contains(expressionExecutorDetailConfigDTO.getParentId())) {
+                        expressionExecutorDetailConfigDTO.setLastMissed(true);
+                        missTraceId.add(expressionId);
+                    } else {
+                        if (!traceLogStorageService.hasRecentlySuccessLog(expressionId, queryRequest.getMissStartDate())) {
+                            expressionExecutorDetailConfigDTO.setLastMissed(true);
+                            missTraceId.add(expressionId);
+                        } else {
+                            expressionExecutorDetailConfigDTO.setLastMissed(false);
+                        }
+                    }
+                }
                 dtoList.add(expressionExecutorDetailConfigDTO);
             });
         }
@@ -215,20 +273,22 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
 
         deepAllIdBuilder(idSet, delRequest.getIdList());
 
-        LambdaQueryWrapper<ExpressionExecutorInfoConfig> queryWrapper = new LambdaQueryWrapper<ExpressionExecutorInfoConfig>().in(ExpressionExecutorInfoConfig::getId, idSet)
-                .eq(ExpressionExecutorInfoConfig::getDeleted, false);
-
-
+        LambdaQueryWrapper<ExpressionExecutorInfoConfig> queryWrapper = new LambdaQueryWrapper<ExpressionExecutorInfoConfig>().in(ExpressionExecutorInfoConfig::getId, idSet).eq(ExpressionExecutorInfoConfig::getDeleted, false);
+        final ExpressionExecutorInfoConfig detailConfig = getOne(queryWrapper, false);
         LOG.info("批量删除id集合: {} ", idSet);
-        LambdaUpdateWrapper<ExpressionExecutorInfoConfig> updateWrapper = new LambdaUpdateWrapper<ExpressionExecutorInfoConfig>().set(ExpressionExecutorInfoConfig::getUpdateBy, delRequest.getUpdateBy())
-                .set(ExpressionExecutorInfoConfig::getDeleted, true)
-                .set(ExpressionExecutorInfoConfig::getUpdateTime, LocalDateTime.now())
-                .in(ExpressionExecutorInfoConfig::getId, idSet);
 
+        LambdaUpdateWrapper<ExpressionExecutorInfoConfig> updateWrapper = new LambdaUpdateWrapper<ExpressionExecutorInfoConfig>().set(ExpressionExecutorInfoConfig::getUpdateBy, delRequest.getUpdateBy()).set(ExpressionExecutorInfoConfig::getDeleted, true).set(ExpressionExecutorInfoConfig::getUpdateTime, LocalDateTime.now()).in(ExpressionExecutorInfoConfig::getId, idSet);
         final RestResult<?> restResult = ServiceCommonUtil.batchDelete(delRequest, "找不到相关记录，不用执行删除操作", getBaseMapper(), queryWrapper, updateWrapper);
 
         if (restResult.isOk()) {
-            final ExpressionExecutorInfoConfig detailConfig = getOne(queryWrapper);
+            // 保存所有删除的表达式到历史版本
+            if (CollectionUtil.isNotEmpty(idSet)) {
+                List<ExpressionExecutorInfoConfig> expressionsToDelete = this.listByIds(idSet);
+                for (ExpressionExecutorInfoConfig expression : expressionsToDelete) {
+                    expressionHistoryVersionService.saveHistory(expression, "DELETE", delRequest.getUpdateBy());
+                }
+            }
+
             if (detailConfig != null) {
                 refreshConfigPost(detailConfig.getExecutorId());
             }
@@ -300,9 +360,8 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         final ExpressionExecutorInfoConfig executorDetailConfig = getById(id);
         // 清空主键
         executorDetailConfig.setId(null);
-        final String expressionCode = executorDetailConfig.getExpressionCode();
         executorDetailConfig.setParentId(parentId);
-        executorDetailConfig.setExpressionCode(expressionCode + "_copy_" + RandomUtil.randomString(5));
+        executorDetailConfig.setExpressionCode(RandomUtil.randomString(10));
         final boolean result = save(executorDetailConfig);
         LOG.info("【复制节点】 将 {} 对象 加入到 {} 中 -> {}", id, parentId, executorDetailConfig);
         return result;
@@ -314,5 +373,28 @@ public class ExpressionConfigServiceImpl extends ServiceImpl<ExpressionConfigMap
         queryWrapper.like(StringUtils.isNotEmpty(expressionContent), ExpressionExecutorInfoConfig::getExpressionContent, expressionContent);
         queryWrapper.and(changeDate != null, var -> var.ge(ExpressionExecutorInfoConfig::getCreateTime, changeDate).or(v2 -> v2.ge(ExpressionExecutorInfoConfig::getUpdateTime, changeDate)));
         return list(queryWrapper);
+    }
+
+    @Override
+    public ExpressionExecutorInfoConfig getExpressionInfoByCode(Long executorId, String expressionCode) {
+        LambdaQueryWrapper<ExpressionExecutorInfoConfig> queryWrapper = Wrappers.lambdaQuery();
+        queryWrapper.eq(ExpressionExecutorInfoConfig::getExecutorId, executorId);
+        queryWrapper.eq(ExpressionExecutorInfoConfig::getExpressionCode, expressionCode);
+        return getOne(queryWrapper, false);
+    }
+
+    @Override
+    @Transactional
+    public Boolean importExpressionNode(PasteExpressionConfigRequest pasteExpressionConfigRequest) {
+        final List<ExpressionExecutorInfoConfig> nodeList = pasteExpressionConfigRequest.getNodeList();
+        final Long executorId = pasteExpressionConfigRequest.getExecutorId();
+        final Long expressionId = pasteExpressionConfigRequest.getExpressionId();
+        //
+        Throws.check(CollectionUtils.isEmpty(nodeList), "节点列表为空!");
+        Throws.check(executorId == null, "执行器编号为空!");
+
+        expressionConfigSyncDataService.refreshImportNode(executorId, expressionId, nodeList, pasteExpressionConfigRequest.isOverride());
+        LOG.info("【导入节点】 成功, executorId: {}, nodeList: {}", executorId, nodeList.size());
+        return true;
     }
 }

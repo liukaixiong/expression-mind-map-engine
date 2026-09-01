@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>表达式表单</title>
-    <link href="//unpkg.com/layui@2.9.14/dist/css/layui.css" rel="stylesheet">
-    <script src="//unpkg.com/layui@2.9.14/dist/layui.js"></script>
+    <link href="/js/cdn/layui/css/layui.css" rel="stylesheet">
+    <script src="/js/cdn/layui/layui.js"></script>
     <script src="/js/Utils.js"></script>
     <script src="/js/engine-const.js"></script>
 </head>
@@ -61,6 +61,9 @@
             <label class="layui-form-label">能力开关</label>
             <div class="layui-input-block">
                 <input lay-filter="configurability-checkbox-filter" lay-skin="tag" name="enableTrace" title="开启追踪"
+                       type="checkbox"/>
+                <input lay-filter="configurability-checkbox-filter" lay-skin="tag" name="enableGlobalVar"
+                       title="注入全局变量"
                        type="checkbox"/>
             </div>
         </div>

@@ -10,8 +10,8 @@ spring:
     default-property-inclusion: always
     serialization:
       write-dates-as-timestamps: true
-    #time-zone: GMT+8
-    #date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
   application:
     name: expression-mind-map-server
   profiles:
@@ -52,11 +52,40 @@ spring:
   plugin:
     express:
       enable-trace-log: false
+      # 是否起启用调试开关
+      debug-enabled: true
+      # 调试的token信息
+      debug-token: admin-token
+  # RestTemplate 超时配置
+  http:
+    connect-timeout: ${engine.http.connect-timeout:5s}
+    read-timeout: ${engine.http.read-timeout:10s}
   expression:
     server:
       enable-login: true
       username: admin
       password: admin@123
+      table-rule-list:
+        - tableName: expression_trace_log_index
+          tableSplitRule: month
+          max-save-number: 2
+        - tableName: expression_trace_log_info
+          tableSplitRule: month
+          max-save-number: 2
+#      ai:
+#        enabled: true
+#        prompt-source: CLASSPATH
+#        # GLM 5
+#        api-url: https://open.bigmodel.cn/api/coding/paas/v4/chat/completions
+#        api-key: xxxx
+#        model: glm-5.1
+#        max-tokens: 10240
+#        temperature: 0.3
+#        connect-timeout: 10000
+#        read-timeout: 300000
+#        max-trace-samples: 3
+#        max-conversation-turns: 10
+
 mybatis-plus:
   mapper-locations: mapper/**/*.xml
   #  需要SQL日志时开启
@@ -64,3 +93,9 @@ mybatis-plus:
     log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
 logging:
   config: classpath:logback-plus.xml
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health,info

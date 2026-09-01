@@ -111,7 +111,7 @@
                     text: 'delete node'
                 },
                 showAll: {
-                    sDepNode: false,
+                    isDepNode: false,
                     fn: function () {
                         this.expand_all(this)
                     },
@@ -148,6 +148,14 @@
                         this.collapse_node(node);
                     },
                     text: 'hide target node'
+                },
+                copyNode: {
+                    isDepNode: true,
+                    fn: function (node) {
+                        // this.expand_node(node);
+                        // debugger;
+                    },
+                    text: 'copy target node json'
                 },
             },
             menuStl: {
@@ -218,7 +226,9 @@
                     defaultFn.call(_this, this.selected_node);
                     if (!_this._get_mid_opts()) {
                         cb(this.selected_node, _noop)
-                        fn.call(j, Jm.util.uuid.newid(), this.menuOpts.newNodeText || 'New Node');
+                        if (fn) {
+                            fn.call(j, Jm.util.uuid.newid(), this.menuOpts.newNodeText || 'New Node');
+                        }
                         return;
                     }
                     cb(this.selected_node, _this._mid_stage_next(function () {
@@ -303,8 +313,37 @@
                 logger.error('[jsmind] injectionList must be a Array');
                 return;
             }
-            if (iLs.length == 0) return dLs;
-            return iLs
+            if (iLs.length === 0) return dLs;
+
+            // 合并两个数组，优先使用iLs中的项
+            // 创建一个新数组，先包含默认项
+            let mergedList = [].concat(dLs);
+
+            // 遍历用户自定义项
+            for (let i = 0; i < iLs.length; i++) {
+                let item = iLs[i];
+                let itemName = typeof item === 'string' ? item : (item.target || '');
+
+                // 查找是否在默认列表中已存在同名项
+                let foundIndex = -1;
+                for (let j = 0; j < mergedList.length; j++) {
+                    let defaultItem = mergedList[j];
+                    let defaultItemName = typeof defaultItem === 'string' ? defaultItem : (defaultItem.target || '');
+
+                    if (defaultItemName === itemName) {
+                        foundIndex = j;
+                        break;
+                    }
+                }
+
+                // 如果找到同名项，则替换；否则添加到末尾
+                if (foundIndex !== -1) {
+                    mergedList[foundIndex] = item;
+                } else {
+                    mergedList.push(item);
+                }
+            }
+            return mergedList;
         },
 
         _get_injectionList(j) {
@@ -317,7 +356,7 @@
                     defaultFn = _noop;
 
                 if (typeof k == 'object') {
-                    o = _this.defaultDataMap.funcMap[k.target];
+                    o = k || _this.defaultDataMap.funcMap[k.target];
                     text = k.text;
                     k.callback && (callback = k.callback);
                 } else {
@@ -326,7 +365,7 @@
                 }
 
                 if (o.defaultFn) defaultFn = o.defaultFn;
-                _this.menu.appendChild(_this._create_menu_item(j, text, o.fn, o.isDepNode, callback, defaultFn));
+                _this.menu.appendChild(_this._create_menu_item(j, text, o.fn, o.isDepNode || true, callback, defaultFn));
             })
         },
 

@@ -18,6 +18,11 @@ import java.util.List;
 @Component
 public class FnEnvPutValueFunction extends AbstractSimpleFunction {
     @Override
+    protected boolean isAllowedCache() {
+        return false;
+    }
+
+    @Override
     public Enum<? extends ExpressFunctionDocumentLoader> documentRegister() {
         return BaseFunctionDescEnum.ENV_PUT_VALUE;
     }

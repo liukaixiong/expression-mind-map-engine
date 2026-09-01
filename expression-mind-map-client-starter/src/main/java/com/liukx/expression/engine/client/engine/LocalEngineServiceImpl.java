@@ -2,28 +2,35 @@ package com.liukx.expression.engine.client.engine;
 
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.ObjectUtil;
+import com.alibaba.ttl.threadpool.TtlExecutors;
 import com.liukx.expression.engine.client.api.*;
 import com.liukx.expression.engine.client.api.config.ExpressionConfigCallManager;
+import com.liukx.expression.engine.client.enums.ContextKeyConstant;
 import com.liukx.expression.engine.client.enums.EngineCallType;
-import com.liukx.expression.engine.client.enums.ExpressionCoxnfigurabilitySwitchEnum;
+import com.liukx.expression.engine.client.enums.ExpressionConfigurabilitySwitchEnum;
+import com.liukx.expression.engine.client.enums.FlowControlEnum;
 import com.liukx.expression.engine.client.factory.ExpressionExecutorFactory;
 import com.liukx.expression.engine.client.helper.ConfigurabilityHelper;
 import com.liukx.expression.engine.client.log.LogEventEnum;
 import com.liukx.expression.engine.client.log.LogHelper;
+import com.liukx.expression.engine.client.process.ExecutorFilterChain;
 import com.liukx.expression.engine.client.process.ExpressionFilterChain;
 import com.liukx.expression.engine.core.api.model.*;
+import com.liukx.expression.engine.core.utils.AssertUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.util.Assert;
+import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -50,6 +57,9 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
 
     @Autowired(required = false)
     private List<ExpressionConfigExecutorIntercept> executionCallbackList = new ArrayList<>();
+
+    @Autowired(required = false)
+    private List<ExecutorFilter> executorFilters = new ArrayList<>();
 
     @Autowired(required = false)
     private List<ExpressionExecutorFilter> expressionExecutorFilters = new ArrayList<>();
@@ -109,11 +119,21 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
 
             executorPostProcessors.forEach(var -> var.beforeExecutor(expressionEnvContext, baseRequest, finalConfigInfo));
 
-            Assert.notNull(configInfo, "业务编码：" + businessCode + ",远端配置获取失败");
+            AssertUtils.Executor.isTrue(configInfo != null, "业务编码：" + businessCode + ",远端配置获取失败");
 
             configTreeModelList = configInfo.getConfigTreeModelList();
 
-            executorExpression(baseRequest, expressionEnvContext, configInfo, configTreeModelList);
+            configInfo.setConfigExpressionCodeMap(toCodeMap(configTreeModelList));
+
+            expressionEnvContext.addEnvClassInfo(configInfo);
+
+            ExecutorFilterChain filterChain = new ExecutorFilterChain(executorFilters, () -> {
+                executorExpression(baseRequest, expressionEnvContext, finalConfigInfo, configTreeModelList);
+                return null;
+            });
+
+            filterChain.doFilter(baseRequest, expressionEnvContext, finalConfigInfo, configTreeModelList);
+
         } finally {
             ExpressionConfigInfo finalConfigInfo = configInfo;
             executorPostProcessors.forEach(var -> var.afterExecutor(expressionEnvContext, baseRequest, finalConfigInfo));
@@ -121,15 +141,34 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
         return true;
     }
 
+    private Map<String, ExpressionConfigTreeModel> toCodeMap(List<ExpressionConfigTreeModel> treeModels) {
+        Map<String, ExpressionConfigTreeModel> codeMap = new HashMap<>(64);
+        toCodeMap(treeModels, codeMap);
+        return codeMap;
+    }
+
+    /**
+     * 递归获取所有节点（包括当前节点及其所有子节点）
+     */
+    private void toCodeMap(List<ExpressionConfigTreeModel> treeModels, Map<String, ExpressionConfigTreeModel> codeMap) {
+        if (!CollectionUtils.isEmpty(treeModels)) {
+            for (ExpressionConfigTreeModel treeModel : treeModels) {
+                codeMap.put(treeModel.getExpressionCode(), treeModel);
+                toCodeMap(treeModel.getNodeExpression(), codeMap);
+            }
+        }
+    }
+
+
     @Override
     public Object invoke(ClientExpressionSubmitRequest request, Map<String, Object> envContext) {
-        ExpressionEnvContext expressionEnvContext = new ExpressionEnvContext(envContext);
+        ExpressionEnvContext expressionEnvContext = ExpressionEnvContext.of(envContext);
         return invoke(request, expressionEnvContext);
     }
 
     private ExpressionConfigInfo getExpressionConfigInfo(Map<String, Object> envContext, String businessGroupCode, String executorCode) {
         //允许同一个上下文获取时，进行结果缓存，这里其实可以适当抽象，后期再优化吧
-        String key = "env_config_info:" + businessGroupCode;
+        String key = "env_config_info:" + businessGroupCode + ":" + executorCode;
 
         Object configObject = envContext.get(key);
 
@@ -143,7 +182,14 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
         baseRequest.setBusinessCode(businessGroupCode);
         baseRequest.setExecutorCode(executorCode);
 
-        return configCallManager.getConfigInfo(serviceName, businessGroupCode, executorCode);
+        final ExpressionConfigInfo configInfo = configCallManager.getConfigInfo(serviceName, businessGroupCode, executorCode);
+
+        if (configInfo != null) {
+            LOG.debug("加入本地缓存中获取引擎配置： {} , {} ", key, configInfo);
+            envContext.put(key, configInfo);
+        }
+
+        return configInfo;
     }
 
 
@@ -153,88 +199,156 @@ public class LocalEngineServiceImpl implements ClientEngineInvokeService, Config
      * @param baseRequest
      * @param envContext
      * @param configInfo
-     * @param configTreeModelList
+     * @param expressionConfigTreelList
      */
-    private void executorExpression(ExpressionBaseRequest baseRequest, ExpressionEnvContext envContext, ExpressionConfigInfo configInfo, List<ExpressionConfigTreeModel> configTreeModelList) {
-        if (configTreeModelList == null) {
+    private void executorExpression(ExpressionBaseRequest baseRequest, ExpressionEnvContext envContext, ExpressionConfigInfo configInfo, List<ExpressionConfigTreeModel> expressionConfigTreelList) {
+        if (CollectionUtils.isEmpty(expressionConfigTreelList)) {
             return;
         }
 
         ExpressionService expressionService = executorFactory.getExpressionService();
-        for (ExpressionConfigTreeModel treeModel : configTreeModelList) {
+        for (ExpressionConfigTreeModel treeModel : expressionConfigTreelList) {
             // 后续可以考虑做一些拓展，针对流程控制，允许跳过一些表达式,当然你可以自己设置一些流程分支的表达式去控制,那样也方便
-
-            boolean isSkip = expressionProcessor(baseRequest, envContext, configInfo, treeModel, expressionService);
+            final FlowControlEnum flowControlEnum = expressionProcessor(baseRequest, envContext, configInfo, treeModel, expressionService);
 
             // 进行流程控制
-            if (!isSkip) {
+            if (FlowControlEnum.IN_END == flowControlEnum) {
                 LogHelper.trace(envContext, baseRequest, LogEventEnum.EXPRESSION_CALL, String.format("[%s] 触发in_end全流程流程终止标记! ", treeModel.getTitle()));
-                // 执行到当前分支结束
+                // 执行到当前分支终止所有流程
                 envContext.forceEnd();
                 break;
             }
 
-            if (envContext.isForceEnd()) {
+            if (envContext.isForceEnd() || FlowControlEnum.FORCE_END == flowControlEnum) {
                 LogHelper.trace(envContext, baseRequest, LogEventEnum.EXPRESSION_CALL, String.format("[%s] 触发force_end全流程终止标记! ", treeModel.getTitle()));
                 break;
             }
 
-            if (envContext.isReturnEnd()) {
-                envContext.restReturnEnd();
-                LogHelper.trace(envContext, baseRequest, LogEventEnum.EXPRESSION_CALL, String.format("[%s] 触发return_end,同级分支不在执行! ", treeModel.getTitle()));
+            // 这个标记只适合在没有子分支的情况下使用,同级别不再继续分支
+            if (FlowControlEnum.RETURN_END == flowControlEnum) {
+                LogHelper.trace(envContext, baseRequest, LogEventEnum.EXPRESSION_CALL, String.format("[%s] 触发 %s,同级分支不在执行! ", treeModel.getTitle(), flowControlEnum.name()));
                 break;
             }
-
 
         }
     }
 
-    private boolean expressionProcessor(ExpressionBaseRequest baseRequest, ExpressionEnvContext envContext, ExpressionConfigInfo configInfo, ExpressionConfigTreeModel treeModel, ExpressionService expressionService) {
-        Object execute;
+    private FlowControlEnum expressionProcessor(ExpressionBaseRequest baseRequest, ExpressionEnvContext envContext, ExpressionConfigInfo configInfo, ExpressionConfigTreeModel treeModel, ExpressionService expressionService) {
+        ExpressionContextResult executeResult;
+        final Long expressionId = treeModel.getExpressionId();
         String expressionType = treeModel.getExpressionType();
         String expressionCode = treeModel.getExpressionCode();
         String expression = treeModel.getExpression();
         String title = treeModel.getTitle();
-
+        Object execute = null;
         try {
             // 将表达式配置对象注入到上下文中
-            envContext.addEnvClassInfo(treeModel);
+            envContext.addEnvThreadClassInfo(treeModel);
+
+            // 清理当前分支存储结果
+            envContext.clearBranchResult(expressionId);
 
             executionCallbackList.forEach(var -> var.before(treeModel, baseRequest, envContext));
 
             // 如果表达式是空的,那么默认认为是可执行的
-            ExpressionFilterChain filterChain = new ExpressionFilterChain(expressionExecutorFilters, () -> expressionService.execute(expression, envContext.getSourceMap()));
-            execute = StringUtils.isNotEmpty(expression) ? filterChain.doFilter(envContext, configInfo, treeModel, baseRequest) : true;
-
-            executionCallbackList.forEach(var -> var.after(treeModel, baseRequest, envContext, execute));
+            ExpressionFilterChain filterChain = new ExpressionFilterChain(expressionExecutorFilters, () -> executorExpressionContext(baseRequest, envContext, expressionService, treeModel, configInfo));
+            if (StringUtils.isNotEmpty(expression)) {
+                final ExpressionContextResult expressionContextResult = filterChain.doFilter(envContext, configInfo, treeModel, baseRequest);
+                execute = expressionContextResult.getResult();
+                executionCallbackList.forEach(var -> var.after(treeModel, baseRequest, envContext, expressionContextResult));
+            } else {
+                execute = true;
+            }
         } catch (Exception e) {
-            LogHelper.trace(envContext, baseRequest, LogEventEnum.CALL_ERROR, "[{}] error - [{}] [title:{}],[表达式:{}]", expressionType, expressionCode, title, expression);
+            //LogHelper.trace(envContext, baseRequest, LogEventEnum.CALL_ERROR, "[{}] error - [{}] [title:{}],[表达式:{}]", expressionType, expressionId, title, expression);
+            LOG.warn("[{}] error - [{}] [title:{}],[表达式:{}] => {}", expressionType, expressionId, title, expression, e.getMessage());
             executionCallbackList.forEach(var -> var.error(treeModel, baseRequest, envContext, e));
             throw e;
         }
 
-        LogHelper.trace(envContext, baseRequest, LogEventEnum.EXPRESSION_CALL, " [{}] [{}] [title:{}],[表达式:{}] -> 结果:[{}]", expressionType, expressionCode, title, expression, execute);
+        LogHelper.trace(envContext, baseRequest, LogEventEnum.EXPRESSION_CALL, " [{}] [{}] [title:{}],[表达式:{}] -> 结果:[{}]", expressionType, expressionId, title, expression, execute);
 
-        // 是否终止下一个同级别分支
-        boolean isBreakNextBranch = !(envContext.isTopEnd() && envContext.restTopEnd());
+        return envContext.getBranchFlowResult(treeModel.getExpressionId());
+    }
 
-        if (execute instanceof Boolean && (Boolean) execute) {
-            // 启用子分支的异步能力，这里需要注意的是：1、当前一级子分支的逻辑需要互不干扰启用才会有意义,如果你的逻辑是有依赖的，那么请不要启用异步能力。
-            // 如果使用了fn_in_end,类似 break \ continue 等等, 会导致并发出错.请慎重!
-            if (ConfigurabilityHelper.isEnableExpressionConfigurability(treeModel.getConfigurabilityMap(), ExpressionCoxnfigurabilitySwitchEnum.enableNodeAsync)) {
-                if (!(envContext.getSourceMap() instanceof ConcurrentHashMap<String, Object>)) {
-                    LOG.warn("[异步能力开启警告]当前环境上下文不是线程安全[非ConcurrentHashMap]的，可能会导致并发操作上下文出现异常，请注意检查！可以在源头上进行处理，比如使用ConcurrentHashMap!");
+    /**
+     * 表达式的执行过程
+     *
+     * @param baseRequest
+     * @param envContext
+     * @param expressionService
+     * @param treeModel
+     * @param configInfo
+     * @return
+     */
+    private ExpressionContextResult executorExpressionContext(ExpressionBaseRequest baseRequest, ExpressionEnvContext envContext, ExpressionService expressionService, ExpressionConfigTreeModel treeModel, ExpressionConfigInfo configInfo) {
+        final String expression = treeModel.getExpression();
+        final Long expressionId = treeModel.getExpressionId();
+        final String expressionType = treeModel.getExpressionType();
+        final String title = treeModel.getTitle();
+
+        // 执行表达式
+        final ExpressionContextResult execute = expressionService.execute(expression, envContext.getSourceMap());
+
+        final Object result = execute.getResult();
+        if (result instanceof Boolean) {
+            if ((Boolean) result) {
+                // 下面可能到时候还需要重构一版: 无法组合使用
+                // 跳转分支的处理,从这里开始实现,目前来看这个功能有一定的场景实用性,但感觉不大,实现起来也比较麻烦.
+                // 它的场景: 就是思维导图的方式无法直接把一些公用的逻辑抽离出来(比如A分支需要执行一段子分支逻辑C,B分支也需要执行一段子逻辑分支C)
+                // 当然你可以通过各种复制粘贴的方式去冗余实现,但弊端就是不太好管理.而且追踪会覆盖.当然需要你设计好你的逻辑分支,避免重复进入公共分支去
+                String redirectExpressionCode = (String) envContext.getBranchResult(expressionId).getOrDefault(ContextKeyConstant.FUNCTION_REDIRECT_EXPRESSION_CODE, "");
+                if (StringUtils.isNotEmpty(redirectExpressionCode)) {
+                    final ExpressionConfigTreeModel expressionConfigTreeModel = configInfo.getConfigExpressionCodeMap().get(redirectExpressionCode);
+                    if (expressionConfigTreeModel != null) {
+                        expressionProcessor(baseRequest, envContext, configInfo, expressionConfigTreeModel, expressionService);
+                    }
+                } else if (ConfigurabilityHelper.isEnableExpressionConfigurability(treeModel.getConfigurabilityMap(), ExpressionConfigurabilitySwitchEnum.enableNodeAsync)) {
+                    // 启用子分支的异步能力，这里需要注意的是：1、当前一级子分支的逻辑需要互不干扰启用才会有意义,如果你的逻辑是有依赖的，那么请不要启用异步能力。
+                    // 如果使用了fn_in_end,类似 break \ continue 等等, 会导致并发出错.请慎重!
+                    if (!(envContext.getSourceMap() instanceof ConcurrentHashMap)) {
+                        LOG.warn("[异步能力开启警告]当前环境上下文不是线程安全[非ConcurrentHashMap]的，可能会导致并发操作上下文出现异常，请注意检查！可以在源头上进行处理，比如使用ConcurrentHashMap!");
+                    }
+                    LogHelper.trace(envContext, baseRequest, LogEventEnum.EXPRESSION_CALL, " [{}] [{}] [title:{}],[表达式:{}] -> 启用子分支异步能力", expressionType, expressionId, title, expression);
+                    final List<ExpressionConfigTreeModel> nodeExpressionList = treeModel.getNodeExpression();
+                    final List<CompletableFuture<Void>> taskList = nodeExpressionList.stream().map(nodeExpression -> CompletableFuture.runAsync(() -> expressionProcessor(baseRequest, envContext, configInfo, nodeExpression, expressionService), TtlExecutors.getTtlExecutorService(executor.executorService()))).collect(Collectors.toList());
+                    CompletableFuture.allOf(taskList.toArray(new CompletableFuture[0])).join();
+                } else {
+                    // 未开启任何能力的逻辑
+                    executorExpression(baseRequest, envContext, configInfo, treeModel.getNodeExpression());
                 }
-                LogHelper.trace(envContext, baseRequest, LogEventEnum.EXPRESSION_CALL, " [{}] [{}] [title:{}],[表达式:{}] -> 启用子分支异步能力", expressionType, expressionCode, title, expression);
-                final List<ExpressionConfigTreeModel> nodeExpressionList = treeModel.getNodeExpression();
-                final List<CompletableFuture<Void>> taskList = nodeExpressionList.stream().map(nodeExpression -> CompletableFuture.runAsync(() -> expressionProcessor(baseRequest, envContext, configInfo, nodeExpression, expressionService), executor.executorService())).toList();
-                CompletableFuture.allOf(taskList.toArray(new CompletableFuture[0])).join();
-            } else {
-                executorExpression(baseRequest, envContext, configInfo, treeModel.getNodeExpression());
             }
         }
 
-        return isBreakNextBranch;
+        return execute;
+    }
+
+    /**
+     * 计算流程控制信息
+     *
+     * @param envContext
+     * @param treeModel
+     * @return
+     */
+    private FlowControlEnum calculateFlowControlInfo(ExpressionEnvContext envContext, ExpressionConfigTreeModel treeModel) {
+//        FlowControlEnum flowControl = FlowControlEnum.GO_ON;
+        // 是否终止下一个同级别分支
+//        boolean isBreakNextBranch = !(envContext.isTopEnd() && envContext.restTopEnd());
+        // 如果并发就有点难搞了-_-!
+
+        FlowControlEnum flowControl = envContext.getBranchFlowResult(treeModel.getExpressionId());
+
+//        if (envContext.isTopEnd() && envContext.restTopEnd()) {
+//            flowControl = FlowControlEnum.IN_END;
+//        } else if (envContext.isReturnEnd()) {
+//            if (!CollectionUtils.isEmpty(treeModel.getNodeExpression())) {
+//                flowControl = FlowControlEnum.IN_RETURN_END;
+//            } else {
+//                flowControl = FlowControlEnum.RETURN_END;
+//            }
+//            envContext.restReturnEnd();
+//        }
+        return flowControl;
     }
 
 }

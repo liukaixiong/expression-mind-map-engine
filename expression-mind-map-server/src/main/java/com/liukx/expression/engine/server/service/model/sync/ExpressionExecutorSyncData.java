@@ -13,6 +13,7 @@ import java.util.List;
 @Data
 public class ExpressionExecutorSyncData {
 
+    private Long executorId;
 
     private ExpressionExecutorBaseInfo baseInfo;
 

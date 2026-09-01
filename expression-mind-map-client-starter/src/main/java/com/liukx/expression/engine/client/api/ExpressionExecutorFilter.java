@@ -5,6 +5,7 @@ import com.liukx.expression.engine.client.process.ExpressionFilterChain;
 import com.liukx.expression.engine.core.api.model.ExpressionBaseRequest;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigInfo;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigTreeModel;
+import com.liukx.expression.engine.core.api.model.ExpressionContextResult;
 
 /**
  * 表达式过滤链条
@@ -14,6 +15,6 @@ import com.liukx.expression.engine.core.api.model.ExpressionConfigTreeModel;
  */
 public interface ExpressionExecutorFilter {
 
-    Object doExpressionFilter(ExpressionEnvContext env, ExpressionConfigInfo configInfo, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request, ExpressionFilterChain chain);
+    ExpressionContextResult doExpressionFilter(ExpressionEnvContext env, ExpressionConfigInfo configInfo, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request, ExpressionFilterChain chain);
 
 }

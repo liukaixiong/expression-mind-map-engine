@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.liukx.expression.engine.server.mapper.ExpressionHistoryVersionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.liukx.expression.engine.server.mapper.entity.ExpressionHistoryVersion">
+        <id column="id" property="id"/>
+        <result column="expression_id" property="expressionId"/>
+        <result column="executor_id" property="executorId"/>
+        <result column="expression_code" property="expressionCode"/>
+        <result column="expression_title" property="expressionTitle"/>
+        <result column="expression_content" property="expressionContent"/>
+        <result column="expression_description" property="expressionDescription"/>
+        <result column="version_no" property="versionNo"/>
+        <result column="change_type" property="changeType"/>
+        <result column="change_reason" property="changeReason"/>
+        <result column="operator" property="operator"/>
+        <result column="create_time" property="createTime"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, expression_id, executor_id, expression_code, expression_title, expression_content,
+        expression_description, version_no, change_type, change_reason, operator, create_time
+    </sql>
+
+    <!-- 查询表达式历史版本列表 -->
+    <select id="selectHistoryByExpressionId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM expression_history_version
+        WHERE expression_id = #{expressionId}
+        ORDER BY version_no DESC, create_time DESC
+    </select>
+
+    <!-- 查询执行器下所有表达式的历史版本 -->
+    <select id="selectHistoryByExecutorId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM expression_history_version
+        WHERE executor_id = #{executorId}
+        ORDER BY create_time DESC
+    </select>
+
+    <!-- 获取表达式最新版本号 -->
+    <select id="selectMaxVersionNo" resultType="java.lang.Integer">
+        SELECT COALESCE(MAX(version_no), 0)
+        FROM expression_history_version
+        WHERE expression_id = #{expressionId}
+    </select>
+
+</mapper>

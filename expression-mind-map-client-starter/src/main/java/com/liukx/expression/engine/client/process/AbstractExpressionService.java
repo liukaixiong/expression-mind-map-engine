@@ -25,4 +25,5 @@ public abstract class AbstractExpressionService implements ExpressionService {
         this.documentApiExecutor = documentRegister;
     }
 
+    public abstract void addStaticFunctions(String namespace, Class<?> clazz);
 }

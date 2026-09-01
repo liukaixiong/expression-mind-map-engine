@@ -65,8 +65,54 @@ let final_const = {
          */
         expression_edit: '/expression-engine/executor/expression/editOne',
         expression_del: '/expression-engine/executor/expression/batchDelete',
+        expression_import_node: '/expression-engine/executor/expression/importNode',
         expression_edit_parent: '/expression-engine/executor/expression/editParentId',
         expression_copy_node: '/expression-engine/executor/expression/copyNode',
+
+        /**
+         * 保存全局变量配置
+         */
+        save_global_variable_config: '/expression-engine/executor/info/saveGlobalVariableConfig',
+        /**
+         * 查询全局变量配置
+         */
+        get_global_variable_config: '/expression-engine/executor/info/getGlobalVariableConfig',
+        /**
+         * 获取表达式历史版本列表
+         */
+        expression_history_list: '/expression-engine/executor/expression/history/list',
+        /**
+         * 获取历史版本详情
+         */
+        expression_history_detail: '/expression-engine/executor/expression/history/detail',
+
+        /**
+         * 远程调试执行
+         */
+        debug_execute: '/expression-engine/debug/execute',
+
+        /**
+         * 获取执行器绑定的服务信息
+         */
+        debug_executor_info: '/expression-engine/debug/executor-info',
+
+        /**
+         * 获取Nacos注册中心的所有服务列表
+         */
+        debug_nacos_services: '/expression-engine/debug/services',
+
+        /**
+         * AI生成表达式
+         */
+        ai_generate_expression: '/expression-engine/ai/generate',
+
+        /**
+         * AI提示词管理
+         */
+        ai_prompt_list: '/expression-engine/ai/prompt/list',
+        ai_prompt_get: '/expression-engine/ai/prompt/get',
+        ai_prompt_save: '/expression-engine/ai/prompt/save',
+        ai_prompt_delete: '/expression-engine/ai/prompt/delete',
     },
 
     template_path: {
@@ -74,7 +120,7 @@ let final_const = {
         executor_form: '/template/executor-form.html',
         expression_rule_config: '/template/expression-rule-config.html',
         expression_form: '/template/expressionForm.html',
-
+        ai_prompt_list: '/template/ai-prompt-list.html',
     },
     final_constants: {
         /**

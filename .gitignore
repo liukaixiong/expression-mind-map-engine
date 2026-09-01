@@ -52,3 +52,4 @@ Backup of *.doc*
 # Visio autosave temporary files
 *.~vsd*
 
+!/config.txt

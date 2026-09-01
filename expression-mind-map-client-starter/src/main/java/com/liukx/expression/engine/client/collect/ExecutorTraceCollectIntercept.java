@@ -2,15 +2,19 @@ package com.liukx.expression.engine.client.collect;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.thread.ThreadUtil;
-import com.googlecode.aviator.AviatorEvaluator;
+import com.alibaba.ttl.TransmittableThreadLocal;
+import com.googlecode.aviator.runtime.type.AviatorFunction;
+import com.googlecode.aviator.utils.Reflector;
 import com.liukx.expression.engine.client.api.ExpressionConfigExecutorIntercept;
 import com.liukx.expression.engine.client.api.ExpressionExecutorPostProcessor;
 import com.liukx.expression.engine.client.api.ExpressionFunctionPostProcessor;
 import com.liukx.expression.engine.client.api.RemoteHttpService;
 import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
+import com.liukx.expression.engine.client.factory.ExpressionExecutorFactory;
 import com.liukx.expression.engine.core.api.model.ExpressionBaseRequest;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigInfo;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigTreeModel;
+import com.liukx.expression.engine.core.api.model.ExpressionContextResult;
 import com.liukx.expression.engine.core.api.model.api.ExpressionExecutorResultDTO;
 import com.liukx.expression.engine.core.api.model.api.ExpressionResultLogCollect;
 import com.liukx.expression.engine.core.api.model.api.ExpressionResultLogDTO;
@@ -22,10 +26,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.CollectionUtils;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 import java.util.stream.Collectors;
 
 /**
@@ -37,11 +43,19 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIntercept, ExpressionFunctionPostProcessor, ExpressionExecutorPostProcessor, InitializingBean {
 
-    private final ThreadLocal<ExpressionExecutorResultDTO> resultLogThreadLocal = new InheritableThreadLocal<>();
+    // 将 ThreadLocal 改造为 Stack 结构，支持嵌套调用
+    private final ThreadLocal<Stack<ExpressionExecutorResultDTO>> resultLogThreadLocal = new TransmittableThreadLocal<Stack<ExpressionExecutorResultDTO>>() {
+        @Override
+        protected Stack<ExpressionExecutorResultDTO> initialValue() {
+            return new Stack<>();
+        }
+    };
     @Autowired
     private RemoteHttpService remoteHttpService;
     @Value("${spring.application.name:unknown}")
     private String serviceName;
+    @Autowired
+    private ExpressionExecutorFactory executorFactory;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -51,18 +65,15 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
         }
 
         ThreadUtil.newSingleExecutor().execute(() -> {
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
                 try {
-                    final List<ExpressionExecutorResultDTO> resultList = ExpressionResultLogCollect.getInstance().pollBatch(10);
-                    if (!CollectionUtil.isEmpty(resultList)) {
-                        remoteHttpService.call(ExpressionConstants.ENGINE_SERVER_ID, ExpressionConstants.SERVER_EXECUTOR_TRACE_SUBMIT_PATH, resultList, Object.class);
-                    } else {
-                        ThreadUtil.sleep(50);
-                    }
+                    final List<ExpressionExecutorResultDTO> resultList = ExpressionResultLogCollect.getInstance().takeBatch(10);
+                    remoteHttpService.call(ExpressionConstants.ENGINE_SERVER_ID, ExpressionConstants.SERVER_EXECUTOR_TRACE_SUBMIT_PATH, resultList, Object.class);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
                 } catch (Exception e) {
                     log.error("执行器日志提交失败", e);
-                } finally {
-                    ThreadUtil.sleep(5);
                 }
             }
         });
@@ -76,7 +87,7 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
         }
 
         if (configInfo == null) {
-            log.debug("配置异常,请检查表达式配置相关链路!");
+            log.warn("配置异常,请检查表达式配置相关链路!");
             return;
         }
         ExpressionExecutorResultDTO dto = new ExpressionExecutorResultDTO();
@@ -90,7 +101,9 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
         dto.setUnionId(baseRequest.getUnionId());
         dto.setTraceId(baseRequest.getTraceId());
         dto.setEnvBody(Jsons.toJsonString(envContext.getBusinessEnvContext()));
-        resultLogThreadLocal.set(dto);
+
+        // 使用栈结构压入当前执行器结果
+        resultLogThreadLocal.get().push(dto);
     }
 
     @Override
@@ -100,8 +113,10 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
         }
 
         try {
-            final ExpressionExecutorResultDTO expressionExecutorResultDTO = resultLogThreadLocal.get();
-            if (expressionExecutorResultDTO != null) {
+            // 从栈中弹出当前执行器结果
+            Stack<ExpressionExecutorResultDTO> stack = resultLogThreadLocal.get();
+            if (!stack.isEmpty()) {
+                ExpressionExecutorResultDTO expressionExecutorResultDTO = stack.pop();
                 ExpressionResultLogCollect.getInstance().add(expressionExecutorResultDTO);
             } else {
                 log.warn("追踪日志数据构建异常!");
@@ -109,12 +124,16 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
         } catch (Exception e) {
             log.warn("追踪日志设置失败:{}", e.getMessage());
         } finally {
-            resultLogThreadLocal.remove();
+            // 安全清理：如果栈为空，则清理 ThreadLocal
+            Stack<ExpressionExecutorResultDTO> stack = resultLogThreadLocal.get();
+            if (stack.isEmpty()) {
+                resultLogThreadLocal.remove();
+            }
         }
     }
 
     @Override
-    public void after(ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest baseRequest, ExpressionEnvContext envContext, Object execute) {
+    public void after(ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest baseRequest, ExpressionEnvContext envContext, ExpressionContextResult execute) {
         triggerResultLogCollect(envContext, ExpressionLogTypeEnum.expression, configTreeModel, baseRequest, null, null, execute);
     }
 
@@ -134,27 +153,47 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
 
     }
 
-    private void triggerResultLogCollect(ExpressionEnvContext envContext, ExpressionLogTypeEnum resultType, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request, FunctionApiModel functionInfo, List<Object> funcArgs, Object result) {
+    private void triggerResultLogCollect(ExpressionEnvContext envContext, ExpressionLogTypeEnum resultType, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request, FunctionApiModel functionInfo, List<Object> funcArgs, Object execute) {
         try {
             if (!envContext.isEnableTrace()) {
                 return;
             }
+
+            // 从栈中获取当前执行器结果
+            Stack<ExpressionExecutorResultDTO> stack = resultLogThreadLocal.get();
+            if (stack.isEmpty()) {
+                log.warn(">>> 执行器结果栈为空，无法记录日志! <<<");
+                return;
+            }
+            Object result = execute;
+            if (execute instanceof ExpressionContextResult) {
+                ExpressionContextResult contextResult = ((ExpressionContextResult) execute);
+                result = contextResult.getResult();
+            }
+
             ExpressionResultLogDTO dto = new ExpressionResultLogDTO();
             dto.setExecutorId(configTreeModel.getExecutorId());
             dto.setResultType(resultType.name());
             dto.setExpressionConfigId(configTreeModel.getExpressionId());
             dto.setFunctionApiModel(functionInfo);
-            dto.setFuncArgs(funcArgs);
+            // 这里需要过滤一些参数,aviator的某些函数类型会导致死循环
+            if (!CollectionUtils.isEmpty(funcArgs)) {
+                final List<Object> functionArgs = funcArgs.stream().filter(var -> !(var instanceof AviatorFunction)).collect(Collectors.toList());
+                dto.setFuncArgs(functionArgs);
+            }
             dto.setResult(result);
 
             if (resultType == ExpressionLogTypeEnum.expression) {
                 final String expression = configTreeModel.getExpression();
-                final List<String> variableFullNames = AviatorEvaluator.compile(expression, true).getVariableNames();
-                if (CollectionUtil.isNotEmpty(variableFullNames)) {
-                    final Map<String, Object> variableMap = variableFullNames.stream().collect(Collectors.toMap(var -> var, var -> envContext.getValue(var) == null ? "null" : envContext.getValue(var)));
-                    dto.setExpression(Jsons.toJsonString(variableMap));
-                } else {
+                // 获取变量值
+                if (execute instanceof ExpressionContextResult) {
                     dto.setExpression(expression);
+                    ExpressionContextResult contextResult = ((ExpressionContextResult) execute);
+                    final List<String> variableFullNames = contextResult.getVariableNameList();
+                    if (CollectionUtil.isNotEmpty(variableFullNames)) {
+                        final Map<String, Object> variableMap = variableFullNames.stream().collect(Collectors.toMap(var -> var, var -> getContextValue(envContext, var)));
+                        dto.setDebugTraceContent(variableMap);
+                    }
                 }
                 dto.setDescription(configTreeModel.getTitle());
             } else {
@@ -164,8 +203,8 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
                 dto.setDebugTraceContent(debugTraceInfo);
             }
 
-            if (result instanceof Exception) {
-                Exception e = (Exception) result;
+            if (execute instanceof Exception) {
+                Exception e = (Exception) execute;
                 dto.setResult(-1);
                 Map<String, Object> debugTraceContent = dto.getDebugTraceContent();
                 if (debugTraceContent == null) {
@@ -175,9 +214,20 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
                 dto.setDebugTraceContent(debugTraceContent);
             }
 
-            resultLogThreadLocal.get().getResultLogList().add(dto);
+            // 获取当前执行器结果并添加日志
+            stack.peek().getResultLogList().add(dto);
         } catch (Exception e) {
-            log.debug("追踪结果日志构建失败! -> {}", e.getMessage());
+            log.warn("追踪结果日志构建失败! -> {}", e.getMessage());
         }
+    }
+
+    private String getContextValue(ExpressionEnvContext envContext, String var) {
+        try {
+            final Object property = Reflector.getProperty(envContext.getSourceMap(), var);
+            return property == null ? "null" : property.toString();
+        } catch (Exception e) {
+            log.warn("获取变量值异常:{}", e.getMessage());
+        }
+        return "null";
     }
 }

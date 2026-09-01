@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>AI提示词管理</title>
+    <link href="/js/cdn/layui/css/layui.css" rel="stylesheet">
+    <script src="/js/cdn/layui/layui.js"></script>
+    <script src="/js/cdn/marked.min.js"></script>
+    <link href="/css/github-markdown.min.css" rel="stylesheet">
+    <script src="/js/Utils.js"></script>
+    <script src="/js/engine-const.js"></script>
+    <style>
+        .prompt-editor-container { padding: 20px; }
+        .prompt-edit-layout { display: flex; gap: 12px; height: 380px; }
+        .prompt-edit-pane { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .prompt-edit-pane textarea {
+            flex: 1; width: 100%;
+            font-family: 'Courier New', monospace;
+            font-size: 14px; line-height: 1.6;
+            padding: 12px; border: 1px solid #e6e6e6; border-radius: 4px;
+            resize: none; box-sizing: border-box;
+        }
+        .prompt-preview-pane { flex: 1; border: 1px solid #e6e6e6; border-radius: 4px; padding: 12px; overflow-y: auto; background: #fafafa; }
+        .prompt-pane-label { font-size: 12px; color: #999; margin-bottom: 6px; font-weight: bold; }
+        .tag-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            color: #fff;
+        }
+        .tag-badge.all { background: #1e9fff; }
+        .tag-badge.service { background: #ffb800; }
+        .tag-badge.type { background: #16b777; }
+        .file-name { color: #666; font-size: 12px; margin-top: 4px; }
+        .search-bar { padding: 16px 20px 0; }
+        .search-bar .layui-form-item { margin-bottom: 0; }
+        .markdown-body { font-size: 13px; }
+        .markdown-body ol { list-style-type: decimal !important; padding-left: 2em !important; }
+        .markdown-body ul { list-style-type: disc !important; padding-left: 2em !important; }
+        .markdown-body li { display: list-item !important; }
+    </style>
+</head>
+<body>
+
+<div class="search-bar">
+    <form class="layui-form" lay-filter="search-form">
+        <div class="layui-form-item layui-row layui-col-space16">
+            <div class="layui-col-md3">
+                <label class="layui-form-label">提示词类型</label>
+                <div class="layui-input-block">
+                    <select name="promptType" lay-filter="search-promptType">
+                        <option value="">全部</option>
+                        <option value="SYSTEM">系统提示词</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-col-md3">
+                <label class="layui-form-label">服务名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="serviceName" placeholder="输入服务名称搜索" class="layui-input"/>
+                </div>
+            </div>
+            <div class="layui-col-md6" style="text-align: left; padding-top: 5px;">
+                <button class="layui-btn" lay-submit lay-filter="prompt-search">搜索</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div style="padding: 0 20px;">
+    <script id="prompt-toolbar" type="text/html">
+        <div class="layui-btn-container">
+            <button class="layui-btn layui-btn-sm layui-bg-blue" lay-event="add">新增提示词</button>
+            <button class="layui-btn layui-btn-sm layui-btn-primary" lay-event="refresh"><i class="layui-icon layui-icon-refresh"></i> 刷新</button>
+        </div>
+    </script>
+
+    <table class="layui-hide" id="ID-table-prompt"></table>
+</div>
+
+<script id="id-operation-bar" type="text/html">
+    <div class="layui-clear-space">
+        <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+        <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="del">删除</a>
+    </div>
+</script>
+
+<script>
+    layui.use(['table', 'form', 'layer', 'util'], function () {
+        let table = layui.table;
+        let form = layui.form;
+        let layer = layui.layer;
+        let $ = layui.$;
+
+        let apiList = final_const.api_path.ai_prompt_list;
+        let apiGet = final_const.api_path.ai_prompt_get;
+        let apiSave = final_const.api_path.ai_prompt_save;
+        let apiDelete = final_const.api_path.ai_prompt_delete;
+
+        // 渲染页面中的 Layui 表单组件
+        form.render();
+
+        let allData = [];
+
+        function doFilter(data, searchForm) {
+            return data.filter(function (item) {
+                if (searchForm.promptType && item.promptType !== searchForm.promptType) return false;
+                if (searchForm.serviceName) {
+                    let kw = searchForm.serviceName.toLowerCase();
+                    if (!item.serviceName || item.serviceName.toLowerCase().indexOf(kw) === -1) return false;
+                }
+                return true;
+            });
+        }
+
+        function renderTable(filterData) {
+            table.render({
+                elem: '#ID-table-prompt',
+                toolbar: '#prompt-toolbar',
+                data: filterData || allData,
+                cols: [[
+                    {field: 'promptType', title: '提示词类型', width: 120, templet: function (d) {
+                        return '<span class="tag-badge type">' + ( {SYSTEM:'系统提示词'}[d.promptType] || d.promptType || '系统提示词') + '</span>';
+                    }},
+                    {field: 'serviceName', title: '服务名称', width: 140, templet: function (d) {
+                        return d.serviceName === 'all'
+                            ? '<span class="tag-badge all">全部服务</span>'
+                            : '<span class="tag-badge service">' + d.serviceName + '</span>';
+                    }},
+                    {field: 'fileName', title: '文件标识', width: 220, templet: function (d) {
+                        return '<span style="color:#16b777;font-family:monospace;font-size:13px;">' + d.fileName + '</span>';
+                    }},
+                    {field: 'content', title: '内容预览', minWidth: 300, templet: function (d) {
+                        if (!d.content) return '<span style="color:#999;">（空）</span>';
+                        let preview = d.content.length > 120 ? d.content.substring(0, 120) + '...' : d.content;
+                        return '<span title="' + d.content.replace(/"/g, '&quot;').replace(/\n/g, ' ') + '">' + preview + '</span>';
+                    }},
+                    {field: 'length', title: '长度', width: 90, sort: true},
+                    {fixed: 'right', title: '操作', width: 150, toolbar: '#id-operation-bar'}
+                ]]
+            });
+        }
+
+        function loadData() {
+            engineUtils.requestPost(apiList, {}, function (res) {
+                allData = res.data || [];
+                form.val('search-form', {promptType: '', serviceName: ''});
+                renderTable(allData);
+            });
+        }
+
+        loadData();
+
+        // 搜索
+        form.on('submit(prompt-search)', function (data) {
+            let field = data.field;
+            renderTable(doFilter(allData, field));
+            return false;
+        });
+
+        // 工具栏事件
+        table.on('toolbar(ID-table-prompt)', function (obj) {
+            if (obj.event === 'add') {
+                openEditDialog(null);
+            } else if (obj.event === 'refresh') {
+                loadData();
+            }
+        });
+
+        // 行操作事件
+        table.on('tool(ID-table-prompt)', function (obj) {
+            let data = obj.data;
+            if (obj.event === 'edit') {
+                openEditDialog(data);
+            } else if (obj.event === 'del') {
+                layer.confirm('确定删除【' + data.fileName + '】？', {icon: 3, title: '确认删除'}, function (index) {
+                    engineUtils.requestPost(apiDelete + '?promptKey=' + encodeURIComponent(data.promptKey), {}, function (res) {
+                        if (res.code === 200) {
+                            layer.msg('删除成功', {icon: 1});
+                            loadData();
+                        }
+                    });
+                    layer.close(index);
+                });
+            }
+        });
+
+        // 编辑弹窗
+        function openEditDialog(rowData) {
+            let isEdit = rowData !== null;
+            let promptType = isEdit ? (rowData.promptType || 'SYSTEM') : 'SYSTEM';
+            let serviceName = isEdit ? (rowData.serviceName || 'all') : 'all';
+            let content = isEdit ? (rowData.content || '') : '';
+
+            let html = '<div class="prompt-editor-container layui-form" lay-filter="edit-form">'
+                + '  <div class="layui-form-item">'
+                + '    <label class="layui-form-label">提示词类型</label>'
+                + '    <div class="layui-input-block">'
+                + '      <select id="edit-promptType" lay-filter="edit-promptType" ' + (isEdit ? 'disabled' : '') + '>'
+                + '        <option value="SYSTEM"' + (promptType === 'SYSTEM' ? ' selected' : '') + '>系统提示词</option>'
+                + '      </select>'
+                + '    </div>'
+                + '  </div>'
+                + '  <div class="layui-form-item">'
+                + '    <label class="layui-form-label">服务名称</label>'
+                + '    <div class="layui-input-block">'
+                + '      <input type="text" id="edit-serviceName" class="layui-input" value="' + serviceName + '" placeholder="all 代表所有服务，或输入具体服务名" ' + (isEdit ? 'readonly' : '') + '/>'
+                + '    </div>'
+                + '  </div>'
+                + '  <div class="layui-form-item">'
+                + '    <label class="layui-form-label">生成标识</label>'
+                + '    <div class="layui-input-block" style="padding-top:6px;">'
+                + '      <span id="edit-fileName" style="color:#16b777;font-family:monospace;font-size:13px;">'
+                + buildFileName(promptType, serviceName)
+                + '      </span>'
+                + '    </div>'
+                + '  </div>'
+                + '  <div class="layui-form-item" style="margin-bottom: 4px;">'
+                + '    <label class="layui-form-label">提示词内容</label>'
+                + '    <div class="layui-input-block" style="text-align:right;">'
+                + '      <span id="edit-charCount" style="color:#999;font-size:12px;">0 字符</span>'
+                + '    </div>'
+                + '  </div>'
+                + '  <div class="layui-form-item">'
+                + '    <div class="layui-input-block">'
+                + '      <div class="prompt-edit-layout">'
+                + '        <div class="prompt-edit-pane">'
+                + '          <div class="prompt-pane-label">编辑</div>'
+                + '          <textarea id="edit-content" placeholder="支持 {{functionsContext}}、{{variablesContext}}、{{traceContext}}、{{servicePrompt}} 占位符">' + escapeHtml(content) + '</textarea>'
+                + '        </div>'
+                + '        <div class="prompt-edit-pane">'
+                + '          <div class="prompt-pane-label">预览</div>'
+                + '          <div class="prompt-preview-pane markdown-body" id="edit-preview"></div>'
+                + '        </div>'
+                + '      </div>'
+                + '    </div>'
+                + '  </div>'
+                + '  <div style="text-align:center;margin-top:12px;">'
+                + '    <button class="layui-btn layui-bg-blue" id="btn-save-prompt">保存</button>'
+                + '    <button class="layui-btn layui-btn-primary" id="btn-cancel-prompt">取消</button>'
+                + '  </div>'
+                + '</div>';
+
+            let editIndex = layer.open({
+                type: 1,
+                title: isEdit ? '编辑提示词' : '新增提示词',
+                area: ['900px', '660px'],
+                content: html,
+                maxmin: true,
+                resize: true
+            });
+
+            // 渲染弹窗内的 Layui 表单组件（select 等）
+            form.render('select', 'edit-form');
+
+            let $textarea = $('#edit-content');
+            updateCharCount();
+            updatePreview();
+            $textarea.on('input', function () {
+                updateCharCount();
+                updatePreview();
+            });
+
+            function updateCharCount() {
+                $('#edit-charCount').text($textarea.val().length + ' 字符');
+            }
+
+            function updatePreview() {
+                var val = $textarea.val();
+                var $preview = $('#edit-preview');
+                if (!val) {
+                    $preview.html('<span style="color:#ccc;">编辑区输入内容后，这里会实时渲染预览...</span>');
+                    return;
+                }
+                if (typeof marked !== 'undefined') {
+                    $preview.html(marked.parse(val, { breaks: true, gfm: true }));
+                } else {
+                    $preview.html(escapeHtml(val).replace(/\n/g, '<br>'));
+                }
+            }
+
+            // 实时更新文件名预览
+            if (!isEdit) {
+                $('#edit-serviceName').on('input', function () {
+                    let pt = $('#edit-promptType').val();
+                    let sn = $(this).val().trim() || 'all';
+                    $('#edit-fileName').text(buildFileName(pt, sn));
+                });
+                form.on('select(edit-promptType)', function (data) {
+                    let sn = $('#edit-serviceName').val().trim() || 'all';
+                    $('#edit-fileName').text(buildFileName(data.value, sn));
+                });
+            }
+
+            $('#btn-save-prompt').on('click', function () {
+                let pt = isEdit ? promptType : ($('#edit-promptType').val() || 'SYSTEM');
+                let sn = $('#edit-serviceName').val().trim() || 'all';
+                let val = $textarea.val();
+                if (!val) {
+                    layer.msg('请输入提示词内容', {icon: 2});
+                    return;
+                }
+                engineUtils.requestPost(apiSave, {promptType: pt, serviceName: sn, content: val}, function (res) {
+                    if (res.code === 200) {
+                        layer.msg('保存成功', {icon: 1});
+                        layer.close(editIndex);
+                        loadData();
+                    }
+                });
+            });
+
+            $('#btn-cancel-prompt').on('click', function () {
+                layer.close(editIndex);
+            });
+        }
+
+        function buildFileName(promptType, serviceName) {
+            let base = (!promptType || promptType.toUpperCase() === 'SYSTEM') ? 'ai-system-prompt' : promptType;
+            if (!serviceName || serviceName === 'all') {
+                return base + '.md';
+            }
+            return base + '-' + serviceName + '.md';
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+    });
+</script>
+</body>
+</html>

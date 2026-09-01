@@ -16,6 +16,8 @@
         <module>expression-mind-map-server</module>
         <module>expression-mind-map-core</module>
         <module>expression-mind-map-client-starter</module>
+        <module>expression-mind-map-jdk8</module>
+        <module>expression-mind-map-jdk17</module>
     </modules>
 
     <description>engine project for Spring Boot</description>
@@ -27,10 +29,10 @@
     <!--	</parent>-->
 
     <properties>
-        <revision>2.0.1-SNAPSHOT</revision>
+        <revision>2.0.4-SNAPSHOT</revision>
         <maven.test.skip>true</maven.test.skip>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <!--        <maven.compiler.source>1.8</maven.compiler.source>-->
+        <!--        <maven.compiler.target>1.8</maven.compiler.target>-->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
@@ -42,24 +44,29 @@
         <fastjson.version>1.2.83</fastjson.version>
         <mybatis-plus.version>3.5.5</mybatis-plus.version>
         <!-- nacos的版本说明:https://github.com/alibaba/spring-cloud-alibaba/wiki/%E7%89%88%E6%9C%AC%E8%AF%B4%E6%98%8E -->
-        <!-- jdk 17 -->
+        <!-- jdk 17 默认版本 -->
         <java.version>17</java.version>
         <spring-boot.version>3.1.7</spring-boot.version>
         <spring-cloud.version>2022.0.4</spring-cloud.version>
         <spring-cloud-alibaba.version>2022.0.0.0</spring-cloud-alibaba.version>
+        <redisson.version>3.24.2</redisson.version>
+        <expression-jdk-artifact>expression-mind-map-jdk17</expression-jdk-artifact>
 
-        <!-- jdk 8 -->
+        <!-- jdk 8 > mvn clean install -Pjdk8 -Djava.version=8 -->
         <!--        <java.version>8</java.version>-->
         <!--        <spring-boot.version>2.7.18</spring-boot.version>-->
         <!--        <spring-cloud.version>2021.0.9</spring-cloud.version>-->
         <!--        <spring-cloud-alibaba.version>2021.0.6.2</spring-cloud-alibaba.version>-->
         <!--        <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>-->
+        <!--        <redisson.version>3.17.7</redisson.version>-->
 
         <lombok.version>1.18.30</lombok.version>
         <commons-lang3.version>3.5</commons-lang3.version>
+        <commons-beanUtils.version>1.11.0</commons-beanUtils.version>
         <disruptor.version>3.4.4</disruptor.version>
 
         <therapi-runtime-javadoc.version>0.15.0</therapi-runtime-javadoc.version>
+        <opentelemetry.version>1.61.0</opentelemetry.version>
         <guava.version>32.1.2-jre</guava.version>
         <swagger.version>1.5.22</swagger.version>
         <knife4j.version>4.4.0</knife4j.version>
@@ -71,17 +78,40 @@
 
     </properties>
     <dependencies>
-        <!-- mock -->
-        <!--        <dependency>-->
-        <!--            <groupId>com.alibaba.testable</groupId>-->
-        <!--            <artifactId>testable-all</artifactId>-->
-        <!--            <version>${testable.version}</version>-->
-        <!--            <scope>test</scope>-->
-        <!--        </dependency>-->
+
     </dependencies>
+
+    <profiles>
+        <!-- JDK 8 配置 -->
+        <profile>
+            <id>jdk8</id>
+            <activation>
+                <jdk>1.8</jdk>
+            </activation>
+            <properties>
+                <java.version>8</java.version>
+                <spring-boot.version>2.7.18</spring-boot.version>
+                <spring-cloud.version>2021.0.9</spring-cloud.version>
+                <spring-cloud-alibaba.version>2021.0.6.2</spring-cloud-alibaba.version>
+                <maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
+                <redisson.version>3.17.7</redisson.version>
+                <expression-jdk-artifact>expression-mind-map-jdk8</expression-jdk-artifact>
+            </properties>
+        </profile>
+    </profiles>
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>com.liukx.expression.engine</groupId>
+                <artifactId>${expression-jdk-artifact}</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson-spring-boot-starter</artifactId>
+                <version>${redisson.version}</version>
+            </dependency>
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
@@ -122,6 +152,13 @@
                 <artifactId>commons-lang3</artifactId>
                 <version>${commons-lang3.version}</version>
             </dependency>
+
+            <dependency>
+                <groupId>commons-beanutils</groupId>
+                <artifactId>commons-beanutils</artifactId>
+                <version>${commons-beanUtils.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>com.alibaba.cloud</groupId>
                 <artifactId>spring-cloud-alibaba-dependencies</artifactId>
@@ -188,6 +225,16 @@
                 <artifactId>testng</artifactId>
                 <version>${testng.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>transmittable-thread-local</artifactId>
+                <version>2.14.5</version>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-api</artifactId>
+                <version>${opentelemetry.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -14,7 +14,8 @@ import java.util.List;
 /**
  * 变量方法执行器
  * 当变量为一个对象，内部有一些特殊方法需要执行时，可以调用
- *
+ * <code>fn_env_invoke_method(currentDate,'toLocalDate') // LocalDateTime 转 LocalDate</code>
+ * <code>fn_env_invoke_method(startDate2,'minusDays',seq.list(1)) // 日期减一天</code>
  * @author liukaixiong
  * @date 2024/9/24 - 17:41
  */

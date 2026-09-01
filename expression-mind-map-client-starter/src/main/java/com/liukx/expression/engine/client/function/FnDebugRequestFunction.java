@@ -23,7 +23,7 @@ public class FnDebugRequestFunction extends AbstractSimpleFunction {
     public Object processor(ExpressionEnvContext env, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request, List<Object> funArgs) {
         final String envContextKey = getArgsIndexValue(funArgs, 0, "request");
         final Object objectValue = env.getObjectValue(envContextKey);
-        env.recordTraceDebugContent(getName(), envContextKey, objectValue == null ? "" : Jsons.objToMap(objectValue));
+        env.recordTraceDebugContent(getName(), envContextKey, objectValue == null ? "" : Jsons.toJsonString(objectValue));
         return true;
     }
 

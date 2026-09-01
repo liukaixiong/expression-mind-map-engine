@@ -62,10 +62,18 @@ public class ExpressionExecutor implements ExpressionExecutorService {
     }
 
 
+    /**
+     * 查询规则业务配置
+     *
+     * @param serviceName  服务名称
+     * @param businessCode 业务编码
+     * @param executorCode 执行器编码
+     * @return 业务配置
+     */
     public ExpressionConfigInfo queryBusinessConfigInfo(String serviceName, String businessCode, String executorCode) {
-        Object configInfoObject = redisExpressionConfigService.getConfigInfo(serviceName, businessCode, executorCode);
+        ExpressionConfigInfo configInfoObject = redisExpressionConfigService.getConfigInfo(serviceName, businessCode, executorCode);
         if (configInfoObject != null) {
-            return (ExpressionConfigInfo) configInfoObject;
+            return configInfoObject;
         }
         return getRefreshBusinessConfigInfo(serviceName, businessCode, executorCode);
     }

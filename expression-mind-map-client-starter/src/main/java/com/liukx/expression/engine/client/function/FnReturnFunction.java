@@ -2,6 +2,7 @@ package com.liukx.expression.engine.client.function;
 
 import com.liukx.expression.engine.client.api.ExpressFunctionDocumentLoader;
 import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
+import com.liukx.expression.engine.client.enums.FlowControlEnum;
 import com.liukx.expression.engine.client.process.AbstractSimpleFunction;
 import com.liukx.expression.engine.core.api.model.ExpressionBaseRequest;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigTreeModel;
@@ -26,7 +27,9 @@ public class FnReturnFunction extends AbstractSimpleFunction {
 
     @Override
     public Object processor(ExpressionEnvContext env, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request, List<Object> funArgs) {
-        env.returnEnd();
+//        env.returnEnd();
+        env.recordBranchFlowResult(configTreeModel.getExpressionId(), FlowControlEnum.RETURN_END);
+
         return true;
     }
 

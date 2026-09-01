@@ -20,7 +20,7 @@ public interface ClientEngineInvokeService {
      */
     @Deprecated
     default Object invoke(ClientExpressionSubmitRequest request, Map<String, Object> envContext) {
-        return invoke(request, new ExpressionEnvContext(envContext));
+        return invoke(request, ExpressionEnvContext.of(envContext));
     }
 
     /**

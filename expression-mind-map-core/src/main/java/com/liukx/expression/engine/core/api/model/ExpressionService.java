@@ -11,8 +11,7 @@ public interface ExpressionService {
      * @param env        上下文参数
      * @return
      */
-    public Object execute(final String expression, final Map<String, Object> env);
-
+    public ExpressionContextResult execute(final String expression, final Map<String, Object> env);
     /**
      * 是否开启debug模式
      *

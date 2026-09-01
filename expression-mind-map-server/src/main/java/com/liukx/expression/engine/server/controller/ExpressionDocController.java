@@ -51,7 +51,7 @@ public class ExpressionDocController {
 
     @ApiOperation("查询函数变量信息")
     @GetMapping("/getList")
-    public RestResult<List<ExpressionDocDto>> findFuncList(@RequestParam("executorId") Long executorId, @RequestParam(value = "expressionId", required = false) Long expressionId, @RequestParam("name") String name, @RequestParam(value = "limit", required = false, defaultValue = "10") Integer limit) {
+    public RestResult<List<ExpressionDocDto>> findFuncList(@RequestParam("executorId") Long executorId, @RequestParam(value = "expressionId", required = false) Long expressionId, @RequestParam(value = "groupName", required = false) String groupName, @RequestParam(value = "name", required = false, defaultValue = "") String name, @RequestParam(value = "limit", required = false, defaultValue = "10") Integer limit) {
         final ExpressionExecutorBaseInfo executorBaseInfo = executorConfigService.getById(executorId);
         final String serviceName = executorBaseInfo.getServiceName();
         final String varDefinition = executorBaseInfo.getVarDefinition();
@@ -66,10 +66,11 @@ public class ExpressionDocController {
             matchExpressionList.addAll(injectEnvNameList(envContext, serviceName, name, "执行器注入变量"));
         }
 
-        List<ExpressionDocDto> expressionList = documentService.getLikeName(executorBaseInfo.getServiceName(), name, limit);
+        List<ExpressionDocDto> expressionList = documentService.getLikeName(executorBaseInfo.getServiceName(), groupName, name, limit);
         if (!expressionList.isEmpty()) {
             matchExpressionList.addAll(expressionList);
         }
+
         return RestResult.ok(matchExpressionList);
     }
 
@@ -95,7 +96,7 @@ public class ExpressionDocController {
         }
 
         for (String functionName : ExpressionUtils.getExpressionFunctionList(expressionContent)) {
-            List<ExpressionDocDto> expressionList = documentService.getLikeName(executorBaseInfo.getServiceName(), functionName, 1);
+            List<ExpressionDocDto> expressionList = documentService.getLikeName(executorBaseInfo.getServiceName(), null, functionName, 1);
             if (!expressionList.isEmpty()) {
                 matchExpressionList.addAll(expressionList);
             }
@@ -131,10 +132,19 @@ public class ExpressionDocController {
             final ExpressionTraceLogIndex expressionSampleBody = traceLogIndexService.getExpressionSampleBody(expressionId);
             if (expressionSampleBody != null) {
                 final String envBody = expressionSampleBody.getEnvBody();
+
+                if (StringUtils.isEmpty(envBody)) {
+                    return;
+                }
+
                 Map<String, Object> envContext = Jsons.parseObject(envBody, new TypeReference<>() {
                 });
 
-                if (name.indexOf(".") > 0) {
+                if (envContext == null) {
+                    return;
+                }
+
+                if (name != null && name.indexOf(".") > 0) {
                     envContext = MapFlattenUtil.flatten(envContext);
                 }
 
@@ -146,7 +156,7 @@ public class ExpressionDocController {
     }
 
     private List<ExpressionDocDto> injectEnvNameList(Map<String, String> envContext, String serviceName, String name, String describe) {
-        return envContext.keySet().stream().filter(key -> key.contains(name)).map(var -> {
+        return envContext.keySet().stream().filter(key -> name == null || key.contains(name)).map(var -> {
             final String value = envContext.get(var);
             ExpressionDocDto docInfo = new ExpressionDocDto();
             docInfo.setType("var");

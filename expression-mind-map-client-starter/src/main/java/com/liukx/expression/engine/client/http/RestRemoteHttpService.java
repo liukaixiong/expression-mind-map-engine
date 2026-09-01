@@ -52,11 +52,11 @@ public class RestRemoteHttpService implements RemoteHttpService {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.add("Content-Type", "application/json");
         HttpEntity<String> stringHttpEntity = new HttpEntity<>(Jsons.toJsonString(requestBody), httpHeaders);
-        LOG.debug("请求远端 -> URL : {} , response :{}", remoteEngineUrl, stringHttpEntity);
+        LOG.trace("请求远端 -> URL : {} , response :{}", remoteEngineUrl, stringHttpEntity);
 
         ApiResult body = rest.postForObject(remoteEngineUrl, stringHttpEntity, ApiResult.class);
 
-        LOG.debug("返回远端引擎结果 : {}", body);
+        LOG.trace("返回远端引擎结果 : {}", body);
 
         if (body != null && body.isOk()) {
             return Convert.convert(clazz, body.getData());

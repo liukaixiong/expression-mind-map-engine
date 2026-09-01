@@ -4,6 +4,7 @@ import cn.hutool.core.convert.Convert;
 import com.liukx.expression.engine.client.enums.EnginCacheKeyEnums;
 import com.liukx.expression.engine.server.service.ExpressionDocService;
 import com.liukx.expression.engine.server.service.model.doc.ExpressionDocDto;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -14,8 +15,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- *
- *
  * @author liukaixiong
  * @date 2024/11/12 - 16:49
  */
@@ -23,7 +22,7 @@ import java.util.stream.Collectors;
 public class RedisFunctionService implements ExpressionDocService {
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private RedisTemplate<Object, Object> redisTemplate;
 
     private static String getDocCacheKey(String serviceName) {
         return EnginCacheKeyEnums.EXPRESSION_DOC_KEY.generateKey(serviceName);
@@ -48,9 +47,9 @@ public class RedisFunctionService implements ExpressionDocService {
     }
 
     @Override
-    public List<ExpressionDocDto> getLikeName(String serviceName, String name, Integer size) {
+    public List<ExpressionDocDto> getLikeName(String serviceName, String groupName, String name, Integer size) {
         final String cacheKey = getDocCacheKey(serviceName);
         Map<Object, Object> entries = redisTemplate.opsForHash().entries(cacheKey);
-        return entries.keySet().stream().filter(key -> key.toString().contains(name)).map(var -> Convert.convert(ExpressionDocDto.class, entries.get(var))).limit(size).collect(Collectors.toList());
+        return entries.keySet().stream().filter(key -> StringUtils.isEmpty(name) || key.toString().contains(name)).map(var -> Convert.convert(ExpressionDocDto.class, entries.get(var))).filter(var -> StringUtils.isEmpty(groupName) || (var.getGroupName() != null && var.getGroupName().contains(groupName))).limit(size).collect(Collectors.toList());
     }
 }

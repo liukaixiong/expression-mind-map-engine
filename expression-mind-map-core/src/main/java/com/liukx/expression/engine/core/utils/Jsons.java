@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -20,6 +21,7 @@ import java.util.Map;
 
 /**
  * json解析工具类
+ *
  * @author liukaixiong
  * @date : 2022/6/14 - 10:05
  */
@@ -37,6 +39,7 @@ public class Jsons {
         objectMapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
         //允许使用单引号
         objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+        objectMapper.registerModule(new JavaTimeModule());
     }
 
     public static String toJsonString(Object obj) {
@@ -99,12 +102,16 @@ public class Jsons {
         return parseObject(json, Map.class);
     }
 
+    @SuppressWarnings("unchecked")
     public static Map<String, Object> objToMap(Object obj) {
+        if (obj instanceof Map) {
+            return (Map<String, Object>) obj;
+        }
         return objectMapper.convertValue(obj, Map.class);
     }
 
     public static <K, V> Map<K, V> objToMap2(Object obj, Class<K> keyType, Class<V> valueType) {
-        return objectMapper.convertValue(obj, new TypeReference<>() {
+        return objectMapper.convertValue(obj, new TypeReference<Map<K, V>>() {
         });
     }
 

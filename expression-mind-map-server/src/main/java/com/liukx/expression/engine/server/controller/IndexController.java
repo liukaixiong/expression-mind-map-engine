@@ -1,14 +1,13 @@
 package com.liukx.expression.engine.server.controller;
 
+import com.liukx.expression.engine.jdk.utils.ServletUtil;
 import com.liukx.expression.engine.server.constants.BaseConstants;
 import com.liukx.expression.engine.server.model.dto.request.LoginModel;
 import com.liukx.expression.engine.server.model.dto.response.RestResult;
 import com.liukx.expression.engine.server.service.IExpressionLoginService;
 import com.liukx.expression.engine.server.service.IExpressionTokenService;
-import com.liukx.expression.engine.server.util.CookiesUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +37,7 @@ public class IndexController {
 
     @ApiOperation("登录接口")
     @PostMapping("/login")
-    public RestResult<Object> executor(@RequestBody LoginModel loginModel, HttpServletResponse servletResponse) {
+    public RestResult<Object> executor(@RequestBody LoginModel loginModel) {
         final boolean result = loginService.login(loginModel);
         logger.info(" username :{},password :{} , result:{}", loginModel.getUsername(), loginModel.getPassword(), result);
         if (result) {
@@ -48,7 +47,7 @@ public class IndexController {
             tokenMap.put("tokenName", BaseConstants.TOKEN_NAME);
             tokenMap.put("tokenValue", token);
             tokenMap.put("tokenTimeoutDay", timeOut);
-            CookiesUtil.setCookie(servletResponse, BaseConstants.TOKEN_NAME, token, (int) TimeUnit.SECONDS.toDays(timeOut));
+            ServletUtil.setCookie(BaseConstants.TOKEN_NAME, token, (int) TimeUnit.SECONDS.toDays(timeOut));
             return RestResult.ok(tokenMap);
         }
         return RestResult.failed("验证失败");

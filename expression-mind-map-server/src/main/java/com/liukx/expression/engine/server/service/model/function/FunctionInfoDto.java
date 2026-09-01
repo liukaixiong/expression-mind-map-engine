@@ -13,7 +13,7 @@ public class FunctionInfoDto {
     /**
      * 注册类型
      */
-    private String registerType = "local";
+    private String registerType;
     /**
      * 服务名称
      */

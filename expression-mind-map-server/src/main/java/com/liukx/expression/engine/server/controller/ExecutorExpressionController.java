@@ -4,13 +4,12 @@ package com.liukx.expression.engine.server.controller;
 import cn.hutool.core.bean.BeanUtil;
 import com.liukx.expression.engine.server.constants.BaseConstants;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionExecutorInfoConfig;
-import com.liukx.expression.engine.server.model.dto.request.AddExpressionConfigRequest;
-import com.liukx.expression.engine.server.model.dto.request.DeleteByIdListRequest;
-import com.liukx.expression.engine.server.model.dto.request.EditExpressionConfigRequest;
-import com.liukx.expression.engine.server.model.dto.request.QueryExpressionConfigRequest;
+import com.liukx.expression.engine.server.mapper.entity.ExpressionHistoryVersion;
+import com.liukx.expression.engine.server.model.dto.request.*;
 import com.liukx.expression.engine.server.model.dto.response.ExpressionExecutorDetailConfigDTO;
 import com.liukx.expression.engine.server.model.dto.response.RestResult;
 import com.liukx.expression.engine.server.service.ExpressionConfigService;
+import com.liukx.expression.engine.server.service.ExpressionHistoryVersionService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +34,9 @@ import java.util.List;
 public class ExecutorExpressionController {
     @Autowired
     private ExpressionConfigService expressionConfigService;
+
+    @Autowired
+    private ExpressionHistoryVersionService expressionHistoryVersionService;
 
     @ApiOperation("添加单个表达式")
     @PostMapping("/addOne")
@@ -66,6 +68,12 @@ public class ExecutorExpressionController {
         return RestResult.ok(expressionConfigService.copyNode(config));
     }
 
+    @ApiOperation("导入节点")
+    @PostMapping("/importNode")
+    public RestResult<Boolean> pasteNode(@RequestBody @Validated PasteExpressionConfigRequest pasteExpressionConfigRequest) {
+        return RestResult.ok(expressionConfigService.importExpressionNode(pasteExpressionConfigRequest));
+    }
+
     @ApiOperation("查询表达式")
     @PostMapping("/findExpressionList")
     public RestResult<List<ExpressionExecutorDetailConfigDTO>> findExpressionList(@RequestBody QueryExpressionConfigRequest queryRequest) {
@@ -87,6 +95,20 @@ public class ExecutorExpressionController {
         return expressionConfigService.batchDeleteByIdList(delRequest);
     }
 
+    @ApiOperation("获取表达式历史版本列表")
+    @PostMapping("/history/list")
+    public RestResult<List<ExpressionHistoryVersion>> getExpressionHistory(@RequestParam("expressionId") Long expressionId) {
+        List<ExpressionHistoryVersion> history = expressionHistoryVersionService.getHistoryByExpressionId(expressionId);
+        return RestResult.ok(history);
+    }
+
+    @ApiOperation("获取历史版本详情")
+    @PostMapping("/history/detail")
+    public RestResult<ExpressionHistoryVersion> getHistoryDetail(@RequestParam("expressionId") Long expressionId,
+                                                                 @RequestParam("versionNo") Integer versionNo) {
+        ExpressionHistoryVersion history = expressionHistoryVersionService.getHistoryByVersion(expressionId, versionNo);
+        return RestResult.ok(history);
+    }
 
 
 //    @ApiOperation("表达式翻译")

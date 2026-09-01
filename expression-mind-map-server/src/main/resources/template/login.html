@@ -4,101 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>表达式引擎中枢</title>
-    <script src="//unpkg.com/layui@2.9.14/dist/layui.js"></script>
-    <link href="//unpkg.com/layui@2.9.14/dist/css/layui.css" rel="stylesheet">
+    <!-- 重要：先加载 CSS，后加载 JavaScript，确保样式正确应用 -->
+    <link href="/js/cdn/layui/css/layui.css" rel="stylesheet">
+    <script src="/js/cdn/layui/layui.js"></script>
     <script src="/js/Utils.js"></script>
     <script src="/js/engine-const.js"></script>
     <style>
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(128, 0, 128, 0.3) 10%, transparent 10.01%);
-            background-size: 20px 20px;
-            z-index: -1;
-            animation: moveDots 5s linear infinite;
-        }
-
+        /* 登录页特有样式 */
         :root {
             --primary-color: #3b82f6;
             --formula-purple: #8b5cf6;
-            --mindmap-line: #94a3b8;
         }
 
         body {
-            margin: 0;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-            font-family: 'Segoe UI', system-ui;
-            overflow: hidden;
-        }
-
-        .mindmap-node {
-            position: absolute;
-            background: var(--formula-purple);
-            border-radius: 50%;
-            animation: nodeFloat 6s infinite ease-in-out;
-        }
-
-        .mindmap-line {
-            stroke: var(--mindmap-line);
-            stroke-width: 1;
-            stroke-dasharray: 800;
-            animation: lineFlow 6s linear infinite;
-        }
-
-        @keyframes nodeFloat {
-            0%, 100% {
-                transform: translateY(0);
-            }
-            50% {
-                transform: translateY(-20px);
-            }
-        }
-
-        @keyframes lineFlow {
-            from {
-                stroke-dashoffset: 800;
-            }
-            to {
-                stroke-dashoffset: 0;
-            }
-        }
-
-        /* 气泡效果 */
-        .bubble {
-            position: absolute;
-            width: 50px;
-            height: 50px;
-            background: #8b5cf6cc; /* 淡紫色 */
-            border-radius: 80%;
-            animation: bubbleAnimation 10s infinite ease-in-out;
-        }
-
-        @keyframes bubbleAnimation {
-            0% {
-                transform: translateY(0) translateX(0);
-                opacity: 0.7;
-            }
-            25% {
-                transform: translateY(-100px) translateX(20px);
-                opacity: 1;
-            }
-            50% {
-                transform: translateY(0) translateX(0);
-                opacity: 0.7;
-            }
-            75% {
-                transform: translateY(100px) translateX(-20px);
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(0) translateX(0);
-                opacity: 0.7;
-            }
+            overflow: hidden !important;
+            /* 使用 flexbox 让表单完全居中 */
+            display: -webkit-box !important;
+            display: -ms-flexbox !important;
+            display: flex !important;
+            -webkit-box-align: center !important;
+            -ms-flex-align: center !important;
+            align-items: center !important;
+            -webkit-box-pack: center !important;
+            -ms-flex-pack: center !important;
+            justify-content: center !important;
+            /* 确保高度占满 */
+            min-height: 100vh !important;
+            /* 使用SVG背景图片 */
+            background: url('/images/login-bg.svg') center center / cover no-repeat !important;
         }
 
         /* 表达式引擎主题表单 */
@@ -106,10 +39,12 @@
             position: relative;
             width: 440px;
             padding: 40px;
-            background: rgba(255, 255, 255, 0.98);
+            background: rgba(255, 255, 255, 0.75);
             border-radius: 16px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            margin: 5% auto;
+            /* 移除 margin，使用 flexbox 居中 */
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
         }
 
         .engine-header {
@@ -127,62 +62,98 @@
         }
 
         /* 输入框定制 */
+        .layui-form-item {
+            margin-bottom: 24px !important;
+        }
+
         .layui-input {
-            border: 1px solid #cbd5e1 !important;
-            border-radius: 8px !important;
-            padding-left: 40px !important;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="%2394a3b8" d="M3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2zm16 6h-4v4h4v-4zM5 7h4v4H5V7zm0 6h4v4H5v-4z"/></svg>') no-repeat 12px center/18px !important;
+            width: 100% !important;
+            height: 48px !important;
+            border: 1px solid rgba(255, 255, 255, 0.6) !important;
+            border-radius: 12px !important;
+            padding-left: 48px !important;
+            padding-right: 16px !important;
+            font-size: 15px !important;
+            background: rgba(255, 255, 255, 0.6) !important;
+            transition: all 0.3s !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+        }
+
+        .layui-input:focus {
+            border-color: var(--primary-color) !important;
+            background: rgba(255, 255, 255, 0.8) !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+        }
+
+        .layui-input:hover {
+            border-color: rgba(148, 163, 184, 0.8) !important;
+            background: rgba(255, 255, 255, 0.75) !important;
+        }
+
+        .layui-input::-webkit-input-placeholder {
+            color: #94a3b8 !important;
+        }
+
+        .layui-input:-moz-placeholder {
+            color: #94a3b8 !important;
+        }
+
+        .layui-input::-moz-placeholder {
+            color: #94a3b8 !important;
+        }
+
+        .layui-input:-ms-input-placeholder {
+            color: #94a3b8 !important;
+        }
+
+        /* 用户名输入框图标 */
+        .layui-form-item:first-child .layui-input {
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="%2394a3b8"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0-6c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm0 9c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>') no-repeat 16px center !important;
+            background-color: rgba(255, 255, 255, 0.6) !important;
+        }
+
+        /* 密码输入框图标 */
+        .layui-form-item:nth-child(2) .layui-input {
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20" fill="%2394a3b8"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6-9c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>') no-repeat 16px center !important;
+            background-color: rgba(255, 255, 255, 0.6) !important;
         }
 
         /* 登录按钮 */
         .engine-btn {
-            background: linear-gradient(45deg, var(--primary-color), var(--formula-purple)) !important;
+            width: 100% !important;
+            height: 48px !important;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(139, 92, 246, 0.9)) !important;
             border: none !important;
-            border-radius: 8px !important;
-            height: 44px !important;
-            font-weight: 500;
+            border-radius: 12px !important;
+            font-size: 16px !important;
+            font-weight: 600;
+            letter-spacing: 1px;
+            color: #fff !important;
             transition: all 0.3s !important;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25) !important;
         }
 
         .engine-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.2) !important;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 1), rgba(139, 92, 246, 1)) !important;
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.35), 0 0 20px rgba(139, 92, 246, 0.15) !important;
+        }
+
+        .engine-btn:active {
+            transform: translateY(0) !important;
         }
     </style>
 </head>
 <body>
-<!-- 思维导图动态背景 -->
-<div class="mindmap-bg">
-    <svg width="100%" height="100%">
-        <path class="mindmap-line" d="M200 300 Q 400 150 600 250"/>
-        <path class="mindmap-line" d="M150 450 Q 300 500 700 200"/>
-    </svg>
-
-    <!-- 添加多个节点 -->
-    <div class="mindmap-node" style="width: 80px; height: 80px; top: 5%; left: 50%"></div>
-    <div class="mindmap-node" style="width: 80px; height: 80px; top: calc(20% - 40px); left: calc(20% - 40px)"></div>
-    <div class="mindmap-node" style="width: 80px; height: 80px; top: calc(20% - 40px); left: calc(80% - 40px)"></div>
-    <div class="mindmap-node" style="width: 80px; height: 80px; top: calc(50% - 40px); left: calc(50% - 40px)"></div>
-    <div class="mindmap-node" style="width: 80px; height: 80px; top: calc(80% - 40px); left: calc(20% - 40px)"></div>
-    <div class="mindmap-node" style="width: 80px; height: 80px; top: calc(80% - 40px); left: calc(80% - 40px)"></div>
-    <div class="mindmap-node" style="width: 80px; height: 80px; top: 65%; left: 50%"></div>
-
-    <!-- 气泡效果 -->
-    <div class="bubble" style="top: 20%; left: 10%; animation-delay: 0s;"></div>
-    <div class="bubble" style="top: 40%; left: 30%; animation-delay: 1s;"></div>
-    <div class="bubble" style="top: 60%; left: 50%; animation-delay: 2s;"></div>
-    <div class="bubble" style="top: 80%; left: 70%; animation-delay: 3s;"></div>
-    <div class="bubble" style="top: 50%; left: 90%; animation-delay: 4s;"></div>
-</div>
-
 <!-- 登录表单 -->
 <div class="engine-container">
-    <div class="engine-header">
-        <h1 class="engine-title">表达式引擎</h1>
-        <p class="layui-font-14" style="color: #64748b">【动态配置+可视化+实时生效】<br/>轻松玩转复杂业务</p>
-    </div>
-
     <form class="layui-form" id="loginForm">
+        <div class="engine-header">
+            <h1 class="engine-title">表达式引擎</h1>
+            <p class="layui-font-14" style="color: #64748b">【动态配置+可视化+实时生效】
+        </div>
+
+
         <div class="layui-form-item">
             <input type="text" name="username" lay-verify="required"
                    placeholder="用户名" class="layui-input">
@@ -194,15 +165,14 @@
         </div>
 
         <div class="layui-form-item">
-            <div class="layui-input-block" style="margin-left: 150px;">
-                <button class="layui-btn engine-btn" lay-submit lay-filter="login">启动引擎</button>
-            </div>
+            <button class="layui-btn engine-btn" lay-submit lay-filter="login">启动引擎</button>
         </div>
     </form>
 </div>
 
 <script>
     let api_login = final_const.api_path.login;
+
     layui.use(['form', 'layer'], function () {
         const form = layui.form;
         const layer = layui.layer;

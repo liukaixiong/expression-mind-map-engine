@@ -3,12 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <title>执行器列表</title>
-    <link href="//unpkg.com/layui@2.9.14/dist/css/layui.css" rel="stylesheet">
-    <script src="//unpkg.com/layui@2.9.14/dist/layui.js"></script>
+    <link href="/js/cdn/layui/css/layui.css" rel="stylesheet">
+    <script src="/js/cdn/layui/layui.js"></script>
     <script src="/js/Utils.js"></script>
     <script src="/js/engine-const.js"></script>
+    <!-- Ace Editor JSON 编辑器 - 本地版本 -->
+    <script src="/js/cdn/ace/ace.min.js"></script>
+    <script src="/js/cdn/ace/mode-json.min.js"></script>
+    <script src="/js/cdn/ace/theme-chrome.min.js"></script>
+    <script src="/js/cdn/ace/ext-language_tools.min.js"></script>
+    <script src="/js/cdn/ace/ext-error_marker.min.js"></script>
+    <style>
+        /* Ace Editor 样式 */
+        #jsonEditor {
+            height: 480px;
+            font-size: 14px;
+            line-height: 1.5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        /* 错误提示样式 */
+        .json-error-hint {
+            margin-top: 10px;
+            padding: 10px 15px;
+            background: #fee;
+            border-left: 4px solid #f5222d;
+            border-radius: 4px;
+            color: #cf1322;
+            font-size: 13px;
+            display: none;
+        }
+
+        .json-error-hint.show {
+            display: block;
+        }
+    </style>
 </head>
 <body>
+
 <form class="layui-form layui-row layui-col-space16">
     <div class="layui-col-md4">
         <div class="layui-input-wrap">
@@ -53,12 +86,12 @@
         </div>
     </div>
 
-    <div class="layui-btn-container layui-col-xs12">
+    <div class="layui-col-xs12" style="text-align: center;">
         <button class="layui-btn" lay-filter="executor-table-search" lay-submit>Search</button>
-        <button class="layui-btn layui-btn-primary" type="reset">Clear</button>
+        <button class="layui-btn layui-btn-primary" type="reset" style="margin-left: 10px;">Clear</button>
     </div>
 </form>
-<table class="layui-hide" id="ID-table-executor-search"></table>
+<table class="layui-hide" id="ID-table-executor-search" style="margin-top: -20px;"></table>
 
 </body>
 <script id="id-operation-bar" type="text/html">
@@ -79,6 +112,14 @@
         <a class="layui-btn layui-btn-sm layui-bg-blue" href="/template/trace-list.html" target="_blank">
             <i class="layui-icon layui-icon-search"></i>跳转追踪查询页
         </a>
+        <a class="layui-btn layui-btn-sm layui-bg-orange" href="/template/ai-prompt-list.html" target="_blank">
+            <i class="layui-icon layui-icon-template-1"></i>提示词管理
+        </a>
+        <div style="float: right;">
+            <button class="layui-btn layui-btn-sm layui-btn-warm" lay-event="globalVariableConfig">
+                <i class="layui-icon layui-icon-set"></i>全局变量
+            </button>
+        </div>
     </div>
 </script>
 <script type="text/javascript">
@@ -94,6 +135,8 @@
     let api_del = final_const.api_path.executor_del;
     let api_download_json = final_const.api_path.download_json;
     let api_upload_json = final_const.api_path.upload_json;
+    let api_save_global_var = final_const.api_path.save_global_variable_config;
+    let api_get_global_var = final_const.api_path.get_global_variable_config;
     let expression_rule_config = final_const.template_path.expression_rule_config;
 
     function open_form(id) {
@@ -108,10 +151,13 @@
             maxmin: true,
             resize: true,
             title: title,
-            offset: 'auto',
-            scrollbar: false,
-            area: ['80%', '80%'],
+            offset: ['15%', '15%'],  // 固定偏移位置，避免受父容器影响
+            shadeClose: true,
+            scrollbar: true,  // 改为 true，显示滚动条，避免内容撑满
+            area: ['70%', '70%'],
             content: apiUrl,
+            fixed: true,  // 确保弹层固定定位
+            anim: 1,  // 添加动画效果
         });
     }
 
@@ -123,6 +169,7 @@
         method: 'post',
         title: '执行器列表',
         limit: 20,
+        // height: 'full-200', // 设置表格高度为满屏减去200px，避免数据少时表格被压缩
         contentType: 'application/json',
         cols: [[
             {field: 'id', title: '主键', width: 50}, // 单选框
@@ -130,6 +177,18 @@
             {field: 'businessCode', title: '业务组', width: 200, sort: true},
             {field: 'executorCode', title: '业务编码'},
             {field: 'executorDescription', title: '业务描述'},
+            {
+                field: 'enableTrace', title: '启用能力', templet: function (d) {
+                    let html = "";
+                    let enableConfig = {"enableTrace": "开启追踪", "enableGlobalVar": "启用全局变量"}
+                    for (let enableConfigKey in enableConfig) {
+                        if (d.configurabilityJson.includes(enableConfigKey)) {
+                            html += '<span style="color: #1e9fff; ">' + enableConfig[enableConfigKey] + '</span>、';
+                        }
+                    }
+                    return html;
+                }
+            },
             {
                 field: 'status', title: '是否有效', width: 100, templet: function (d) {
                     return d.status === 1 ? '<span style="color: #16baaa; ">有效</span>' : '<span style="color: red; ">无效</span>';
@@ -169,8 +228,9 @@
         },
         done: function (res) {
             if (res.code === 200) {
-                layer.msg('上传成功');
-                self.location.reload();
+                layer.msg('上传成功', {icon: 1}, function () {
+                    self.location.reload();
+                });
             } else {
                 layer.msg("上传失败!" + res.message);
             }
@@ -206,6 +266,9 @@
                 var getData = table.getData(id);
                 console.log(getData);
                 layer.alert(layui.util.escape(JSON.stringify(getData)));
+                break;
+            case 'globalVariableConfig':
+                openGlobalVariableConfig();
                 break;
             // case 'btn-upload-rule':
             //     debugger;
@@ -248,6 +311,260 @@
                 curr: 1 // 重新从第 1 页开始
             }
         });
+    }
+
+    // ========================================
+    // 打开全局变量配置弹窗
+    // ========================================
+    function openGlobalVariableConfig() {
+        layer.open({
+            type: 1,
+            title: '全局变量配置',
+            area: ['850px', '750px'],  // 增加宽度，防止首尾字符被遮挡
+            shadeClose: true,
+            content: `
+                <div style="padding: 20px;">
+                    <div style="margin-bottom: 15px; color: #666;">
+                        <i class="layui-icon layui-icon-tips"></i> 请输入JSON格式的全局变量配置
+                    </div>
+                    <div id="jsonEditor"></div>
+                    <div id="jsonErrorHint" class="json-error-hint">
+                        <i class="layui-icon layui-icon-close"></i>
+                        <span class="error-message"></span>
+                    </div>
+                </div>
+            `,
+            btn: ['确定', '取消'],
+            success: function (layero, index) {
+                // 等待弹窗完全渲染后再初始化编辑器
+                setTimeout(function () {
+                    // ========================================
+                    // 初始化 Ace Editor
+                    // ========================================
+                    const editor = ace.edit('jsonEditor');
+
+                    // 设置编辑器主题
+                    // 可选主题:
+                    //   'chrome' - 浅色主题(默认)
+                    //   'monokai' - 深色主题
+                    //   'github' - GitHub 风格
+                    //   'tomorrow' - 明亮护眼
+                    //   'twilight' - 深紫色调
+                    //   'xcode' - Xcode 风格
+                    //   'textmate' - TextMate 风格
+                    //   'solarized_light' - Solarized 浅色
+                    //   'solarized_dark' - Solarized 深色
+                    editor.setTheme('ace/theme/chrome');
+
+                    // 设置编辑器语言模式
+                    // 可选模式:
+                    //   'json' - JSON 格式
+                    //   'javascript' - JavaScript
+                    //   'text' - 纯文本
+                    //   'xml' - XML
+                    //   'html' - HTML
+                    //   'python' - Python
+                    //   'java' - Java
+                    editor.session.setMode('ace/mode/json');
+
+                    // 设置编辑器选项
+                    editor.setOptions({
+                        // 字体大小 (默认: 12px)
+                        // 可选: '12px', '13px', '14px', '16px', '18px', '20px'
+                        fontSize: '14px',
+
+                        // 是否显示打印边距线 (默认: true)
+                        // 可选: true (显示) | false (隐藏)
+                        showPrintMargin: false,
+
+                        // 启用基本自动补全 (默认: false)
+                        // 补全: 关键字、本地变量
+                        enableBasicAutocompletion: true,
+
+                        // 启用实时自动补全 (默认: false)
+                        // 补全: 基于上下文的智能补全
+                        enableLiveAutocompletion: true,
+
+                        // 自动换行 (默认: false)
+                        // 可选: true (自动换行) | false (横向滚动)
+                        wrap: true,
+
+                        // 可选其他配置项:
+                        // tabSize: 2,                    // Tab 宽度 (默认: 4)
+                        // useSoftTabs: true,            // 使用空格代替 Tab (默认: false)
+                        // showLineNumbers: true,         // 显示行号 (默认: true)
+                        // readonly: false,               // 只读模式 (默认: false)
+                        // highlightActiveLine: true,     // 高亮当前行 (默认: true)
+                        // showGutter: true,              // 显示行号栏 (默认: true)
+                        // fadeFoldWidgets: true,         // 折叠按钮淡入淡出 (默认: true)
+                        // showFoldWidgets: true,         // 显示代码折叠按钮 (默认: true)
+                        // displayPrintMargin: 80,        // 打印边距位置 (默认: 80)
+                        // maxLines: Infinity,            // 最大行数 (默认: Infinity)
+                        // minLines: 10,                  // 最小行数 (默认: 1)
+                        // autoScrollEditorIntoView: true // 自动滚动到可视区域 (默认: true)
+                    });
+
+                    // ========================================
+                    // 从后端加载已有配置
+                    // ========================================
+                    engineUtils.requestPost(api_get_global_var, {}, function (response) {
+                        if (response.code === 200) {
+                            const configData = response.data;
+                            // 判断是否为空对象
+                            if (configData && Object.keys(configData).length > 0) {
+                                // 确保格式化：先转成 JSON 字符串，再解析回对象，最后格式化输出
+                                // 这样可以处理各种数据类型（Map、POJO等）
+                                let jsonObj = JSON.parse(configData);
+                                editor.setValue(JSON.stringify(jsonObj, null, 2), -1);
+                            } else {
+                                // 设置默认值
+                                const defaultJson = JSON.stringify({}, null, 2);
+                                editor.setValue(defaultJson, -1);
+                            }
+                            // 清除默认选中文本
+                            editor.clearSelection();
+                        }
+                    });
+
+                    // 保存编辑器和错误提示元素
+                    layero.data('aceEditor', editor);
+                    layero.data('errorHint', layero.find('#jsonErrorHint'));
+
+                    // 实时校验 JSON
+                    editor.session.on('change', function () {
+                        validateJsonAce(editor, layero);
+                    });
+
+                    // 初始校验
+                    validateJsonAce(editor, layero);
+
+                    // 修复 wheel/touchmove 事件警告 - 使事件监听器变为 passive
+                    setTimeout(function () {
+                        try {
+                            var container = editor.container;
+                            container.style.touchAction = 'pan-y pan-x';
+                            container.style.overscrollBehavior = 'contain';
+                            // 添加 passive 事件监听器
+                            container.addEventListener('wheel', function () {
+                            }, {passive: true});
+                            container.addEventListener('touchmove', function () {
+                            }, {passive: true});
+                            container.addEventListener('touchstart', function () {
+                            }, {passive: true});
+                            container.addEventListener('touchend', function () {
+                            }, {passive: true});
+                            container.addEventListener('pointerdown', function () {
+                            }, {passive: true});
+                        } catch (e) {
+                            console.warn('无法优化滚动事件', e);
+                        }
+                    }, 50);
+                }, 150);
+            },
+            yes: function (index, layero) {
+                let editor = layero.data('aceEditor');
+                // 如果编辑器还未初始化，直接获取
+                if (!editor) {
+                    editor = ace.edit('jsonEditor');
+                }
+                const jsonText = editor.getValue();
+                try {
+                    const jsonObj = JSON.parse(jsonText);
+                    // 调用后端 API 保存全局变量配置
+                    // 注意：requestPost 会自动 JSON.stringify，所以这里直接传对象
+                    engineUtils.requestPost(api_save_global_var, jsonObj, function (response) {
+                        if (response.code === 200) {
+                            layer.msg('保存成功', {icon: 1});
+                            layer.close(index);
+                        } else {
+                            layer.msg('保存失败: ' + response.message);
+                        }
+                    });
+                } catch (e) {
+                    console.error(e);
+                    layer.msg('JSON格式错误: ' + e.message, {icon: 2});
+                }
+            },
+            btn2: function (index) {
+                layer.close(index);
+            }
+        });
+    }
+
+    // ========================================
+    // JSON 格式校验函数 (Ace Editor 版本)
+    // ========================================
+    // @param editor - Ace Editor 实例
+    // @param layero - Layer 弹窗的 jQuery 对象
+    // ========================================
+    function validateJsonAce(editor, layero) {
+        // 获取编辑器内容
+        const jsonText = editor.getValue();
+        const errorHint = layero.data('errorHint');
+
+        try {
+            // 尝试解析 JSON（如果内容不为空）
+            if (jsonText.trim()) {
+                JSON.parse(jsonText);
+            }
+
+            // ========================================
+            // JSON 格式正确
+            // ========================================
+            // 隐藏错误提示
+            errorHint.removeClass('show');
+
+            // 清除编辑器中的所有错误标记（红色波浪线）
+            editor.session.clearAnnotations();
+
+        } catch (e) {
+            // ========================================
+            // JSON 格式错误
+            // ========================================
+            const errorMsg = e.message;
+            let row = 0, column = 0;
+
+            // 尝试从错误消息中提取行列信息
+            // 错误消息格式示例: "Unexpected token } at position 23"
+            const matchLine = errorMsg.match(/at line (\d+)/);
+            const matchPos = errorMsg.match(/position (\d+)/);
+
+            if (matchLine) {
+                // 如果错误消息包含行号
+                row = parseInt(matchLine[1]) - 1;  // 转换为 0-based 行号
+            } else if (matchPos) {
+                // 如果错误消息包含字符位置
+                const pos = parseInt(matchPos[1]);
+                const text = jsonText.substring(0, pos);
+                const lines = text.split('\n');
+                row = lines.length - 1;           // 计算行号
+                column = lines[lines.length - 1].length;  // 计算列号
+            }
+
+            // ========================================
+            // 在编辑器中显示错误标记
+            // ========================================
+            // setAnnotations(annotations)
+            // annotations 是一个数组，每个元素包含:
+            //   row: 行号 (0-based)
+            //   column: 列号 (0-based)
+            //   text: 错误消息
+            //   type: 类型 ('error' | 'warning' | 'info')
+            editor.session.setAnnotations([{
+                row: row,
+                column: column,
+                text: errorMsg,
+                type: 'error'
+            }]);
+
+            // 在编辑器中显示红色波浪线标记错误位置
+
+            // ========================================
+            // 显示底部错误提示
+            // ========================================
+            errorHint.find('.error-message').text('JSON 格式错误: 第 ' + (row + 1) + ' 行');
+            errorHint.addClass('show');
+        }
     }
 </script>
 

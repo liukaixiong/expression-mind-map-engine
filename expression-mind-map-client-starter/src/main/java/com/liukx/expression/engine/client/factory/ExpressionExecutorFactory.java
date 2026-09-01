@@ -1,16 +1,14 @@
 package com.liukx.expression.engine.client.factory;
 
 import com.liukx.expression.engine.client.api.ExpressFunctionDocumentLoader;
-import com.liukx.expression.engine.client.process.AbstractExpressionService;
-import com.liukx.expression.engine.client.process.AviatorEvaluatorServiceImpl;
+import com.liukx.expression.engine.client.feature.FunctionContextManager;
+import com.liukx.expression.engine.client.process.*;
 import com.liukx.expression.engine.core.api.model.ExpressionService;
 import com.liukx.expression.engine.core.api.model.api.FunctionApiModel;
 import com.liukx.expression.engine.core.enums.ExpressionVariableTypeEnums;
 import org.slf4j.Logger;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,12 +17,22 @@ import java.util.Map;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-public class ExpressionExecutorFactory implements InitializingBean, ApplicationContextAware, ExpressFunctionDocumentLoader {
+public class ExpressionExecutorFactory implements InitializingBean, ExpressFunctionDocumentLoader {
     private final Logger LOG = getLogger(ExpressionExecutorFactory.class);
 
     private final Map<String, ExpressionService> expressionProcessCache = new HashMap<>();
 
-    private ApplicationContext applicationContext;
+    @Autowired
+    private ExpressionVariableManager expressionVariableManager;
+
+    @Autowired
+    private List<AbstractSimpleFunction> aviatorFunctionList;
+
+    @Autowired
+    private FunctionContextManager functionContextManager;
+
+    @Autowired(required = false)
+    private ExpressionConfigureCustomizer configureCustomizer;
 
     public ExpressionService getExpressionService(String groupName) {
         return expressionProcessCache.get(groupName);
@@ -42,7 +50,11 @@ public class ExpressionExecutorFactory implements InitializingBean, ApplicationC
 
     protected AbstractExpressionService newExpressionService() {
         // todo 待优化,希望从全局找寻一个可配置的实现类
-        return new AviatorEvaluatorServiceImpl(this.applicationContext);
+        final AviatorEvaluatorServiceImpl aviatorEvaluatorService = new AviatorEvaluatorServiceImpl(this.expressionVariableManager, aviatorFunctionList, functionContextManager);
+        if (configureCustomizer != null) {
+            configureCustomizer.customize(aviatorEvaluatorService);
+        }
+        return aviatorEvaluatorService;
     }
 
     @Override
@@ -54,8 +66,4 @@ public class ExpressionExecutorFactory implements InitializingBean, ApplicationC
         return new ArrayList<>();
     }
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
-    }
 }

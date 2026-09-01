@@ -1,0 +1,287 @@
+/**
+ * jsMind 3D 悬浮样式 - 温和版
+ * 只添加轻微 3D 效果，不破坏原有布局
+ */
+
+/* ==================== 思维导图容器背景 ==================== */
+
+/* 简洁的渐变背景 */
+.jsmind-inner {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%) !important;
+}
+
+/* 为思维导图容器添加上边距，避免被固定工具栏遮挡 */
+#jsmind_container {
+    margin-top: 60px;
+}
+
+/* ==================== 帮助文档表格样式 ==================== */
+
+/*!* 简化样式，避免影响 Layui table 布局 *!*/
+/*#table-help-document-page-div {*/
+/*    margin-top: 60px;*/
+/*}*/
+
+/*!* 修复 Layui table 布局问题 - 强制正确的宽度计算 *!*/
+/*#table-help-document-page-div .layui-table-box {*/
+/*    width: 100% !important;*/
+/*    max-width: none !important;*/
+/*}*/
+
+/*#table-help-document-page-div .layui-table-body {*/
+/*    width: 100% !important;*/
+/*    overflow-x: auto !important;*/
+/*}*/
+
+/*#table-help-document-page-div .layui-table-header {*/
+/*    width: 100% !important;*/
+/*}*/
+
+/*#table-help-document-page-div .layui-table-total {*/
+/*    width: 100% !important;*/
+/*}*/
+
+/*!* 确保表格列宽度正常 *!*/
+/*#table-help-document-page-div .layui-table-col-set {*/
+/*    width: 100% !important;*/
+/*}*/
+
+/*!* 分页组件正常布局 *!*/
+/*#table-help-document-page-div .layui-table-page {*/
+/*    clear: both;*/
+/*    width: 100%;*/
+/*    padding: 10px 0;*/
+/*}*/
+
+/* ==================== 节点 3D 悬浮效果 ==================== */
+
+/* 为所有节点添加轻微 3D 阴影 */
+jmnode {
+    /* 保持原有所有属性不变，只添加阴影和过渡 */
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.12),
+                0 1px 3px rgba(0, 0, 0, 0.08);
+    transform: translateY(0);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 节点悬浮 - 向上抬起 */
+jmnode:hover {
+    transform: translateY(-3px);
+    box-shadow: 4px 4px 16px rgba(0, 0, 0, 0.18),
+                0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 选中节点 - 增强效果 */
+jmnode.selected {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5),
+                4px 4px 16px rgba(0, 0, 0, 0.22),
+                0 2px 8px rgba(0, 0, 0, 0.12) !important;
+    transform: translateY(-2px);
+}
+
+/* 根节点 - 更明显的 3D 效果 */
+jmnode.root {
+    box-shadow: 4px 4px 16px rgba(0, 0, 0, 0.15),
+                0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+jmnode.root:hover {
+    transform: translateY(-4px);
+    box-shadow: 6px 6px 20px rgba(0, 0, 0, 0.2),
+                0 3px 10px rgba(0, 0, 0, 0.12);
+}
+
+/* ==================== 展开器 3D 效果 ==================== */
+
+jmexpander {
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.12);
+    transition: all 0.2s ease;
+}
+
+jmexpander:hover {
+    transform: scale(1.1);
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.18);
+}
+
+/* ==================== 连接线微调 ==================== */
+
+svg.jsmind path {
+    filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.05));
+}
+
+/* ==================== 顶部工具栏 3D 样式 ==================== */
+
+/* 顶部按钮容器 - 固定在顶部 */
+body > .layui-btn-sm {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    padding: 12px 16px;
+    background: linear-gradient(180deg, #f8f9fa 0%, #f0f1f3 100%);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+/* 顶部按钮组 */
+body > .layui-btn-sm .layui-btn {
+    margin: 0 4px;
+    padding: 8px 16px;
+    font-size: 14px;
+    height: auto;
+    line-height: 1.5;
+}
+
+/* 搜索表单容器 - 仅针对顶部工具栏内的搜索表单 */
+body > .layui-btn-sm .layui-col-md3 .layui-form {
+    display: flex;
+    align-items: center;
+}
+
+/* 帮助文档列表表单保持默认布局 */
+body > .layui-btn-sm + div .layui-form {
+    /* display: flex; */
+}
+
+/* 帮助文档容器样式 */
+#table-help-document-page-div {
+    margin-top: 60px;
+    padding: 16px;
+    background: #fff;
+    min-height: 200px;
+}
+
+/* 确保帮助文档表单栅格系统正常工作 */
+#table-help-document-page-div .layui-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -8px;
+}
+
+#table-help-document-page-div .layui-col-md4 {
+    padding: 0 8px;
+    margin-bottom: 12px;
+}
+
+/* ==================== 按钮 3D 悬浮效果 ==================== */
+
+.layui-btn {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12),
+                0 1px 2px rgba(0, 0, 0, 0.06);
+    transform: translateY(0);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 6px;
+}
+
+.layui-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15),
+                0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.layui-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.layui-btn-container .layui-btn {
+    margin: 4px;
+}
+
+.layui-btn-sm {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.layui-btn-sm:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.12);
+}
+
+.layui-btn-lg {
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+}
+
+.layui-btn-lg:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
+}
+
+.layui-btn-primary {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.layui-btn-primary:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* ==================== 输入框 3D 效果 ==================== */
+
+.layui-input {
+    border-radius: 6px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06),
+                0 1px 2px rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    transition: all 0.2s ease;
+}
+
+.layui-input:focus {
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06),
+                0 0 0 3px rgba(0, 91, 212, 0.1),
+                0 2px 6px rgba(0, 0, 0, 0.08);
+    border-color: #00b5f0;
+}
+
+.layui-input-group {
+    border-radius: 6px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06),
+                0 1px 2px rgba(0, 0, 0, 0.04);
+    overflow: hidden;
+}
+
+.layui-input-group .layui-input {
+    box-shadow: none;
+    border: none;
+}
+
+.layui-input-split {
+    background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+    box-shadow: -1px 0 2px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.layui-input-split:hover {
+    background: linear-gradient(180deg, #e9ecef 0%, #dee2e6 100%);
+}
+
+.layui-input-wrap {
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.06),
+                0 1px 2px rgba(0, 0, 0, 0.04);
+    border-radius: 6px;
+}
+
+.layui-input-wrap .layui-input {
+    border: none;
+    box-shadow: none;
+}
+
+/* ==================== 移动端适配 ==================== */
+
+@media screen and (max-device-width: 1024px) {
+    jmnode:hover {
+        transform: translateY(-1px);
+    }
+
+    jmnode.root:hover {
+        transform: translateY(-2px);
+    }
+
+    .layui-btn:hover {
+        transform: translateY(-1px);
+    }
+}

@@ -5,6 +5,7 @@ import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
 import com.liukx.expression.engine.core.api.model.ExpressionBaseRequest;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigInfo;
 import com.liukx.expression.engine.core.api.model.ExpressionConfigTreeModel;
+import com.liukx.expression.engine.core.api.model.ExpressionContextResult;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
@@ -24,17 +25,17 @@ public class ExpressionFilterChain {
     /**
      * 具体的执行方法
      */
-    private final Supplier<Object> supplier;
+    private final Supplier<ExpressionContextResult> supplier;
 
     private int index = 0;
 
-    public ExpressionFilterChain(List<ExpressionExecutorFilter> expressionExecutorFilters, Supplier<Object> supplier) {
+    public ExpressionFilterChain(List<ExpressionExecutorFilter> expressionExecutorFilters, Supplier<ExpressionContextResult> supplier) {
         this.expressionExecutorFilters = expressionExecutorFilters;
         this.supplier = supplier;
     }
 
 
-    public Object doFilter(ExpressionEnvContext env, ExpressionConfigInfo configInfo, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request) {
+    public ExpressionContextResult doFilter(ExpressionEnvContext env, ExpressionConfigInfo configInfo, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request) {
 
         if (CollectionUtils.isEmpty(expressionExecutorFilters) || expressionExecutorFilters.size() == index) {
             return supplier.get();

@@ -12,10 +12,13 @@ import java.time.Duration;
 public enum EnginCacheKeyEnums {
 
     EXECUTOR_REFRESH_KEY("client_query_config", null),
+    EXPRESSION_ID_EXECUTE("expression_id_execute", Duration.ofHours(1)),
     EXPRESSION_DOC_KEY("expression_doc", null),
     EXPRESSION_VAR_TYPE_KEY("expression_var_type", null),
-
-
+    EXPRESSION_LOCK("expression_lock", null),
+    GLOBAL_VARIABLE_CONFIG("global_variable_config", null),
+    AI_PROMPT("ai_prompt", null),
+    WHITE_BLACK_LIST("white_balck_list", null),
     ;
 
     private final String prefix;

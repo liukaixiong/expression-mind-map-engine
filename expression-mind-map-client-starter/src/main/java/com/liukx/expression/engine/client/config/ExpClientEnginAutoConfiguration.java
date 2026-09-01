@@ -1,22 +1,37 @@
 package com.liukx.expression.engine.client.config;
 
 import com.liukx.expression.engine.client.api.ClientEngineInvokeService;
+import com.liukx.expression.engine.client.api.ExpressionConfigExecutorIntercept;
+import com.liukx.expression.engine.client.api.ListCheckService;
+import com.liukx.expression.engine.client.api.RedisListCheckService;
 import com.liukx.expression.engine.client.api.RemoteExpressionConfigService;
 import com.liukx.expression.engine.client.api.config.ExpressionConfigCallManager;
-import com.liukx.expression.engine.client.api.config.HttpExpressionConfigService;
 import com.liukx.expression.engine.client.api.config.HttpCacheExpressionConfigService;
+import com.liukx.expression.engine.client.api.config.HttpExpressionConfigService;
 import com.liukx.expression.engine.client.api.config.RedisExpressionConfigService;
+import com.liukx.expression.engine.client.api.configurability.CacheExpressionConfigurabilityProcessor;
+import com.liukx.expression.engine.client.api.configurability.RedissonLockExpressionConfigurabilityProcessor;
 import com.liukx.expression.engine.client.api.configurability.TraceSwitchConfigurabilityProcessor;
+import com.liukx.expression.engine.client.config.props.ExpressionProperties;
 import com.liukx.expression.engine.client.engine.ClientEngineFactory;
 import com.liukx.expression.engine.client.engine.LocalEngineServiceImpl;
+import com.liukx.expression.engine.client.filter.executor.MetricExecutorFilter;
+import com.liukx.expression.engine.client.filter.expression.BranchContextExpressionExecutorFilter;
+import com.liukx.expression.engine.client.filter.expression.ExceptionSkipExpressionExecutorFilter;
+import com.liukx.expression.engine.client.filter.expression.SlowExpressionMetricFilter;
 import com.liukx.expression.engine.client.http.RestRemoteHttpService;
+import org.redisson.api.RedissonClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
 
 /**
  * 客户端引擎执行层
@@ -52,6 +67,7 @@ public class ExpClientEnginAutoConfiguration {
     public RemoteExpressionConfigService httpExpressionConfigService() {
         return new HttpExpressionConfigService();
     }
+
     @Bean
     public HttpCacheExpressionConfigService httpLocalCacheExpressionConfigService() {
         return new HttpCacheExpressionConfigService();
@@ -72,5 +88,46 @@ public class ExpClientEnginAutoConfiguration {
     public TraceSwitchConfigurabilityProcessor tracingProcessor() {
         return new TraceSwitchConfigurabilityProcessor();
     }
+
+    @Bean
+    public BranchContextExpressionExecutorFilter branchContextExpressionExecutorFilter() {
+        return new BranchContextExpressionExecutorFilter();
+    }
+
+    @Bean
+    public ExceptionSkipExpressionExecutorFilter exceptionSkipExpressionExecutorFilter(List<ExpressionConfigExecutorIntercept> executionCallbackList) {
+        return new ExceptionSkipExpressionExecutorFilter(executionCallbackList);
+    }
+
+    @Bean
+    public MetricExecutorFilter metricExecutorFilter() {
+        return new MetricExecutorFilter();
+    }
+
+    @Bean
+    @Order(100)
+    public SlowExpressionMetricFilter slowExpressionMetricFilter(ExpressionProperties properties) {
+        return new SlowExpressionMetricFilter(properties);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public CacheExpressionConfigurabilityProcessor cacheExpressionConfigurabilityProcessor() {
+        return new CacheExpressionConfigurabilityProcessor();
+    }
+
+    @Bean
+    @ConditionalOnBean(RedissonClient.class)
+    public RedissonLockExpressionConfigurabilityProcessor redissonLockExpressionConfig(RedissonClient redissonClient) {
+        return new RedissonLockExpressionConfigurabilityProcessor(redissonClient);
+    }
+
+    @Bean
+    @ConditionalOnBean(RedisTemplate.class)
+    @ConditionalOnMissingBean(ListCheckService.class)
+    public ListCheckService redisListCheckService(RedisTemplate<Object, Object> redisTemplate) {
+        return new RedisListCheckService(redisTemplate);
+    }
+
 
 }

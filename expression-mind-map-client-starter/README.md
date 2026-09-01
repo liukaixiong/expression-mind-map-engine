@@ -1,8 +1,20 @@
+---
+typora-copy-images-to: ..\doc\images\v1
+---
+
 # expression-mind-map-client-starter
 
-该工具是基于模版引擎抽象出来的通用定义，默认是基于Aviator实现，集成Spring拓展而来。该工具可以针对复杂业务进行分层、将业务模型抽象定义成变量、函数，然后通过表达式进行组装执行。
+该框架是基于模版引擎抽象出来的通用定义，默认是基于Aviator实现，集成SpringBoot拓展而来。
 
-> 本质上所有表达式都存储在服务端进行管理，客户端负责从服务端进行获取规则表达式，所有逻辑都在客户端本地执行，所以不用担心性能，本质上还是业务表达式的逻辑会成为瓶颈。
+该工具可以针对复杂业务进行分层、将业务模型抽象定义成变量、函数，然后通过表达式进行组装执行。
+
+> 所有表达式都存储在服务端进行管理，客户端负责从服务端或者Redis获取规则表达式。
+>
+> **所有逻辑都在客户端本地执行，所以不用担心性能，本质上还是业务表达式的逻辑会成为瓶颈。**
+
+
+
+**在使用该框架之前希望你对表达式有一定的了解，该框架只负责将【表达式、函数、变量、流程、逻辑分支】进行标准化，每个分支内部的表达式结果为boolean类型，为true才会继续向子分支执行，可以通过流程函数来决定是否继续或者停止，其本质和写Java中的if、else类似，尽可能不要以写脚本的思维去写逻辑，将逻辑粒度细化然后拆解成分支拓展性会更佳。**
 
 ## 如何使用?
 
@@ -30,10 +42,36 @@ spring:
       inject-type-package: com.xxx.service.control # 注入类型包路径，该属性作用是在搜索表达式的时候，指定entity会检索到对应的属性
 ```
 
+## 案例使用
+
+⚙️[服务端启动](../expression-mind-map-server/README.md)
+
+1、下载代码
+
+2、找到: `com.liukx.expression.engine.ClientServer#executorDemoExample` 
+
+```java
+/**
+     * 演示示例:
+     * 1、启动服务端【注意redis要连接上喔~具体配置=> src/test/resources/application.yml】
+     * 2、<a href="http://localhost:20888/template/executor-list.html">进入页面</a>
+     * 3、导入规则：demo_example.json,以及下面的所有.json的规则都是简单的案例配置
+     * 4、执行该用例
+     * 5、<a href="http://localhost:20888/template/trace-list.html">查看追踪结果</a>
+     *
+     * @throws Exception
+     */
+@Test
+public void executorDemoExample() throws Exception {
+    // 直接去代码中看吧...
+}
+```
+
 ## 通用的函数
 
-
 ## 1、调用引擎
+
+详细参考案例: `com.liukx.expression.engine.ClientServer#executorDemoExample`
 
 ```java
 // 注入依赖
@@ -126,7 +164,7 @@ public class DemoSendPointFunction extends AbstractSimpleFunction {
 
 #### 函数的参数描述
 
-1. 建立函数枚举列表
+1. 建立函数枚举列表，详细可参考`com.liukx.expression.engine.client.function.BaseFunctionDescEnum` 
 
 ```java
 /**
@@ -160,13 +198,15 @@ public enum DemoFunDescDefinitionService implements ExpressFunctionDocumentLoade
 
 ```
 
-## 通用函数列表【BaseFunctionDescEnum】
+## 通用函数列表【详细函数定义: BaseFunctionDescEnum】
+[FUNCTION.md](../doc/FUNCTION.md)
 
 | 函数类型      | 函数名称                                             | 函数作用                                                     |
 | ------------- | ---------------------------------------------------- | ------------------------------------------------------------ |
 | 流程分支控制  | fn_in_end()                                          | 执行当前分支的内部子分支流程之后结束                         |
 | 流程分支控制  | fn_force_end()                                       | 满足当前节点，则直接结束流程，不在往下执行                   |
 | 流程分支控制  | fn_return()                                          | 返回到上层分支，同级别分支不在继续                           |
+|               | fn_redirect('分支编码')                              | 跳转到指定的分支执行                                         |
 | 调试函数      | debug_body()                                         | 追踪链路中打印请求参数体                                     |
 | 调试函数      | debug_object()                                       | 追踪链路页面中：打印指定的参数对象                           |
 | 条件-时间类型 | fn_sys_date_hour_range(9,20)                         | 是否在小时时间范围处理(基于系统时间)                         |
@@ -176,6 +216,7 @@ public enum DemoFunDescDefinitionService implements ExpressFunctionDocumentLoade
 | 上下文设置    | fn_get_value('key')                                  | 获取当前上下文中的变量的值                                   |
 | 上下文设置    | fn_add_env_list('key','value')                       | 将变量添加一个集合到上下文中，有则追加，没有则初始化并加入   |
 | 对象操作      | fn_object_is_not_null(xxx1,xxx2)                     | 判断值是否为空,允许传递多个值,请传递变量                     |
+| 对象操作      | fn_str_to_json(jsonStr)                              | 字符串转json对象                                             |
 | 变量操作      | fn_env_invoke_method(obj,'xxMethod',seq.list(1,2,3)) | 执行变量中对应的方法，比如变量是一个对象，需要调用它的方法。 |
 
 > 你可以根据自己的想法制定想要的能力，在表达式中注入即可。通用实现类在: `com.liukx.expression.engine.client.function`中
@@ -184,7 +225,7 @@ public enum DemoFunDescDefinitionService implements ExpressFunctionDocumentLoade
 
 变量可以分为静态和动态两种方式:
 
-- 静态变量是直接在调用引擎的时候，将值设置到上下文中，比如： `ExpressionEnvContext`
+- 静态变量是直接在调用引擎处的时候，将值设置到上下文中，比如： `ExpressionEnvContext`
     - `expressionEnvContext.addEnvContext("eventCode", eventCode)`
     - 还有一种方式就是在创建执行器的时候，可通过页面方式直接配置变量
 - 动态变量：在表达式中指定，表达式解析完成之后会调用`ExpressionVariableRegister` 进行查找匹配，找到之后会放入上下文中。
@@ -336,3 +377,189 @@ public class DemoEnvRegister implements ExpressionVariableRegister {
 | 函数执行前后    | `ExpressionFunctionPostProcessor`   | 每个函数调用时   | 记录日志、异常处理               | ExecutorTraceCollectIntercept - 收集表达式日志               |
 | 函数责任链      | `ExpressionFunctionFilter`          | 函数执行前后     | 强制修改参数或结果（如兜底逻辑） | ExpressionFunctionNameFilterSupport : 过滤函数名称，替换函数结果 |
 | 远端调用        | RemoteExpressionConfigService       | 获取规则         | 获取执行器和表达式配置信息       | HttpExpressionConfigService、RedisExpressionConfigService、HttpCacheExpressionConfigService |
+
+## 5. 分支特殊能力
+
+### - 全局锁
+
+执行该分支时会将该分支子分支加入全局锁，防止并发执行
+
+`fn_env_put_branch_value('_lockKey',request.id)`  
+
+可通过函数设置锁的key
+
+### - 开启子分支异步
+
+异步能力: 子分支可并行执行，需要注意的是你如果希望开启这个能力，那么请在引擎入口将上下文的Map设置成`ConcurrentHashMap` ！
+
+### - 远端缓存
+
+当前分支的结果会被缓存起来，缓存的key是按照传递的参数设置的，如果你有特殊需求可通过重写`CacheExpressionConfigurabilityProcessor` 它的 getCacheKey 方法来重写这个key的构建。
+
+默认的key 生成规则:
+
+`cacheKeyEnums.generateKey(baseRequest.getBusinessCode(), baseRequest.getExecutorCode(), configTreeModel.getExpressionId() + "", baseRequest.getUserId() + "", baseRequest.getEventName(), baseRequest.getUnionId())` 
+
+### - 分支跳转
+
+该功能是应用在一些公共分支被多处调用时所被需要的场景，比如C分支有一堆通用的子分支逻辑，此时A分支需要执行C，B分支也需要执行C一样的逻辑，此时就可以使用分支跳转的能力。
+
+使用方式：`fn_redirect('hjN38DRW0h')` 参数就是分支的表达式编码。
+
+## 6. 业务场景案例
+
+基于引擎能力，提供了三个贴近实际业务的完整场景案例，方便快速理解和上手。所有案例均支持通过服务端页面导入后直接运行。
+
+### 前置准备
+
+1. 启动服务端（注意 Redis 要连接上，配置参考 `src/test/resources/application.yml`）
+2. 打开执行器配置页面: http://localhost:20888/template/executor-list.html
+3. 导入对应的 JSON 规则文件
+4. 运行测试类 `com.liukx.expression.engine.BusinessScenarioTest` 中的对应方法
+5. 在追踪页面查看执行结果: http://localhost:20888/template/trace-list.html
+
+### 场景概览
+
+| 场景 | JSON文件 | businessCode | executorCode | 测试方法 |
+|------|---------|-------------|-------------|---------|
+| 电商订单风控 | `scenario_shop_order_risk.json` | `shop` | `orderRisk` | `testShopOrder_*` |
+| 金融贷款审批 | `scenario_finance_loan_approval.json` | `finance` | `loanApproval` | `testFinanceLoan_*` |
+| 营销活动引擎 | `scenario_marketing_promotion.json` | `marketing` | `promotion` | `testMarketing_*` |
+
+### 场景1：电商订单风控
+
+模拟一个完整的电商下单链路风控检查：
+
+```
+下单入口
+├── [最高优先级] 黑名单拦截 → fn_force_end() 强制终止
+├── 订单金额校验
+│   ├── 低于最低限额 → fn_in_end() 分支结束
+│   ├── 超过最高限额 → 标记需要人工审核
+│   └── 金额正常 → 通过
+├── 用户等级判断
+│   ├── 黄金会员(VIP3) → 85折
+│   ├── 白银会员(VIP2) → 9折
+│   └── 普通用户 → 无折扣
+├── 限时秒杀活动
+│   ├── 秒杀时段校验(10:00-12:00)
+│   │   ├── 通过 → 全局锁保护下库存扣减
+│   │   └── 未开放 → 拒绝
+├── 优惠券核销
+│   ├── 满足门槛 → 核销成功
+│   └── 不满足门槛 → 拒绝
+└── 订单结算汇总
+```
+
+测试方法：
+
+| 方法 | 说明 |
+|------|------|
+| `testShopOrder_NormalOrder()` | 正常下单：黄金会员 + 优惠券 + 结算成功 |
+| `testShopOrder_BlacklistUser()` | 黑名单用户被 `fn_force_end()` 拦截 |
+| `testShopOrder_AmountTooLow()` | 金额不足被拒绝 |
+| `testShopOrder_FlashSaleOutOfTime()` | 非秒杀时段被拒绝 |
+
+### 场景2：金融贷款审批
+
+模拟银行贷款自动审批流程：
+
+```
+贷款审批入口
+├── [最高优先级] 风控前置检查
+│   ├── 高风险用户(HIGH) → fn_force_end() 强制终止
+│   ├── 逾期记录(>3次) → fn_force_end() 强制终止
+│   └── 风控通过
+├── 信用评分校验
+│   ├── < 600 → 拒绝（信用不足）
+│   ├── >= 750（优秀）→ 基准利率下浮10%
+│   └── 600~749（良好）→ 基准利率
+├── 收入负债比(DTI)校验
+│   ├── 负债率 > 50% → 拒绝
+│   └── 负债率正常 → 通过
+├── 贷款额度与期限校验
+│   ├── < 1000 → 拒绝（金额过低）
+│   ├── > 500000 → 转人工审批
+│   ├── 期限 > 36月 → 利率上浮10%
+│   └── 金额正常 → 通过
+└── 最终审批决策 → 汇总结果
+```
+
+测试方法：
+
+| 方法 | 说明 |
+|------|------|
+| `testFinanceLoan_Approved()` | 审批通过：优秀信用 + 低负债 + 正常额度 |
+| `testFinanceLoan_HighRiskReject()` | 高风险用户被拦截 |
+| `testFinanceLoan_LowCreditScore()` | 信用评分不足被拒绝 |
+| `testFinanceLoan_HighDTI()` | 负债率过高被拒绝 |
+
+### 场景3：营销活动引擎
+
+模拟多类型营销活动的统一处理引擎：
+
+```
+营销活动入口
+├── 活动时间校验
+│   ├── 日期范围(全年) + 时段(8:00-22:00)
+│   └── 非活动时段 → 拒绝
+├── 参与次数限制
+│   ├── 已达每日上限 → 拒绝
+│   └── 未达上限 → 计算剩余次数
+├── 新人专享活动
+│   ├── 注册<=7天 → 发放50积分新人礼包
+│   └── 注册>7天 → 拒绝
+├── 邀请有奖
+│   ├── VIP邀请人 → 1.5倍积分(150积分)
+│   └── 普通邀请人 → 标准积分(100积分)
+├── 每日签到
+│   ├── 连续>=7天 → 积分翻倍(20积分)
+│   └── 普通 → 10积分
+├── 抽奖活动
+│   ├── VIP3及以上 → VIP通道(200积分)
+│   └── 普通用户 → 普通通道(20积分)
+├── 周末双倍积分检查
+└── 活动结算汇总
+```
+
+测试方法：
+
+| 方法 | 说明 |
+|------|------|
+| `testMarketing_NewUserGift()` | 新人礼包：注册3天获得50积分 |
+| `testMarketing_VIPInviteReward()` | VIP邀请获得1.5倍积分 |
+| `testMarketing_ConsecutiveSignin()` | 连续签到7天积分翻倍 |
+| `testMarketing_ParticipateLimitExceeded()` | 参与次数已满被拒绝 |
+| `testMarketing_VIPLottery()` | VIP抽奖 + 周末双倍积分 |
+| `testAllScenarios()` | 一键运行所有场景的典型用例 |
+
+### 案例覆盖的引擎能力
+
+| 能力 | 涉及函数/特性 | 使用场景 |
+|------|-------------|---------|
+| 强制终止 | `fn_force_end()` | 黑名单拦截、高风险用户拒绝 |
+| 分支结束 | `fn_in_end()` | 金额不足拒绝、秒杀非时段 |
+| 异常终止+消息 | `fn_error_message()` | 黑名单用户提示 |
+| 上下文变量 | `fn_env_put_value()` | 标记折扣率、记录校验状态 |
+| 结果记录 | `fn_record_result_context()` | 记录审批结果、奖励金额 |
+| 调试日志 | `debug_log()` / `debug_body()` | 追踪各环节执行状态 |
+| 时间判断 | `fn_sys_date_hour_range()` / `fn_sys_date_day_range()` | 秒杀时段、活动有效期 |
+| 日期变量 | `env_date_local_date` / `env_date_local_date_time` | 周末判断、审批时间记录 |
+| 静态类方法 | `stringUtils.isNotEmpty()` | 优惠券编码校验 |
+| 配置变量 | `configEnv_*` | 最低限额、基准利率、积分倍率 |
+| 全局锁 | `enableGlobalLock` | 秒杀库存扣减 |
+| 分支路由 | `include(scenarioModules,'xxx')` | 模块化开关控制 |
+| 请求参数 | `request.*` | 订单金额、用户等级、信用评分等 |
+
+## 7. 仪表盘
+
+1、搭建prometheus、grafana 【这里不做赘述】
+
+- prometheus配置：需要抓取服务端和客户端的`/actuator/prometheus` 接口.
+
+2、找到`script/grafana/grafana-expression-engine.json`文件
+
+3、导入
+
+![image-20260420110148726](../doc/images/v1/image-20260420110148726.png)
+

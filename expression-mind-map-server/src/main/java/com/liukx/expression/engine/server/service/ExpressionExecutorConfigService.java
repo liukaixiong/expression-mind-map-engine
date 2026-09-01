@@ -12,7 +12,7 @@ import com.liukx.expression.engine.server.model.dto.response.RestResult;
 
 /**
  * <p>
- *  服务类
+ * 服务类
  * </p>
  *
  * @author bsy
@@ -31,10 +31,25 @@ public interface ExpressionExecutorConfigService extends IService<ExpressionExec
     /**
      * 查询执行对象
      *
-     * @param serviceName
-     * @param businessCode
-     * @param executorCode
-     * @return
+     * @param serviceName  服务名称
+     * @param businessCode 业务编码
+     * @param executorCode 执行器编码
+     * @return 执行器对象
      */
     public ExpressionExecutorBaseDTO queryExecutorInfo(String serviceName, String businessCode, String executorCode);
+
+    /**
+     * 保存全局变量配置到 Redis
+     *
+     * @param configJson 全局变量配置的 JSON 字符串
+     * @return 保存结果
+     */
+    RestResult<?> saveGlobalVariableConfig(String configJson);
+
+    /**
+     * 从 Redis 查询全局变量配置
+     *
+     * @return 全局变量配置的 JSON 对象
+     */
+    RestResult<Object> getGlobalVariableConfig();
 }

@@ -3,6 +3,7 @@ package com.liukx.expression.engine.server.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionTraceLogInfo;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -28,4 +29,6 @@ public interface ExpressionTraceLogInfoService extends IService<ExpressionTraceL
      * @return
      */
     ExpressionTraceLogInfo getExpressionRecentlySuccessLog(Long expressionId);
+
+    boolean getExpressionRecentlySuccessCount(Long expressionId, Date startDate);
 }

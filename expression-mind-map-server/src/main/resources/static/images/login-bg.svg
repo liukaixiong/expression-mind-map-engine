@@ -1,0 +1,479 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <!-- 超淡紫色渐变背景 -->
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#faf5ff;stop-opacity:1" />
+      <stop offset="30%" style="stop-color:#f5f3ff;stop-opacity:1" />
+      <stop offset="60%" style="stop-color:#ede9fe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e9d5ff;stop-opacity:1" />
+    </linearGradient>
+
+    <!-- 节点3D渐变效果 -->
+    <linearGradient id="nodeGradientPurple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ddd6fe;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#c4b5fd;stop-opacity:0.7" />
+    </linearGradient>
+
+    <linearGradient id="nodeGradientBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#dbeafe;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#bfdbfe;stop-opacity:0.7" />
+    </linearGradient>
+
+    <linearGradient id="nodeGradientPink" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fbcfe8;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#f9a8d4;stop-opacity:0.7" />
+    </linearGradient>
+
+    <linearGradient id="nodeGradientGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#bbf7d0;stop-opacity:0.9" />
+      <stop offset="100%" style="stop-color:#86efac;stop-opacity:0.7" />
+    </linearGradient>
+
+    <!-- 3D阴影效果 -->
+    <filter id="shadow3D" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="4" dy="6" stdDeviation="4" flood-color="#7c3aed" flood-opacity="0.15"/>
+      <feDropShadow dx="2" dy="3" stdDeviation="2" flood-color="#8b5cf6" flood-opacity="0.2"/>
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/>
+      <feOffset in="blur" dx="1" dy="2" result="offsetBlur"/>
+      <feComposite in="offsetBlur" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowDiff"/>
+      <feFlood flood-color="#ffffff" flood-opacity="0.3"/>
+      <feComposite in2="shadowDiff" operator="in"/>
+      <feComposite in2="SourceGraphic" operator="over"/>
+    </filter>
+
+    <filter id="strongShadow3D" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="6" dy="10" stdDeviation="6" flood-color="#6d28d9" flood-opacity="0.2"/>
+      <feDropShadow dx="3" dy="5" stdDeviation="3" flood-color="#7c3aed" flood-opacity="0.25"/>
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1" result="blur"/>
+      <feOffset in="blur" dx="2" dy="3" result="offsetBlur"/>
+      <feComposite in="offsetBlur" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowDiff"/>
+      <feFlood flood-color="#ffffff" flood-opacity="0.4"/>
+      <feComposite in2="shadowDiff" operator="in"/>
+      <feComposite in2="SourceGraphic" operator="over"/>
+    </filter>
+
+    <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#c4b5fd;stop-opacity:0.6" />
+      <stop offset="50%" style="stop-color:#a78bfa;stop-opacity:0.4" />
+      <stop offset="100%" style="stop-color:#c4b5fd;stop-opacity:0.6" />
+    </linearGradient>
+
+    <radialGradient id="circleGradient">
+      <stop offset="0%" style="stop-color:#ddd6fe;stop-opacity:0.15" />
+      <stop offset="100%" style="stop-color:#e9d5ff;stop-opacity:0.05" />
+    </radialGradient>
+
+    <linearGradient id="cloudGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:0.6" />
+      <stop offset="100%" style="stop-color:#f5f3ff;stop-opacity:0.3" />
+    </linearGradient>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="1920" height="1080" fill="url(#bgGradient)"/>
+
+  <!-- 超淡装饰性大圆圈 - 避开中央 -->
+  <circle cx="120" cy="120" r="150" fill="url(#circleGradient)" opacity="0.4"/>
+  <circle cx="1800" cy="960" r="180" fill="url(#circleGradient)" opacity="0.35"/>
+  <circle cx="1800" cy="120" r="130" fill="url(#circleGradient)" opacity="0.3"/>
+  <circle cx="120" cy="960" r="140" fill="url(#circleGradient)" opacity="0.35"/>
+
+  <!-- ==================== 左侧区域 ==================== -->
+
+  <!-- 卡通云朵 - 左上 -->
+  <g opacity="0.4">
+    <ellipse cx="180" cy="100" rx="65" ry="38" fill="url(#cloudGradient)"/>
+    <ellipse cx="220" cy="90" rx="52" ry="32" fill="url(#cloudGradient)"/>
+    <ellipse cx="145" cy="95" rx="48" ry="30" fill="url(#cloudGradient)"/>
+  </g>
+
+  <!-- 卡通火箭 - 左上 -->
+  <g transform="translate(60, 180)" opacity="0.25">
+    <ellipse cx="30" cy="40" rx="18" ry="35" fill="#c4b5fd"/>
+    <polygon points="30,0 15,20 45,20" fill="#a78bfa"/>
+    <circle cx="30" cy="30" r="8" fill="#ddd6fe"/>
+    <polygon points="12,50 5,70 20,55" fill="#8b5cf6"/>
+    <polygon points="48,50 55,70 40,55" fill="#8b5cf6"/>
+    <ellipse cx="30" cy="78" rx="8" ry="12" fill="#fbbf24"/>
+  </g>
+
+  <!-- 卡通星星 - 左上 -->
+  <g fill="#fbbf24" opacity="0.3">
+    <polygon points="250,80 255,95 270,95 258,104 263,119 250,110 237,119 242,104 230,95 245,95" transform="scale(0.9)"/>
+    <polygon points="320,150 323,160 333,160 325,166 328,176 320,170 312,176 315,166 307,160 317,160" transform="scale(0.75)"/>
+  </g>
+
+  <!-- 卡通齿轮 - 左中 -->
+  <g transform="translate(100, 320)" opacity="0.2" filter="url(#shadow3D)">
+    <circle cx="40" cy="40" r="30" fill="none" stroke="#a78bfa" stroke-width="8"/>
+    <circle cx="40" cy="40" r="15" fill="#c4b5fd"/>
+    <rect x="35" y="5" width="10" height="12" fill="#a78bfa"/>
+    <rect x="35" y="63" width="10" height="12" fill="#a78bfa"/>
+    <rect x="5" y="35" width="12" height="10" fill="#a78bfa"/>
+    <rect x="63" y="35" width="12" height="10" fill="#a78bfa"/>
+  </g>
+
+  <!-- 思维导图 - 左侧 -->
+  <g filter="url(#shadow3D)" opacity="0.6">
+    <!-- 主节点 -->
+    <g transform="translate(280, 500)">
+      <rect x="0" y="0" width="160" height="60" rx="30" fill="url(#nodeGradientPurple)" stroke="#a78bfa" stroke-width="2"/>
+      <text x="80" y="38" font-family="Arial" font-size="16" fill="#5b21b6" text-anchor="middle" font-weight="bold">表达式引擎</text>
+    </g>
+
+    <!-- 子节点1 -->
+    <g transform="translate(250, 600)">
+      <rect x="0" y="0" width="130" height="50" rx="25" fill="url(#nodeGradientBlue)" stroke="#93c5fd" stroke-width="1.8"/>
+      <text x="65" y="32" font-family="Arial" font-size="14" fill="#1e40af" text-anchor="middle" font-weight="bold">规则配置</text>
+    </g>
+
+    <!-- 子节点2 -->
+    <g transform="translate(400, 600)">
+      <rect x="0" y="0" width="130" height="50" rx="25" fill="url(#nodeGradientPink)" stroke="#f9a8d4" stroke-width="1.8"/>
+      <text x="65" y="32" font-family="Arial" font-size="14" fill="#9f1239" text-anchor="middle" font-weight="bold">实时生效</text>
+    </g>
+
+    <!-- 三级节点 -->
+    <g transform="translate(240, 690)">
+      <ellipse cx="50" cy="24" rx="54" ry="24" fill="url(#nodeGradientPurple)" stroke="#c4b5fd" stroke-width="1.5" opacity="0.85"/>
+      <text x="50" y="30" font-family="Arial" font-size="12" fill="#5b21b6" text-anchor="middle" font-weight="bold">动态编排</text>
+    </g>
+
+    <g transform="translate(360, 710)">
+      <ellipse cx="45" cy="22" rx="48" ry="22" fill="url(#nodeGradientBlue)" stroke="#bfdbfe" stroke-width="1.5" opacity="0.85"/>
+      <text x="45" y="28" font-family="Arial" font-size="11" fill="#1e40af" text-anchor="middle" font-weight="bold">链路追踪</text>
+    </g>
+
+    <g transform="translate(460, 690)">
+      <ellipse cx="48" cy="24" rx="52" ry="24" fill="url(#nodeGradientPink)" stroke="#f9a8d4" stroke-width="1.5" opacity="0.85"/>
+      <text x="48" y="30" font-family="Arial" font-size="12" fill="#9f1239" text-anchor="middle" font-weight="bold">快速部署</text>
+    </g>
+  </g>
+
+  <!-- 左侧连接线 -->
+  <g fill="none" stroke="url(#lineGradient)" stroke-width="3" opacity="0.4" stroke-linecap="round">
+    <path d="M 360 560 Q 330 580, 315 600"/>
+    <path d="M 360 560 Q 400 580, 465 600"/>
+    <path d="M 315 650 Q 290 670, 290 690"/>
+    <path d="M 315 650 Q 340 670, 405 710"/>
+    <path d="M 465 650 Q 480 670, 508 690"/>
+  </g>
+
+  <!-- 卡通闪电 - 左下 -->
+  <g transform="translate(120, 800)" opacity="0.18">
+    <polygon points="30,0 15,35 25,35 20,70 50,30 35,30 45,0" fill="#fbbf24"/>
+  </g>
+
+  <!-- 卡通云朵 - 左下 -->
+  <g opacity="0.35">
+    <ellipse cx="100" cy="900" rx="55" ry="32" fill="url(#cloudGradient)"/>
+    <ellipse cx="135" cy="895" rx="45" ry="28" fill="url(#cloudGradient)"/>
+    <ellipse cx="75" cy="898" rx="42" ry="26" fill="url(#cloudGradient)"/>
+  </g>
+
+  <!-- 左下星星 -->
+  <g fill="#fbbf24" opacity="0.3">
+    <polygon points="200,850 205,865 220,865 208,874 213,889 200,880 187,889 192,874 180,865 195,865" transform="scale(0.7)"/>
+  </g>
+
+  <!-- ==================== 右侧区域 ==================== -->
+
+  <!-- 卡通云朵 - 右上 -->
+  <g opacity="0.35">
+    <ellipse cx="1720" cy="100" rx="60" ry="35" fill="url(#cloudGradient)"/>
+    <ellipse cx="1760" cy="92" rx="50" ry="30" fill="url(#cloudGradient)"/>
+    <ellipse cx="1685" cy="95" rx="45" ry="28" fill="url(#cloudGradient)"/>
+  </g>
+
+  <!-- 卡通星星 - 右上 -->
+  <g fill="#fbbf24" opacity="0.3">
+    <polygon points="1650,70 1655,85 1670,85 1658,94 1663,109 1650,100 1637,109 1642,94 1630,85 1645,85" transform="scale(0.85)"/>
+    <polygon points="1750,140 1753,150 1763,150 1755,156 1758,166 1750,160 1742,166 1745,156 1737,150 1747,150" transform="scale(0.7)"/>
+  </g>
+
+  <!-- 卡通闪电 - 右上 -->
+  <g transform="translate(1750, 180)" opacity="0.18">
+    <polygon points="25,0 12,28 22,28 18,55 42,22 30,22 38,0" fill="#fbbf24"/>
+  </g>
+
+  <!-- 卡通火箭 - 右侧 -->
+  <g transform="translate(1780, 280)" opacity="0.25">
+    <ellipse cx="30" cy="40" rx="16" ry="30" fill="#f9a8d4"/>
+    <polygon points="30,0 17,18 43,18" fill="#f472b6"/>
+    <circle cx="30" cy="28" r="7" fill="#fbcfe8"/>
+    <polygon points="14,45 8,62 20,50" fill="#ec4899"/>
+    <polygon points="46,45 52,62 40,50" fill="#ec4899"/>
+    <ellipse cx="30" cy="72" rx="7" ry="10" fill="#fbbf24"/>
+  </g>
+
+  <!-- 卡通齿轮 - 右中 -->
+  <g transform="translate(1730, 380)" opacity="0.2" filter="url(#shadow3D)">
+    <circle cx="35" cy="35" r="25" fill="none" stroke="#f472b6" stroke-width="6"/>
+    <circle cx="35" cy="35" r="12" fill="#f9a8d4"/>
+    <rect x="31" y="8" width="8" height="10" fill="#f472b6"/>
+    <rect x="31" y="52" width="8" height="10" fill="#f472b6"/>
+    <rect x="8" y="31" width="10" height="8" fill="#f472b6"/>
+    <rect x="52" y="31" width="10" height="8" fill="#f472b6"/>
+  </g>
+
+  <!-- 思维导图 - 右侧 -->
+  <g filter="url(#shadow3D)" opacity="0.6">
+    <!-- 主节点 -->
+    <g transform="translate(1320, 520)">
+      <rect x="0" y="0" width="170" height="60" rx="30" fill="url(#nodeGradientPurple)" stroke="#a78bfa" stroke-width="2"/>
+      <text x="85" y="38" font-family="Arial" font-size="16" fill="#5b21b6" text-anchor="middle" font-weight="bold">可视化引擎</text>
+    </g>
+
+    <!-- 子节点1 -->
+    <g transform="translate(1280, 620)">
+      <rect x="0" y="0" width="140" height="50" rx="25" fill="url(#nodeGradientGreen)" stroke="#86efac" stroke-width="1.8"/>
+      <text x="70" y="32" font-family="Arial" font-size="14" fill="#065f46" text-anchor="middle" font-weight="bold">思维导图</text>
+    </g>
+
+    <!-- 子节点2 -->
+    <g transform="translate(1440, 620)">
+      <rect x="0" y="0" width="140" height="50" rx="25" fill="url(#nodeGradientBlue)" stroke="#93c5fd" stroke-width="1.8"/>
+      <text x="70" y="32" font-family="Arial" font-size="14" fill="#1e40af" text-anchor="middle" font-weight="bold">函数变量</text>
+    </g>
+
+    <!-- 三级节点 -->
+    <g transform="translate(1260, 710)">
+      <ellipse cx="52" cy="24" rx="56" ry="24" fill="url(#nodeGradientGreen)" stroke="#bbf7d0" stroke-width="1.5" opacity="0.85"/>
+      <text x="52" y="30" font-family="Arial" font-size="12" fill="#065f46" text-anchor="middle" font-weight="bold">节点拖拽</text>
+    </g>
+
+    <g transform="translate(1385, 730)">
+      <ellipse cx="48" cy="22" rx="50" ry="22" fill="url(#nodeGradientBlue)" stroke="#bfdbfe" stroke-width="1.5" opacity="0.85"/>
+      <text x="48" y="28" font-family="Arial" font-size="11" fill="#1e40af" text-anchor="middle" font-weight="bold">自定义扩展</text>
+    </g>
+
+    <g transform="translate(1490, 710)">
+      <ellipse cx="50" cy="24" rx="54" ry="24" fill="url(#nodeGradientPurple)" stroke="#c4b5fd" stroke-width="1.5" opacity="0.85"/>
+      <text x="50" y="30" font-family="Arial" font-size="12" fill="#5b21b6" text-anchor="middle" font-weight="bold">导入导出</text>
+    </g>
+  </g>
+
+  <!-- 右侧连接线 -->
+  <g fill="none" stroke="url(#lineGradient)" stroke-width="3" opacity="0.4" stroke-linecap="round">
+    <path d="M 1405 580 Q 1380 600, 1350 620"/>
+    <path d="M 1405 580 Q 1440 600, 1510 620"/>
+    <path d="M 1350 670 Q 1320 690, 1312 710"/>
+    <path d="M 1350 670 Q 1380 690, 1433 730"/>
+    <path d="M 1510 670 Q 1520 690, 1540 710"/>
+  </g>
+
+  <!-- 卡通云朵 - 右下 -->
+  <g opacity="0.35">
+    <ellipse cx="1750" cy="880" rx="58" ry="34" fill="url(#cloudGradient)"/>
+    <ellipse cx="1790" cy="875" rx="48" ry="29" fill="url(#cloudGradient)"/>
+    <ellipse cx="1715" cy="878" rx="44" ry="27" fill="url(#cloudGradient)"/>
+  </g>
+
+  <!-- 右下星星 -->
+  <g fill="#fbbf24" opacity="0.3">
+    <polygon points="1680,830 1685,845 1700,845 1688,854 1693,869 1680,860 1667,869 1672,854 1660,845 1675,845" transform="scale(0.7)"/>
+  </g>
+
+  <!-- ==================== 顶部区域 ==================== -->
+
+  <!-- 小标题 - 顶部中央 -->
+  <g opacity="0.05">
+    <text x="960" y="100" font-family="Arial, sans-serif" font-size="20" fill="#8b5cf6" text-anchor="middle" font-weight="normal">
+      动态配置 + 可视化 + 实时生效
+    </text>
+  </g>
+
+  <!-- ==================== 表单上方区域 ==================== -->
+
+  <!-- 欢迎标题 - 表单上方中央 -->
+  <g opacity="0.12">
+    <text x="960" y="240" font-family="Arial, sans-serif" font-size="52" fill="#7c3aed" text-anchor="middle" font-weight="bold">
+      欢迎使用表达式引擎
+    </text>
+  </g>
+
+  <!-- 副标题 -->
+  <g opacity="0.08">
+    <text x="960" y="290" font-family="Arial, sans-serif" font-size="24" fill="#8b5cf6" text-anchor="middle" font-weight="normal">
+      轻松玩转复杂业务规则
+    </text>
+  </g>
+
+  <!-- ==================== 底部区域 ==================== -->
+
+  <!-- 表单下方火箭群 - 中央区域 -->
+  <g opacity="0.22">
+    <!-- 第一排火箭 - 大号 -->
+    <!-- 中间小火箭1 -->
+    <g transform="translate(870, 780)">
+      <ellipse cx="35" cy="45" rx="20" ry="36" fill="#a78bfa"/>
+      <polygon points="35,0 20,22 50,22" fill="#8b5cf6"/>
+      <circle cx="35" cy="34" r="9" fill="#c4b5fd"/>
+      <polygon points="15,56 8,76 26,62" fill="#7c3aed"/>
+      <polygon points="55,56 62,76 44,62" fill="#7c3aed"/>
+      <ellipse cx="35" cy="82" rx="8" ry="14" fill="#fbbf24"/>
+    </g>
+
+    <!-- 中间小火箭2 -->
+    <g transform="translate(1040, 810)">
+      <ellipse cx="32" cy="40" rx="18" ry="32" fill="#c4b5fd"/>
+      <polygon points="32,0 18,20 46,20" fill="#a78bfa"/>
+      <circle cx="32" cy="30" r="8" fill="#ddd6fe"/>
+      <polygon points="14,50 8,68 28,54" fill="#8b5cf6"/>
+      <polygon points="50,50 56,68 36,54" fill="#8b5cf6"/>
+      <ellipse cx="32" cy="72" rx="7" ry="12" fill="#fbbf24"/>
+    </g>
+
+    <!-- 左侧小火箭 -->
+    <g transform="translate(760, 830)">
+      <ellipse cx="30" cy="38" rx="16" ry="30" fill="#93c5fd"/>
+      <polygon points="30,0 16,19 44,19" fill="#60a5fa"/>
+      <circle cx="30" cy="28" r="7" fill="#bfdbfe"/>
+      <polygon points="14,48 6,65 24,52" fill="#3b82f6"/>
+      <polygon points="46,48 54,65 36,52" fill="#3b82f6"/>
+      <ellipse cx="30" cy="68" rx="7" ry="12" fill="#fbbf24"/>
+    </g>
+
+    <!-- 右侧小火箭 -->
+    <g transform="translate(1120, 790)">
+      <ellipse cx="30" cy="38" rx="16" ry="30" fill="#f9a8d4"/>
+      <polygon points="30,0 16,19 44,19" fill="#f472b6"/>
+      <circle cx="30" cy="28" r="7" fill="#fbcfe8"/>
+      <polygon points="14,48 6,65 24,52" fill="#ec4899"/>
+      <polygon points="46,48 54,65 36,52" fill="#ec4899"/>
+      <ellipse cx="30" cy="68" rx="7" ry="12" fill="#fbbf24"/>
+    </g>
+
+    <!-- 第二排火箭 - 中号 -->
+    <!-- 绿色小火箭 -->
+    <g transform="translate(820, 890)">
+      <ellipse cx="26" cy="34" rx="14" ry="28" fill="#86efac"/>
+      <polygon points="26,0 14,17 38,17" fill="#4ade80"/>
+      <circle cx="26" cy="25" r="6" fill="#bbf7d0"/>
+      <polygon points="12,42 7,57 20,48" fill="#22c55e"/>
+      <polygon points="40,42 45,57 32,48" fill="#22c55e"/>
+      <ellipse cx="26" cy="62" rx="6" ry="10" fill="#fbbf24"/>
+    </g>
+
+    <!-- 橙色小火箭 -->
+    <g transform="translate(920, 910)">
+      <ellipse cx="24" cy="32" rx="13" ry="26" fill="#fdba74"/>
+      <polygon points="24,0 13,16 35,16" fill="#fb923c"/>
+      <circle cx="24" cy="24" r="6" fill="#fed7aa"/>
+      <polygon points="11,40 6,54 18,46" fill="#ea580c"/>
+      <polygon points="37,40 42,54 30,46" fill="#ea580c"/>
+      <ellipse cx="24" cy="58" rx="5" ry="9" fill="#fbbf24"/>
+    </g>
+
+    <!-- 青色小火箭 -->
+    <g transform="translate(1010, 900)">
+      <ellipse cx="25" cy="33" rx="14" ry="27" fill="#67e8f9"/>
+      <polygon points="25,0 14,16 36,16" fill="#22d3ee"/>
+      <circle cx="25" cy="25" r="6" fill="#a5f3fc"/>
+      <polygon points="11,41 6,56 20,48" fill="#0891b2"/>
+      <polygon points="39,41 44,56 30,48" fill="#0891b2"/>
+      <ellipse cx="25" cy="60" rx="6" ry="10" fill="#fbbf24"/>
+    </g>
+
+    <!-- 黄色小火箭 -->
+    <g transform="translate(1100, 880)">
+      <ellipse cx="22" cy="30" rx="12" ry="24" fill="#fde047"/>
+      <polygon points="22,0 12,14 32,14" fill="#facc15"/>
+      <circle cx="22" cy="22" r="5" fill="#fef08a"/>
+      <polygon points="10,38 6,50 17,42" fill="#ca8a04"/>
+      <polygon points="34,38 38,50 27,42" fill="#ca8a04"/>
+      <ellipse cx="22" cy="54" rx="5" ry="8" fill="#fbbf24"/>
+    </g>
+
+    <!-- 第三排火箭 - 小号 -->
+    <!-- 玫瑰小火箭 -->
+    <g transform="translate(860, 970)">
+      <ellipse cx="20" cy="26" rx="11" ry="22" fill="#fda4af"/>
+      <polygon points="20,0 11,13 29,13" fill="#fb7185"/>
+      <circle cx="20" cy="20" r="4" fill="#ffe4e6"/>
+      <polygon points="9,32 5,45 17,39" fill="#e11d48"/>
+      <polygon points="31,32 35,45 23,39" fill="#e11d48"/>
+      <ellipse cx="20" cy="47" rx="4" ry="7" fill="#fbbf24"/>
+    </g>
+
+    <!-- 蓝色小火箭 -->
+    <g transform="translate(950, 980)">
+      <ellipse cx="19" cy="25" rx="10" ry="20" fill="#93c5fd"/>
+      <polygon points="19,0 10,12 28,12" fill="#60a5fa"/>
+      <circle cx="19" cy="19" r="4" fill="#bfdbfe"/>
+      <polygon points="9,31 5,42 15,36" fill="#2563eb"/>
+      <polygon points="29,31 33,42 23,36" fill="#2563eb"/>
+      <ellipse cx="19" cy="45" rx="4" ry="7" fill="#fbbf24"/>
+    </g>
+
+    <!-- 紫色小火箭 -->
+    <g transform="translate(1030, 970)">
+      <ellipse cx="20" cy="26" rx="11" ry="22" fill="#c4b5fd"/>
+      <polygon points="20,0 11,13 29,13" fill="#a78bfa"/>
+      <circle cx="20" cy="20" r="4" fill="#ddd6fe"/>
+      <polygon points="9,32 5,45 17,39" fill="#7c3aed"/>
+      <polygon points="31,32 35,45 23,39" fill="#7c3aed"/>
+      <ellipse cx="20" cy="47" rx="4" ry="7" fill="#fbbf24"/>
+    </g>
+  </g>
+
+  <!-- ==================== 装饰元素 ==================== -->
+
+  <!-- 3D菱形逻辑节点 - 左侧偏中 -->
+  <g filter="url(#shadow3D)" opacity="0.4">
+    <g transform="translate(380, 420)">
+      <polygon points="42,0 84,32 42,64 0,32" fill="url(#nodeGradientPurple)" stroke="#c4b5fd" stroke-width="1.5"/>
+      <text x="42" y="38" font-family="Arial" font-size="11" fill="#5b21b6" text-anchor="middle" font-weight="bold">or</text>
+    </g>
+  </g>
+
+  <!-- 3D菱形逻辑节点 - 右侧偏中 -->
+  <g filter="url(#shadow3D)" opacity="0.4">
+    <g transform="translate(1460, 460)">
+      <polygon points="38,0 76,28 38,56 0,28" fill="url(#nodeGradientPink)" stroke="#f9a8d4" stroke-width="1.5"/>
+      <text x="38" y="34" font-family="Arial" font-size="10" fill="#9f1239" text-anchor="middle" font-weight="bold">and</text>
+    </g>
+  </g>
+
+  <!-- 表达式关键词 - 分散在四周 -->
+  <g font-family="Consolas, Monaco, monospace" font-size="14" opacity="0.07" fill="#7c3aed">
+    <text x="50" y="280">fn_redirect</text>
+    <text x="1770" y="240">fn_return</text>
+    <text x="50" y="780">fn_in_end</text>
+    <text x="1760" y="820">sys_date</text>
+    <text x="80" y="520">get_value</text>
+    <text x="1720" y="480">put_value</text>
+    <text x="80" y="920">debug_body</text>
+    <text x="1730" y="920">fn_force_end</text>
+  </g>
+
+  <!-- 数学符号 - 四角 -->
+  <g font-family="Arial, sans-serif" font-weight="bold" opacity="0.06">
+    <text x="350" y="60" font-size="52" fill="#7c3aed">∑</text>
+    <text x="1520" y="55" font-size="48" fill="#8b5cf6">∫</text>
+    <text x="280" y="980" font-size="46" fill="#a78bfa">√</text>
+    <text x="1620" y="980" font-size="50" fill="#7c3aed">π</text>
+  </g>
+
+  <!-- 逻辑运算符 - 避开中央 -->
+  <g font-family="Arial" font-size="20" opacity="0.05" fill="#6d28d9">
+    <text x="520" y="180">&amp;&amp;</text>
+    <text x="1350" y="180">||</text>
+    <text x="520" y="900">!</text>
+    <text x="1350" y="900">&gt;=</text>
+  </g>
+
+  <!-- 小圆点装饰 -->
+  <g fill="#ddd6fe" opacity="0.18">
+    <circle cx="450" cy="150" r="10"/>
+    <circle cx="1450" cy="150" r="10"/>
+    <circle cx="480" cy="920" r="9"/>
+    <circle cx="1420" cy="920" r="9"/>
+    <circle cx="380" cy="350" r="8"/>
+    <circle cx="1520" cy="380" r="8"/>
+    <circle cx="420" cy="580" r="7"/>
+    <circle cx="1470" cy="580" r="7"/>
+    <circle cx="350" cy="750" r="8"/>
+    <circle cx="1550" cy="750" r="8"/>
+  </g>
+</svg>

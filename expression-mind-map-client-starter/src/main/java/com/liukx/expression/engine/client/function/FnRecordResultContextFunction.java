@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 记录结果到上下文能力
@@ -26,10 +27,9 @@ public class FnRecordResultContextFunction extends AbstractSimpleFunction {
 
     @Override
     public Object processor(ExpressionEnvContext env, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request, List<Object> funArgs) {
-        final String key = getConvertValue(funArgs, 0, String.class);
-        final Object val = getArgsIndexValue(funArgs, 1);
-        env.recordResult(key, val);
-        env.recordTraceDebugContent(getName(), "record", String.format("k=%s;v=%s", key, val));
+        final Map<String, Object> stringObjectMap = convertMap(funArgs, String.class, Object.class);
+        stringObjectMap.forEach(env::recordResult);
+        env.recordTraceDebugContent(getName(), "record", stringObjectMap);
         return true;
     }
 }

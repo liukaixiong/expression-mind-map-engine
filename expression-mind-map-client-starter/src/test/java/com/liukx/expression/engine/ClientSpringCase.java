@@ -38,7 +38,7 @@ public class ClientSpringCase {
         request.setUserId(1L);
         request.setUnionId(UUID.fastUUID().toString());
         Map<String, Object> envContext = new HashMap<>();
-        final ExpressionEnvContext expressionEnvContext = new ExpressionEnvContext(envContext);
+        final ExpressionEnvContext expressionEnvContext = ExpressionEnvContext.of(envContext);
         expressionEnvContext.addEnvClassInfo(request);
         final Object execute = expressionService.execute("fn_env_invoke_method(env_date_local_date_time,'getYear')", envContext);
         System.out.println(execute);

@@ -9,11 +9,11 @@ import java.util.Map;
 /**
  * 获取当前系统时间
  *
- * @code env_date_local_date.year       获取年份
- * @code env_date_local_date.monthValue 获取月份
- * @code env_date_local_date.dayOfMonth 获取月份第几天
- * @code env_date_local_date.hour   获取当前小时数
- * @code env_date_local_date.minute 获取当前分钟数
+ * @code env_date_local_date_time.year       获取年份
+ * @code env_date_local_date_time.monthValue 获取月份
+ * @code env_date_local_date_time.dayOfMonth 获取月份第几天
+ * @code env_date_local_date_time.hour   获取当前小时数
+ * @code env_date_local_date_time.minute 获取当前分钟数
  * @author liukaixiong
  * @date 2025/2/27 - 15:51
  */

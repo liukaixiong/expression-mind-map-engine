@@ -1,11 +1,12 @@
 package com.liukx.expression.engine.client.config.props;
 
+import com.liukx.expression.engine.client.enums.ContextKeyConstant;
 import com.liukx.expression.engine.client.enums.ExpressionConfigCallEnum;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties(prefix = "spring.plugin.express")
+@ConfigurationProperties(prefix = ContextKeyConstant.SPRING_PLUGIN_EXPRESS)
 public class ExpressionProperties {
 
 
@@ -35,6 +36,26 @@ public class ExpressionProperties {
      * 注入变量类型包扫描
      */
     private String injectTypePackage;
+
+    /**
+     * 是否启用远程调试功能 (默认关闭)
+     */
+    private boolean debugEnabled = false;
+
+    /**
+     * 远程调试Token (用于安全校验)
+     */
+    private String debugToken;
+
+    /**
+     * 慢表达式阈值（毫秒），超过此值才记录慢调用指标。默认 100ms。设为 0 或负数则禁用。
+     */
+    private long slowExpressionThresholdMs = 1000;
+
+    /**
+     * 慢函数阈值（毫秒），超过此值才记录慢调用指标。默认 50ms。设为 0 或负数则禁用。
+     */
+    private long slowFunctionThresholdMs = 500;
 
 
     public String getInjectTypePackage() {
@@ -83,5 +104,37 @@ public class ExpressionProperties {
 
     public void setLoggerTraceLevel(String loggerTraceLevel) {
         this.loggerTraceLevel = loggerTraceLevel;
+    }
+
+    public boolean isDebugEnabled() {
+        return debugEnabled;
+    }
+
+    public void setDebugEnabled(boolean debugEnabled) {
+        this.debugEnabled = debugEnabled;
+    }
+
+    public String getDebugToken() {
+        return debugToken;
+    }
+
+    public void setDebugToken(String debugToken) {
+        this.debugToken = debugToken;
+    }
+
+    public long getSlowExpressionThresholdMs() {
+        return slowExpressionThresholdMs;
+    }
+
+    public void setSlowExpressionThresholdMs(long slowExpressionThresholdMs) {
+        this.slowExpressionThresholdMs = slowExpressionThresholdMs;
+    }
+
+    public long getSlowFunctionThresholdMs() {
+        return slowFunctionThresholdMs;
+    }
+
+    public void setSlowFunctionThresholdMs(long slowFunctionThresholdMs) {
+        this.slowFunctionThresholdMs = slowFunctionThresholdMs;
     }
 }
