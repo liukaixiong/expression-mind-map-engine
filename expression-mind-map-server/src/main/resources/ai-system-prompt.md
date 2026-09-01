@@ -72,6 +72,7 @@
 - 批量存值：fn_env_put_all_value('k1',v1,'k2',v2)
 - 向Set集合追加值：fn_env_add_list('key', value)
 - 获取Spring配置值：fn_env_spring_get_value('配置key', '类型:obj/list/map', 默认值)
+- 获取Spring配置成List（可指定元素类型）：fn_env_spring_get_list('配置key', 'long')，第二个参数支持string/int/long/double/boolean等，配置写JSON数组字符串"[1,2,3]"或逗号分隔"1,2,3"，配置不存在返回空集合
 
 ### 结果记录
 - 记录结果：fn_record_result_context('key', value)
@@ -89,7 +90,23 @@
 - 跳转到指定分支：fn_redirect('表达式编码')
 
 ### 集合操作
+所有集合函数对空集合/null 安全；字段名支持 a.b 嵌套取值（如 user.name）。
 - 集合转换：fn_list_stream_map(list, lambda(x) -> x.property end)，对集合每个元素应用转换函数
+- 过滤：fn_list_filter(list, lambda(x) -> x.status == 'PAID' end)，返回满足条件的元素集合
+- 首个匹配元素：fn_list_first(list, lambda(x) -> x.status == 'PAID' end)
+- 首个匹配元素的字段值：fn_list_first_field(list, lambda(x) -> x.status == 'PAID' end, 'amount')，第三个参数也可以传lambda取值支持计算：fn_list_first_field(list, lambda(x) -> x.status == 'PAID' end, lambda(x) -> x.amount * x.count end)
+- 存在判断：fn_list_any_match(list, lambda(x) -> x.amount > 100 end)
+- 全部判断：fn_list_all_match(list, lambda(x) -> x.status == 'PAID' end)
+- 数量统计：fn_list_count(list) 或 fn_list_count(list, lambda(x) -> x.status == 'PAID' end)
+- 提取字段集合：fn_list_field_values(list, 'orderId')
+- 字段求和：fn_list_sum_field(list, 'amount')，空值忽略，空集合返回0
+- 按字段分组：fn_list_group(list, 'status')，返回Map
+- 去重：fn_list_distinct_field(list, 'userId')，不传字段按元素去重
+- 字段拼接字符串：fn_list_join_field(list, 'orderId', ',')，默认逗号分割
+- 按字段排序：fn_list_sort_field(list, 'amount', 'desc')，默认asc升序
+- 包含判断：fn_list_contains(list, value)，数值跨精度比较
+- 合并集合：fn_list_merge(list1, list2)
+- 集合大小：fn_list_size(list)，空集合返回0
 
 ### 调试
 - 打印请求参数：debug_body('request')

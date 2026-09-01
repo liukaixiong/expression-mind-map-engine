@@ -1,0 +1,36 @@
+package com.liukx.expression.engine.client.function.env;
+
+import com.liukx.expression.engine.client.function.BaseFunctionDescEnum;
+import com.liukx.expression.engine.client.api.ExpressFunctionDocumentLoader;
+import com.liukx.expression.engine.client.engine.ExpressionEnvContext;
+import com.liukx.expression.engine.client.process.AbstractSimpleFunction;
+import com.liukx.expression.engine.core.api.model.ExpressionBaseRequest;
+import com.liukx.expression.engine.core.api.model.ExpressionConfigTreeModel;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 记录结果到上下文能力
+ *
+ * @author liukaixiong
+ * @date 2024/8/15 - 14:15
+ */
+@Component
+@Slf4j
+public class FnRecordResultContextFunction extends AbstractSimpleFunction {
+    @Override
+    public Enum<? extends ExpressFunctionDocumentLoader> documentRegister() {
+        return BaseFunctionDescEnum.RECORD_RESULT_CONTEXT;
+    }
+
+    @Override
+    public Object processor(ExpressionEnvContext env, ExpressionConfigTreeModel configTreeModel, ExpressionBaseRequest request, List<Object> funArgs) {
+        final Map<String, Object> stringObjectMap = convertMap(funArgs, String.class, Object.class);
+        stringObjectMap.forEach(env::recordResult);
+        env.recordTraceDebugContent(getName(), "record", stringObjectMap);
+        return true;
+    }
+}

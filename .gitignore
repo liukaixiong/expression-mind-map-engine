@@ -54,3 +54,6 @@ Backup of *.doc*
 
 !/config.txt
 !/doc/wenzhang/
+
+### agent 本地环境配置(勿提交)
+.agents/console.local.json
