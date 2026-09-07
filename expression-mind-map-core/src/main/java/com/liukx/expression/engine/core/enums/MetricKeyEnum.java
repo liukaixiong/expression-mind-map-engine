@@ -14,6 +14,8 @@ public enum MetricKeyEnum {
     // 这部分指标由服务端 expression-mind-map-server 产生，反映规则执行后追踪日志的写入情况
     expression_trace_log_index_save_count("表达式引擎-服务端追踪日志索引写入次数", MetricType.COUNTER, "次"),
     expression_trace_log_detail("表达式引擎-服务端单次追踪日志明细条数分布", MetricType.SUMMARY, "条"),
+    expression_trace_log_queue_drop_count("表达式引擎-追踪日志待发队列丢弃条数(超字节预算/队列满)", MetricType.COUNTER, "条"),
+    expression_trace_log_sanitize_skip("表达式引擎-追踪日志采集瘦身跳过条数(空调试/重复快照/重复调用/行数上限)", MetricType.COUNTER, "条"),
 
     // ======================== 客户端指标（配置查询 & 执行器） ========================
     // 这部分指标由客户端应用 expression-mind-map-client-starter 产生，反映规则配置获取和本地执行的运行状况

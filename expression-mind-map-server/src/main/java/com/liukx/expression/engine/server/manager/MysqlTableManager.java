@@ -1,6 +1,8 @@
 package com.liukx.expression.engine.server.manager;
 
 import com.baomidou.mybatisplus.core.metadata.TableInfoHelper;
+import cn.hutool.core.date.DateUtil;
+import com.liukx.expression.engine.core.utils.DistributedLock;
 import com.liukx.expression.engine.server.config.props.ExpressionServerProperties;
 import com.liukx.expression.engine.server.enums.TableSplitRule;
 import com.liukx.expression.engine.server.mapper.TableArchiveMapper;
@@ -12,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,6 +34,11 @@ public class MysqlTableManager implements InitializingBean {
     @Autowired
     private ExpressionServerProperties expressionServerProperties;
 
+    @Autowired
+    private DistributedLock distributedLock;
+
+    /** 表轮转/自愈共用的分布式锁逻辑名（两者操作同一批表，必须串行） */
+    public static final String TABLE_ROTATION_LOCK_KEY = "table-rotation";
     private Map<String, TableSplitRule> tableRuleMap;
 
     private final Set<String> currentTableNameCache = new HashSet<>();
@@ -38,6 +46,105 @@ public class MysqlTableManager implements InitializingBean {
     @Override
     public void afterPropertiesSet() throws Exception {
         this.tableRuleMap = expressionServerProperties.getTableRuleList().stream().collect(Collectors.toMap(ExpressionServerProperties.TableRule::getTableName, ExpressionServerProperties.TableRule::getTableSplitRule));
+        // 启动自愈：补上宕机期间错过的归档轮转（失败不影响启动）
+        try {
+            selfHealMissedArchive();
+        } catch (Exception e) {
+            logger.error("分表自愈迁移执行失败,不影响服务启动", e);
+        }
+    }
+
+    /**
+     * 启动自愈：进程若在周期切换点（每日/每月 0 点的归档定时任务时刻）宕机，
+     * 该次轮转不会补跑，基准表会滞留上一周期已写入的数据；下一次轮转再把整个
+     * 基准表 RENAME 走，滞留数据会进错分表、按 created 将永远查不到。
+     * <p>
+     * 集群部署下由 {@link DistributedLock}（有 Redis 时为跨进程实现）保证同一时刻只有
+     * 一个实例执行；等锁 3 秒未获取则视为其它实例正在恢复，跳过（迁移本身幂等）。
+     * <p>
+     * 是否需要恢复先用元数据级判定（见 {@link #healMissedArchive}），正常重启
+     * 不产生任何数据页扫描；仅判定发生过跨周期宕机时，才把基准表中当前周期
+     * 之前的数据按周期迁回各自的归档分表：
+     * <ul>
+     *   <li>分表缺失则先 CREATE TABLE LIKE 补建；</li>
+     *   <li>INSERT IGNORE + DELETE 区间迁移，中断重跑幂等（主键保持不变）；</li>
+     *   <li>只处理当前周期之前的区间，与在线写入（永远写当前周期）互不冲突。</li>
+     * </ul>
+     */
+    public void selfHealMissedArchive() {
+        distributedLock.runWithLock(TABLE_ROTATION_LOCK_KEY, "分表自愈迁移", Duration.ofMinutes(10), Duration.ofSeconds(3),
+                this::doSelfHealMissedArchive);
+    }
+
+    private void doSelfHealMissedArchive() {
+        for (ExpressionServerProperties.TableRule rule : expressionServerProperties.getTableRuleList()) {
+            if (rule == null || rule.getTableName() == null || rule.getTableSplitRule() == null) {
+                continue;
+            }
+            try {
+                healMissedArchive(rule);
+            } catch (Exception e) {
+                logger.error("表{}自愈迁移失败", rule.getTableName(), e);
+            }
+        }
+    }
+
+    private void healMissedArchive(ExpressionServerProperties.TableRule rule) {
+        final String baseTableName = rule.getTableName();
+        final TableSplitRule splitRule = rule.getTableSplitRule();
+        // 元数据级快速判定，正常重启零数据扫描：上一周期的归档分表由周期切换点的
+        // 轮转任务 RENAME 产生。它存在 ⟹ 切换点进程在线、轮转已执行，基准表不可能
+        // 滞留历史周期数据；不存在 ⟹ 切换点进程不在线（如宕机跨天），才值得做数据迁移。
+        final String expectedArchiveTable = splitRule.getFullTableName(baseTableName, -1);
+        if (checkTableExist(expectedArchiveTable)) {
+            return;
+        }
+        logger.info("自愈:表{}缺失上一周期归档分表{},判定发生过跨周期宕机,开始恢复", baseTableName, expectedArchiveTable);
+
+        final Date periodStart = splitRule.beginOfCurrentPeriod();
+        final List<String> suffixes = tableArchiveMapper.selectDistinctPeriodSuffixes(
+                baseTableName, splitRule.getMysqlDateFormat(), periodStart);
+        if (suffixes == null || suffixes.isEmpty()) {
+            return;
+        }
+        logger.info("自愈:表{}基准表检测到{}个滞留历史周期,开始迁移", baseTableName, suffixes.size());
+        for (String suffix : suffixes) {
+            final Date[] range = periodRange(suffix, splitRule);
+            if (range == null) {
+                logger.warn("自愈:表{}无法解析滞留周期后缀{}，跳过", baseTableName, suffix);
+                continue;
+            }
+            final String shardTable = baseTableName + "_" + suffix;
+            if (!checkTableExist(shardTable)) {
+                tableArchiveMapper.createTableLike(shardTable, baseTableName);
+                logger.info("自愈:补建缺失分表{}", shardTable);
+            }
+            tableArchiveMapper.insertIgnoreRange(shardTable, baseTableName, range[0], range[1]);
+            final int deleted = tableArchiveMapper.deleteRange(baseTableName, range[0], range[1]);
+            logger.info("自愈:表{}周期{}滞留数据已迁移至{}共{}条", baseTableName, suffix, shardTable, deleted);
+        }
+    }
+
+    /**
+     * 纯逻辑（不依赖 Spring/DB，便于单测）：把分表后缀还原成该周期的
+     * [起点, 终点) 时间区间。day → yyMMdd；month → yyMM。
+     *
+     * @return 区间数组；后缀非法返回 null
+     */
+    public static Date[] periodRange(String suffix, TableSplitRule splitRule) {
+        if (suffix == null || splitRule == null) {
+            return null;
+        }
+        try {
+            if (splitRule == TableSplitRule.day) {
+                final Date start = DateUtil.parse(suffix, "yyMMdd");
+                return new Date[]{start, DateUtil.offsetDay(start, 1)};
+            }
+            final Date start = DateUtil.parse(suffix, "yyMM");
+            return new Date[]{start, DateUtil.offsetMonth(start, 1)};
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     public Set<ExpressionServerProperties.TableRule> getTableNameList(TableSplitRule tableSplitRule) {

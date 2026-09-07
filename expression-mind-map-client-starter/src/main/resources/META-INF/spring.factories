@@ -1,1 +1,3 @@
-org.springframework.boot.autoconfigure.EnableAutoConfiguration=com.liukx.expression.engine.client.config.ExpressionConfiguration
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.liukx.expression.engine.client.config.ExpressionConfiguration,\
+  com.liukx.expression.engine.client.config.ExpressionLockAutoConfiguration

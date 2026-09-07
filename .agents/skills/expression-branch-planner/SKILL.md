@@ -123,13 +123,31 @@ body: { "executorId": <id>, "traceLogId": null, "traceLogCreated": null, "missSt
 
 ## 第三步:函数与变量盘点(规划表达式前必做)
 
-**不清楚有哪些可用函数/变量时,严禁开始规划表达式。**按以下顺序逐级确认:
+**本 skill 不依赖本地仓库存在**:函数/变量是业务服务启动时注册、控制台透出的运行时名单,以下 1/2/3 均为纯远程来源,足以独立完成盘点;本地仓库(若恰好有)仅作第 4 级补充。
 
-1. **控制台函数/变量文档**:`POST /expression-engine/doc/getList?executorId=<id>`(type=fn 为函数,type=var 为变量)——这是该执行器运行时真正可用的名单,优先级最高;
-2. **追踪样本看真实数据结构**:`POST /expression-engine/executor/trace/list`,body `{executorId, pageNum:1, pageSize:5, orderByColumn:"created", isAsc:"desc"}`,取返回的 `envBody`——入参字段名、层级、类型以样本为准,文档没写的字段不要用;
-3. **仓库文档兜底**:读本仓库 `doc/FUNCTION.md`、`doc/desc/` 下的函数说明,了解语义与入参;
+**不清楚有哪些可用函数/变量时,严禁开始规划表达式。**
+
+### 全量拉取(首次触达某执行器/项目时,一次性完成)
+
+用户首次提问任何表达式相关问题时,先做一次全量盘点,为整个会话建好"词表":
+
+1. `GET /expression-engine/doc/getList?executorId=<id>&limit=500`(注意是 GET;limit 默认 10,必须显式调大);
+2. 若返回条数达到 limit,说明没拉完——继续调大 limit 或分页,直到取全;
+3. 同时拿全函数(type=fn)和变量(type=var);
+4. **按 serviceName 缓存于会话内存**:文档是按项目(绑定服务)组织的,同会话内再遇到同一服务的其他执行器直接复用这份词表,不重复拉;
+5. 向用户简报盘点结果(函数 N 个、变量 M 个、主要分组),表示上下文已就绪。
+
+会话内后续所有表达式编写/规划都以这份全量词表为基准;`&name=xxx` 按名查询仅用于补充个别函数的语义细节(params/example),不做主数据源。
+
+### 逐级确认顺序(词表之外的补充来源)
+
+1. **追踪样本看真实数据结构**:`POST /expression-engine/executor/trace/list`,body `{executorId, pageNum:1, pageSize:5, orderByColumn:"created", isAsc:"desc"}`,取返回的 `envBody`——入参字段名、层级、类型以样本为准,文档没写的字段不要用;
+2. **现有树表达式(经验源)**:该执行器既有节点的 `expressionContent` 里已在使用、且线上运行正常的函数/变量,可视为可用,并可直接参考其调用姿势;
+3. **本地仓库文档(可选,仅当存在时)**:读本仓库 `doc/FUNCTION.md`、`doc/desc/` 下的函数说明——**没有仓库就跳过,不影响盘点**;
 4. **上游节点定义的变量**:现有树或本次规划中,`fn_env_put_value('key', ...)` 定义的 key(按执行顺序,下游才可引用);
 5. 以上都查不到 → **直接问用户**,把候选需求描述给用户确认。
+
+> 引擎层函数(fn_in_end/fn_error_message/fn_env_put_value 等)的语义已固化在本 skill 的「引擎领域知识」一节,无需查任何外部资料。
 
 盘点结果沉淀为「本次规划可用函数/变量清单」,在改动方案中原样展示(见第四步),证明没有编造。
 
