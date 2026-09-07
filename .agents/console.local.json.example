@@ -1,0 +1,6 @@
+{
+  "_comment": "复制本文件为同目录下的 console.local.json(gitignore 已忽略),填入你自己的表达式控制台地址。baseUrl 必填;username/password 可选,配置后 agent 会自动 POST /login 换 token,全程无需手动登录。",
+  "baseUrl": "http://your-console-host:port",
+  "username": "",
+  "password": ""
+}

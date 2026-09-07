@@ -57,4 +57,20 @@ public enum TableSplitRule {
     public String getFullTableNameByDate(String tableName, Date date) {
         return tableName + "_" + this.dateRule.apply(date);
     }
+
+    /**
+     * 对应的 MySQL DATE_FORMAT 格式（SQL 侧按周期分组用，输出后缀与
+     * {@link #getFullTableNameByDate} 的 Java 格式保持一致）。
+     */
+    public String getMysqlDateFormat() {
+        return this == month ? "%y%m" : "%y%m%d";
+    }
+
+    /**
+     * 当前活跃周期的起点（day → 今日 00:00；month → 本月 1 号 00:00）。
+     * 归档语义下基准表只应存放当前周期的数据。
+     */
+    public Date beginOfCurrentPeriod() {
+        return this == month ? DateUtil.beginOfMonth(DateUtil.date()) : DateUtil.beginOfDay(DateUtil.date());
+    }
 }

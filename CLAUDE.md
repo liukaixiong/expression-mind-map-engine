@@ -65,6 +65,14 @@ Configured via `spring.plugin.express.expression-config-call`:
 - `redis` - Read from Redis cache (server publishes updates via Spring events)
 - `http_cache` - HTTP with local caching
 
+### Distributed Lock
+
+`DistributedLock` (core `utils`) is the common facade for cluster-mutual-exclusion jobs (table rotation / self-heal use `MysqlTableManager.TABLE_ROTATION_LOCK_KEY`). Auto-selected by client-starter `ExpressionLockAutoConfiguration`:
+- `StringRedisTemplate` present → `RedisDistributedLock` (SET NX + TTL + Lua token release, key prefix `expression-engine:lock:`, fail-open on Redis errors)
+- no Redis → `LocalDistributedLock` (in-JVM striped `ReentrantLock`, single-instance semantics)
+
+Selection happens at bean-creation time via `ObjectProvider` (no auto-config ordering pitfalls). Hosts override by registering their own `DistributedLock` bean.
+
 ### Metrics
 
 Micrometer + Prometheus. Key metrics defined in `MetricKeyEnum`:
@@ -72,8 +80,10 @@ Micrometer + Prometheus. Key metrics defined in `MetricKeyEnum`:
 - `expression_executor_local_call` (timer) - Executor call latency
 - `expression_slow_execution` (summary) - Slow expressions (threshold: `slow-expression-threshold-ms`, default 1000ms)
 - `function_slow_execution` (summary) - Slow functions (threshold: `slow-function-threshold-ms`, default 500ms)
+- `expression_trace_log_queue_drop_count` (counter, tag `reason`) - Trace log queue drops (over 32MB byte budget / queue full); emitted by both client and server processes, only carries `job`/`reason` labels
+- `expression_trace_log_sanitize_skip` (counter, tag `reason`) - Trace collect sanitization skips (function-empty-debug / duplicate-call / duplicate-snapshot / detail-row-cap)
 
-Grafana dashboard at `script/grafana/grafana-expression-engine.json`.
+Grafana dashboard at `script/grafana/grafana-expression-engine.json` (采集健康 section covers the two trace-log counters above).
 
 ### Trace System
 

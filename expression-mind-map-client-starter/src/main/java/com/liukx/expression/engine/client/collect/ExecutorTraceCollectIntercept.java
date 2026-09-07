@@ -22,6 +22,7 @@ import com.liukx.expression.engine.core.api.model.api.FunctionApiModel;
 import com.liukx.expression.engine.core.consts.ExpressionConstants;
 import com.liukx.expression.engine.core.enums.ExpressionLogTypeEnum;
 import com.liukx.expression.engine.core.utils.Jsons;
+import com.liukx.expression.engine.core.utils.TraceLogSanitizer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +57,12 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
     private String serviceName;
     @Autowired
     private ExpressionExecutorFactory executorFactory;
+    /**
+     * 无调试内容的函数调用行是否跳过采集（G1，历史占比约 40% 且多为循环重复）。
+     * 与服务端入队瘦身的规则一致，此处提前跳过可省去行构建与传输开销。
+     */
+    @Value("${expression.client.trace.skip-empty-function-log:true}")
+    private boolean skipEmptyDebugFunctionLog;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -206,12 +213,23 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
             if (execute instanceof Exception) {
                 Exception e = (Exception) execute;
                 dto.setResult(-1);
-                Map<String, Object> debugTraceContent = dto.getDebugTraceContent();
-                if (debugTraceContent == null) {
-                    debugTraceContent = new HashMap<>();
+                // 拷贝成私有 Map 再写入：getTraceDebugContent 可能返回 env 中的共享 Map
+                // （甚至 Collections.emptyMap()），直接 put 会污染上下文或抛
+                // UnsupportedOperationException，导致异常行静默丢失
+                Map<String, Object> debugTraceContent = new HashMap<>();
+                if (dto.getDebugTraceContent() != null) {
+                    debugTraceContent.putAll(dto.getDebugTraceContent());
                 }
                 debugTraceContent.put("errorMessage", e.getMessage());
                 dto.setDebugTraceContent(debugTraceContent);
+            }
+
+            // G1：无调试内容的函数调用行不采集（异常行已带 errorMessage，不受影响）
+            if (skipEmptyDebugFunctionLog && resultType == ExpressionLogTypeEnum.function) {
+                final Map<String, Object> debugTraceContent = dto.getDebugTraceContent();
+                if (debugTraceContent == null || debugTraceContent.isEmpty()) {
+                    return;
+                }
             }
 
             // 获取当前执行器结果并添加日志
@@ -224,7 +242,11 @@ public class ExecutorTraceCollectIntercept implements ExpressionConfigExecutorIn
     private String getContextValue(ExpressionEnvContext envContext, String var) {
         try {
             final Object property = Reflector.getProperty(envContext.getSourceMap(), var);
-            return property == null ? "null" : property.toString();
+            if (property == null) {
+                return "null";
+            }
+            // 大对象的 toString 截断，避免快照重复携带大字符串
+            return TraceLogSanitizer.truncate(String.valueOf(property), TraceLogSanitizer.MAX_DEBUG_VALUE_LENGTH);
         } catch (Exception e) {
             log.warn("获取变量值异常:{}", e.getMessage());
         }

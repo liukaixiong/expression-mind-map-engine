@@ -65,6 +65,4 @@ public class ServiceConfiguration {
         return new DefaultMysqlTraceLogStorageService();
     }
 
-
-
 }

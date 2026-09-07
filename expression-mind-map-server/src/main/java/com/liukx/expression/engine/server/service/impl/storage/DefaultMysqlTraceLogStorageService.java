@@ -10,6 +10,7 @@ import com.liukx.expression.engine.core.enums.ExpressionLogTypeEnum;
 import com.liukx.expression.engine.core.enums.MetricKeyEnum;
 import com.liukx.expression.engine.core.utils.Jsons;
 import com.liukx.expression.engine.core.utils.MetricHelper;
+import com.liukx.expression.engine.core.utils.TraceLogSanitizer;
 import com.liukx.expression.engine.server.manager.MysqlTableManager;
 import com.liukx.expression.engine.server.mapper.ExpressionTraceLogIndexMapper;
 import com.liukx.expression.engine.server.mapper.entity.ExpressionTraceLogIndex;
@@ -41,6 +42,9 @@ public class DefaultMysqlTraceLogStorageService extends ServiceImpl<ExpressionTr
         implements TraceLogStorageService {
 
     private final Logger LOG = getLogger(DefaultMysqlTraceLogStorageService.class);
+
+    /** 明细分批落库的单批大小 */
+    private static final int SAVE_BATCH_SIZE = 500;
 
     @Autowired
     private ExpressionTraceLogInfoService traceLogInfoService;
@@ -95,7 +99,14 @@ public class DefaultMysqlTraceLogStorageService extends ServiceImpl<ExpressionTr
             traceLogInfo.setModuleType(expressionResultLogDTO.getResultType());
             traceLogInfo.setExpressionDescription(expressionResultLogDTO.getDescription());
             traceLogInfo.setTraceLogId(id);
-            traceLogInfo.setDebugTraceContent(getMiniString(Jsons.toJsonString(expressionResultLogDTO.getDebugTraceContent())));
+            // 空快照存 NULL（不再落 '{}'）；非空快照先按值截断拷贝再序列化，
+            // 避免携带业务大对象的快照整体序列化成巨型字符串后才截断
+            final Map<String, Object> debugContent = expressionResultLogDTO.getDebugTraceContent();
+            String debugJson = null;
+            if (debugContent != null && !debugContent.isEmpty()) {
+                debugJson = getMiniString(Jsons.toJsonString(TraceLogSanitizer.compactDebugMap(debugContent)));
+            }
+            traceLogInfo.setDebugTraceContent(debugJson);
             traceLogInfo.setExecutorId(expressionExecutorResultDTO.getExecutorId());
             // 结果构建
             final Object result = expressionResultLogDTO.getResult();
@@ -108,22 +119,26 @@ public class DefaultMysqlTraceLogStorageService extends ServiceImpl<ExpressionTr
             if (expressionLogTypeEnum == ExpressionLogTypeEnum.function) {
                 final FunctionApiModel functionApiModel = expressionResultLogDTO.getFunctionApiModel();
                 final List<Object> funcArgs = expressionResultLogDTO.getFuncArgs();
-                // 构建函数信息
+                // 构建函数信息（参数逐个短字符串化后拼接，防止大对象 toString 撑爆）
                 final String name = functionApiModel.getName();
-                final String param = StringUtils.join(funcArgs, ",");
-                String functionName = name + "(" + param + ")";
+                String functionName = name + "(" + TraceLogSanitizer.joinCompactArgs(funcArgs) + ")";
                 traceLogInfo.setExpressionContent(getMiniString(functionName));
                 if (StringUtils.isEmpty(expressionResultLogDTO.getDescription())) {
                     traceLogInfo.setExpressionDescription(functionApiModel.getDescribe());
                 }
             } else {
-                traceLogInfo.setExpressionContent(expressionResultLogDTO.getExpression());
+                // 表达式内容同样受长度上限约束（此前未截断，超长内容会超出字段上限）
+                traceLogInfo.setExpressionContent(getMiniString(expressionResultLogDTO.getExpression()));
                 traceLogInfo.setExpressionDescription(expressionResultLogDTO.getDescription());
             }
             saveInfoList.add(traceLogInfo);
         }
 
-        traceLogInfoService.saveBatch(saveInfoList);
+        // 分批落库，避免单事务批量过大
+        for (int start = 0; start < saveInfoList.size(); start += SAVE_BATCH_SIZE) {
+            final int end = Math.min(start + SAVE_BATCH_SIZE, saveInfoList.size());
+            traceLogInfoService.saveBatch(saveInfoList.subList(start, end));
+        }
     }
 
     @Override
